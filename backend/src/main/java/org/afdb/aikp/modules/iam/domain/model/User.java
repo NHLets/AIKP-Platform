@@ -130,4 +130,73 @@ public class User {
     public Instant getLastLogin() {
         return lastLogin;
     }
+
+    public void activate() {
+    if (status == UserStatus.ACTIVE) {
+        return;
+    }
+
+    status = UserStatus.ACTIVE;
+    touch();
+    }
+
+    public void deactivate() {
+    if (status == UserStatus.INACTIVE) {
+        return;
+    }
+
+    status = UserStatus.INACTIVE;
+    touch();
+    }
+
+    public void lock() {
+    if (status == UserStatus.LOCKED) {
+        return;
+    }
+
+    status = UserStatus.LOCKED;
+    touch();
+    }
+
+    public void unlock() {
+    if (status != UserStatus.LOCKED) {
+        return;
+    }
+
+    status = UserStatus.ACTIVE;
+    touch();
+    }
+
+    public void suspend() {
+    if (status == UserStatus.SUSPENDED) {
+        return;
+    }
+
+    status = UserStatus.SUSPENDED;
+    touch();
+    }
+
+    public void changePassword(PasswordHash passwordHash) {
+    this.passwordHash = Objects.requireNonNull(passwordHash);
+    touch();
+    }
+
+    public void changeFullName(FullName fullName) {
+    this.fullName = Objects.requireNonNull(fullName);
+    touch();
+    }
+
+    public void changeEmail(Email email) {
+    this.email = Objects.requireNonNull(email);
+    touch();
+    }
+
+    public void recordSuccessfulLogin() {
+    lastLogin = Instant.now();
+    touch();
+    }
+
+    private void touch() {
+    updatedAt = Instant.now();
+    }
 }
