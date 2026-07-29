@@ -1,6 +1,8 @@
 package org.afdb.aikp.modules.iam.domain.service;
 
 import org.afdb.aikp.modules.iam.domain.enums.UserStatus;
+import org.afdb.aikp.modules.iam.domain.exception.EmailAlreadyExistsException;
+import org.afdb.aikp.modules.iam.domain.exception.UsernameAlreadyExistsException;
 import org.afdb.aikp.modules.iam.domain.model.User;
 import org.afdb.aikp.modules.iam.domain.repository.UserRepository;
 import org.afdb.aikp.modules.iam.domain.valueobject.Email;
@@ -25,13 +27,11 @@ public class UserDomainService {
             PasswordHash passwordHash) {
 
         if (repository.existsByUsername(username)) {
-            throw new IllegalArgumentException(
-                    "Username already exists: " + username.value());
+            throw new UsernameAlreadyExistsException(username.value());
         }
 
         if (repository.existsByEmail(email)) {
-            throw new IllegalArgumentException(
-                    "Email already exists: " + email.value());
+            throw new EmailAlreadyExistsException(email.value());
         }
 
         User user = User.create(
