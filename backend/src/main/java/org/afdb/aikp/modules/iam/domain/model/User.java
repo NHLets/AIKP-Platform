@@ -1,6 +1,8 @@
 package org.afdb.aikp.modules.iam.domain.model;
 
 import org.afdb.aikp.modules.iam.domain.enums.UserStatus;
+import org.afdb.aikp.modules.iam.domain.exception.UserAlreadyActiveException;
+import org.afdb.aikp.modules.iam.domain.exception.UserAlreadyLockedException;
 import org.afdb.aikp.modules.iam.domain.valueobject.Email;
 import org.afdb.aikp.modules.iam.domain.valueobject.FullName;
 import org.afdb.aikp.modules.iam.domain.valueobject.PasswordHash;
@@ -131,9 +133,10 @@ public class User {
         return lastLogin;
     }
 
-    public void activate() {
+   public void activate() {
+
     if (status == UserStatus.ACTIVE) {
-        return;
+        throw UserAlreadyActiveException.withId(id.getValue());
     }
 
     status = UserStatus.ACTIVE;
@@ -151,7 +154,7 @@ public class User {
 
     public void lock() {
     if (status == UserStatus.LOCKED) {
-        return;
+        throw UserAlreadyLockedException.withId(id.getValue());
     }
 
     status = UserStatus.LOCKED;

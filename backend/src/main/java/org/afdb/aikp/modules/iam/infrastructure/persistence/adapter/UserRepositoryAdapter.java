@@ -1,5 +1,6 @@
 package org.afdb.aikp.modules.iam.infrastructure.persistence.adapter;
 
+import org.afdb.aikp.modules.iam.domain.enums.UserStatus;
 import org.afdb.aikp.modules.iam.domain.model.User;
 import org.afdb.aikp.modules.iam.domain.repository.UserRepository;
 import org.afdb.aikp.modules.iam.domain.valueobject.Email;
@@ -25,9 +26,11 @@ public class UserRepositoryAdapter implements UserRepository {
     @Override
     public User save(User user) {
 
-        UserEntity entity = UserPersistenceMapper.toEntity(user);
+        UserEntity entity =
+                UserPersistenceMapper.toEntity(user);
 
-        UserEntity saved = repository.save(entity);
+        UserEntity saved =
+                repository.save(entity);
 
         return UserPersistenceMapper.toDomain(saved);
     }
@@ -63,17 +66,35 @@ public class UserRepositoryAdapter implements UserRepository {
     }
 
     @Override
+    public List<User> findByStatus(UserStatus status) {
+
+        return repository.findByStatus(status)
+                .stream()
+                .map(UserPersistenceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public boolean existsById(UserId id) {
+
+        return repository.existsById(id.getValue());
+    }
+
+    @Override
     public boolean existsByUsername(Username username) {
+
         return repository.existsByUsername(username.value());
     }
 
     @Override
     public boolean existsByEmail(Email email) {
+
         return repository.existsByEmail(email.value());
     }
 
     @Override
     public void delete(UserId id) {
+
         repository.deleteById(id.getValue());
     }
 }

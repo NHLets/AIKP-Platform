@@ -1,6 +1,7 @@
 package org.afdb.aikp.modules.iam.application.mapper;
 
 import org.afdb.aikp.modules.iam.application.response.UserResponse;
+import org.afdb.aikp.modules.iam.application.response.UserSummary;
 import org.afdb.aikp.modules.iam.domain.model.User;
 
 import java.util.List;
@@ -28,4 +29,21 @@ public final class UserApplicationMapper {
                 .map(UserApplicationMapper::toResponse)
                 .toList();
     }
+
+    public static UserSummary toSummary(User user) {
+    return new UserSummary(
+            user.getId().getValue(),
+            user.getUsername().value(),
+            user.getFullName().value(),
+            user.getEmail().value(),
+            user.getStatus()
+    );
+    }
+
+    public static List<UserSummary> toSummaryList(List<User> users) {
+    return users.stream()
+            .map(UserApplicationMapper::toSummary)
+            .toList();
+    }
+
 }
