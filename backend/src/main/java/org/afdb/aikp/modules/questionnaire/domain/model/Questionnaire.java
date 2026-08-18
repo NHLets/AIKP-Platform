@@ -11,6 +11,7 @@ import org.afdb.aikp.modules.questionnaire.domain.valueobject.QuestionnaireVersi
 import org.afdb.aikp.shared.domain.AggregateRoot;
 
 import java.util.Objects;
+import org.afdb.aikp.modules.questionnaire.domain.exception.QuestionnaireLifecycleException;
 
 /**
  * Aggregate Root representing a Questionnaire.
@@ -170,7 +171,7 @@ public class Questionnaire extends AggregateRoot<QuestionnaireId> {
     public void submitForReview() {
 
         if (status != QuestionnaireStatus.DRAFT) {
-            throw new IllegalStateException(
+            throw new QuestionnaireLifecycleException(
                     "Only draft questionnaires can be submitted for review.");
         }
 
@@ -180,7 +181,7 @@ public class Questionnaire extends AggregateRoot<QuestionnaireId> {
     public void approve() {
 
         if (status != QuestionnaireStatus.UNDER_REVIEW) {
-            throw new IllegalStateException(
+            throw new QuestionnaireLifecycleException(
                     "Only questionnaires under review can be approved.");
         }
 
@@ -190,7 +191,7 @@ public class Questionnaire extends AggregateRoot<QuestionnaireId> {
     public void publish() {
 
         if (status != QuestionnaireStatus.APPROVED) {
-            throw new IllegalStateException(
+            throw new QuestionnaireLifecycleException(
                     "Only approved questionnaires can be published.");
         }
 
@@ -199,6 +200,7 @@ public class Questionnaire extends AggregateRoot<QuestionnaireId> {
 
     public void archive() {
         status = QuestionnaireStatus.ARCHIVED;
+        active = false;
     }
 
     public void activate() {

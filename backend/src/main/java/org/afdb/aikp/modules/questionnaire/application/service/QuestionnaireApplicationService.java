@@ -27,6 +27,8 @@ import org.afdb.aikp.modules.questionnaire.application.query.GetQuestionnaireQue
 import org.afdb.aikp.modules.questionnaire.application.query.GetQuestionnairesQuery;
 import org.afdb.aikp.modules.questionnaire.application.response.QuestionnaireSummary;
 import org.afdb.aikp.modules.questionnaire.domain.enums.QuestionnaireStatus;
+import org.afdb.aikp.modules.questionnaire.application.command.SubmitQuestionnaireForReviewCommand;
+import org.afdb.aikp.modules.questionnaire.application.command.ApproveQuestionnaireCommand;
 
 import java.util.List;
 @Service
@@ -101,7 +103,40 @@ public class QuestionnaireApplicationService {
 
         return QuestionnaireApplicationMapper.toResponse(questionnaire);
     }
+
     /**
+ * Submits a questionnaire for review.
+ */
+        public QuestionnaireResponse submitForReview(
+        SubmitQuestionnaireForReviewCommand command) {
+
+    Questionnaire questionnaire =
+            findByIdOrThrow(command.id());
+
+    questionnaire.submitForReview();
+
+    repository.save(questionnaire);
+
+    return QuestionnaireApplicationMapper.toResponse(questionnaire);
+        }
+
+    /**
+ * Approves a questionnaire that is under review.
+ */
+        public QuestionnaireResponse approve(
+        ApproveQuestionnaireCommand command) {
+
+    Questionnaire questionnaire =
+            findByIdOrThrow(command.id());
+
+    questionnaire.approve();
+
+    repository.save(questionnaire);
+
+    return QuestionnaireApplicationMapper.toResponse(questionnaire);
+        }
+
+        /**
      * Activates a questionnaire.
      */
     public QuestionnaireResponse activate(

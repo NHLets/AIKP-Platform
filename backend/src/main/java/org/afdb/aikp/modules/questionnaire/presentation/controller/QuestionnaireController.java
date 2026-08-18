@@ -26,6 +26,8 @@ import org.afdb.aikp.modules.questionnaire.presentation.request.UpdateQuestionna
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.afdb.aikp.modules.questionnaire.application.command.SubmitQuestionnaireForReviewCommand;
+import org.afdb.aikp.modules.questionnaire.application.command.ApproveQuestionnaireCommand;
 
 import java.net.URI;
 import java.util.List;
@@ -84,7 +86,7 @@ public class QuestionnaireController implements QuestionnaireApi {
             @Parameter(
                     name = "id",
                     required = true)
-            @PathVariable UUID id) {
+            @PathVariable("id") UUID id) {
 
         return ResponseEntity.ok(
         applicationService.getById(
@@ -126,7 +128,7 @@ public class QuestionnaireController implements QuestionnaireApi {
     @Operation(summary = "Update a questionnaire")
     public ResponseEntity<QuestionnaireResponse> update(
 
-            @PathVariable UUID id,
+            @PathVariable("id") UUID id,
 
             @Valid
             @RequestBody
@@ -138,11 +140,32 @@ public class QuestionnaireController implements QuestionnaireApi {
     }
 
     @Override
+        @PatchMapping("/{id}/submit-for-review")
+        @Operation(summary = "Submit a questionnaire for review")
+        public ResponseEntity<QuestionnaireResponse> submitForReview(
+        @PathVariable("id") UUID id) {
+
+        return ResponseEntity.ok(
+            applicationService.submitForReview(
+                    new SubmitQuestionnaireForReviewCommand(id)));
+        }
+
+        @PatchMapping("/{id}/approve")
+        @Operation(summary = "Approve a questionnaire")
+        public ResponseEntity<QuestionnaireResponse> approve(
+        @PathVariable("id") UUID id) {
+
+        return ResponseEntity.ok(
+            applicationService.approve(
+                    new ApproveQuestionnaireCommand(id)));
+}
+
+    @Override
     @PatchMapping("/{id}/activate")
     @Operation(summary = "Activate a questionnaire")
     public ResponseEntity<QuestionnaireResponse> activate(
 
-            @PathVariable UUID id) {
+            @PathVariable("id") UUID id) {
 
         return ResponseEntity.ok(
                 applicationService.activate(
@@ -154,7 +177,7 @@ public class QuestionnaireController implements QuestionnaireApi {
     @Operation(summary = "Deactivate a questionnaire")
     public ResponseEntity<QuestionnaireResponse> deactivate(
 
-            @PathVariable UUID id) {
+            @PathVariable("id") UUID id) {
 
         return ResponseEntity.ok(
                 applicationService.deactivate(
@@ -166,7 +189,7 @@ public class QuestionnaireController implements QuestionnaireApi {
     @Operation(summary = "Publish a questionnaire")
     public ResponseEntity<QuestionnaireResponse> publish(
 
-            @PathVariable UUID id) {
+            @PathVariable("id") UUID id) {
 
         return ResponseEntity.ok(
                 applicationService.publish(
@@ -178,7 +201,7 @@ public class QuestionnaireController implements QuestionnaireApi {
     @Operation(summary = "Archive a questionnaire")
     public ResponseEntity<QuestionnaireResponse> archive(
 
-            @PathVariable UUID id) {
+            @PathVariable("id") UUID id) {
 
         return ResponseEntity.ok(
                 applicationService.archive(
@@ -190,7 +213,7 @@ public class QuestionnaireController implements QuestionnaireApi {
     @Operation(summary = "Delete a questionnaire")
     public ResponseEntity<Void> delete(
 
-            @PathVariable UUID id) {
+            @PathVariable("id") UUID id) {
 
         applicationService.delete(
                 new DeleteQuestionnaireCommand(id));

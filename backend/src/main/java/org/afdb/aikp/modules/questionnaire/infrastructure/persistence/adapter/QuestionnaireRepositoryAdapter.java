@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 import java.util.Objects;
+import java.util.UUID;
 
 @Repository
 public class QuestionnaireRepositoryAdapter implements QuestionnaireRepository {
@@ -31,14 +32,27 @@ public class QuestionnaireRepositoryAdapter implements QuestionnaireRepository {
     @Override
     public Questionnaire save(Questionnaire questionnaire) {
 
-        QuestionnaireEntity entity = mapper.toEntity(questionnaire);
-        
-        if (entity == null) {
-            throw new IllegalStateException("Failed to map Questionnaire to entity.");
-}
-        QuestionnaireEntity saved = jpaRepository.save(entity);
+    Objects.requireNonNull(
+            questionnaire,
+            "Questionnaire cannot be null.");
 
-        return mapper.toDomain(saved);
+    UUID id = questionnaire.getId().getValue();
+
+    QuestionnaireEntity entity =
+            jpaRepository.findById(id)
+                    .map(existingEntity -> {
+                        mapper.updateEntity(
+                                questionnaire,
+                                existingEntity);
+                        return existingEntity;
+                    })
+                    .orElseGet(() ->
+                            mapper.toEntity(questionnaire));
+
+    QuestionnaireEntity saved =
+            jpaRepository.save(entity);
+
+    return mapper.toDomain(saved);
     }
 
     @Override

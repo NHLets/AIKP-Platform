@@ -31,6 +31,11 @@ public interface QuestionnaireApi {
             UUID id,
             @Valid UpdateQuestionnaireRequest request);
 
+    ResponseEntity<QuestionnaireResponse> submitForReview(
+            UUID id);
+
+    ResponseEntity<QuestionnaireResponse> approve(
+            UUID id);
     ResponseEntity<QuestionnaireResponse> activate(
             UUID id);
 
