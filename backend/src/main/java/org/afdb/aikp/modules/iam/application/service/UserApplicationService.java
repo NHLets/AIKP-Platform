@@ -52,9 +52,7 @@ public class UserApplicationService {
                 passwordHash
         );
 
-        User saved = userRepository.save(user);
-
-        return UserApplicationMapper.toResponse(saved);
+        return UserApplicationMapper.toResponse(user);
     }
 
     @Transactional(readOnly = true)
