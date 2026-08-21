@@ -183,7 +183,7 @@ public class OrganizationController implements OrganizationApi {
                     name = "type",
                     description = "Organization type",
                     required = true,
-                    example = "DEVELOPMENT_PARTNER")
+                    example = "GOVERNMENT_AGENCY")
             @PathVariable("type")
             String type) {
 

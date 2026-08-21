@@ -1,37 +1,42 @@
 package org.afdb.aikp.modules.organization.domain.valueobject;
 
-import org.afdb.aikp.shared.domain.ValueObject;
+import java.util.Objects;
 
 /**
- * Name of an Organization.
+ * Value object representing the name
+ * of an Organization.
  */
-public final class OrganizationName extends ValueObject<String> {
+public record OrganizationName(String value) {
 
-    private OrganizationName(String value) {
-        super(normalize(value));
+    private static final int MAX_LENGTH = 255;
+
+    public OrganizationName {
+        Objects.requireNonNull(
+                value,
+                "Organization name must not be null"
+        );
+
+        value = value.trim();
+
+        if (value.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Organization name must not be blank"
+            );
+        }
+
+        if (value.length() > MAX_LENGTH) {
+            throw new IllegalArgumentException(
+                    "Organization name must not exceed "
+                            + MAX_LENGTH + " characters"
+            );
+        }
     }
 
-    /**
-     * Creates an OrganizationName.
-     */
     public static OrganizationName of(String value) {
         return new OrganizationName(value);
     }
 
-    private static String normalize(String value) {
-
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Organization name cannot be null or blank.");
-        }
-
-        value = value.trim();
-
-        if (value.length() > 255) {
-            throw new IllegalArgumentException(
-                    "Organization name cannot exceed 255 characters.");
-        }
-
+    public String getValue() {
         return value;
     }
 }

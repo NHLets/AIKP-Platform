@@ -29,9 +29,11 @@ public final class CampaignCode extends ValueObject<String> {
                     "Campaign code cannot exceed 50 characters.");
         }
 
-        if (!value.matches("[A-Z0-9_]+")) {
+        if (!value.matches("[A-Z0-9][A-Z0-9_-]*")) {
             throw new IllegalArgumentException(
-                    "Campaign code may contain only uppercase letters, digits and underscores.");
+                    "Campaign code must start with an uppercase letter or digit "
+                            + "and may contain only uppercase letters, digits, "
+                            + "hyphens and underscores.");
         }
 
         return value;

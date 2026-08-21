@@ -4,7 +4,7 @@ import org.afdb.aikp.modules.country.domain.valueobject.CountryId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationCode;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationName;
-import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationType;
+import org.afdb.aikp.modules.organization.domain.enums.OrganizationType;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -23,7 +23,7 @@ class OrganizationTest {
                 OrganizationId.generate(),
                 OrganizationCode.of("AFDB"),
                 OrganizationName.of("African Development Bank"),
-                OrganizationType.DEVELOPMENT_PARTNER,
+                OrganizationType.GOVERNMENT_AGENCY,
                 COUNTRY_ID
         );
     }
@@ -38,7 +38,7 @@ class OrganizationTest {
         assertThat(organization.getName().getValue())
                 .isEqualTo("African Development Bank");
         assertThat(organization.getType())
-                .isEqualTo(OrganizationType.DEVELOPMENT_PARTNER);
+                .isEqualTo(OrganizationType.GOVERNMENT_AGENCY);
         assertThat(organization.getCountryId())
                 .isEqualTo(COUNTRY_ID);
         assertThat(organization.isActive()).isTrue();
@@ -54,7 +54,7 @@ class OrganizationTest {
                 OrganizationCode.of("COMESA"),
                 OrganizationName.of(
                         "Common Market for Eastern and Southern Africa"),
-                OrganizationType.REGIONAL_ORGANIZATION,
+                OrganizationType.MINISTRY,
                 COUNTRY_ID,
                 false
         );
@@ -93,10 +93,10 @@ class OrganizationTest {
         Organization organization = createOrganization();
 
         organization.changeType(
-                OrganizationType.REGIONAL_ORGANIZATION);
+                OrganizationType.MINISTRY);
 
         assertThat(organization.getType())
-                .isEqualTo(OrganizationType.REGIONAL_ORGANIZATION);
+                .isEqualTo(OrganizationType.MINISTRY);
     }
 
     @Test
@@ -141,7 +141,7 @@ class OrganizationTest {
                         OrganizationId.generate(),
                         null,
                         OrganizationName.of("Test Organization"),
-                        OrganizationType.OTHER,
+                        OrganizationType.REGULATOR,
                         COUNTRY_ID
                 ))
                 .isInstanceOf(NullPointerException.class);
@@ -155,7 +155,7 @@ class OrganizationTest {
                         OrganizationId.generate(),
                         OrganizationCode.of("TEST"),
                         null,
-                        OrganizationType.OTHER,
+                        OrganizationType.REGULATOR,
                         COUNTRY_ID
                 ))
                 .isInstanceOf(NullPointerException.class);
@@ -183,7 +183,7 @@ class OrganizationTest {
                         OrganizationId.generate(),
                         OrganizationCode.of("TEST"),
                         OrganizationName.of("Test Organization"),
-                        OrganizationType.OTHER,
+                        OrganizationType.REGULATOR,
                         null
                 ))
                 .isInstanceOf(NullPointerException.class);

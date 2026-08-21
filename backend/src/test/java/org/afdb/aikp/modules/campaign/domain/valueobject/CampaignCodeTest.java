@@ -8,9 +8,9 @@ class CampaignCodeTest {
 
     @Test
     void shouldNormalizeCode() {
-        CampaignCode code = CampaignCode.of("  aikp_2026  ");
+        CampaignCode code = CampaignCode.of("  aikp-2026  ");
 
-        assertEquals("AIKP_2026", code.getValue());
+        assertEquals("AIKP-2026", code.getValue());
     }
 
     @Test
@@ -40,17 +40,54 @@ class CampaignCodeTest {
     }
 
     @Test
-    void shouldRejectInvalidCharacters() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> CampaignCode.of("AIKP-2026")
+    void shouldAcceptHyphenInCode() {
+        CampaignCode code = CampaignCode.of("AIKP-2026");
+
+        assertEquals("AIKP-2026", code.getValue());
+    }
+
+    @Test
+    void shouldAcceptLettersDigitsUnderscoresAndHyphens() {
+        CampaignCode code =
+                CampaignCode.of("AIKP_POWER-2026_01");
+
+        assertEquals(
+                "AIKP_POWER-2026_01",
+                code.getValue()
         );
     }
 
     @Test
-    void shouldAcceptLettersDigitsAndUnderscores() {
-        CampaignCode code = CampaignCode.of("AIKP_2026_01");
+    void shouldRejectInvalidCharacters() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> CampaignCode.of("AIKP 2026")
+        );
 
-        assertEquals("AIKP_2026_01", code.getValue());
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> CampaignCode.of("AIKP/2026")
+        );
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> CampaignCode.of("AIKP@2026")
+        );
+    }
+
+    @Test
+    void shouldRejectCodeStartingWithHyphen() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> CampaignCode.of("-AIKP2026")
+        );
+    }
+
+    @Test
+    void shouldRejectCodeStartingWithUnderscore() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> CampaignCode.of("_AIKP2026")
+        );
     }
 }

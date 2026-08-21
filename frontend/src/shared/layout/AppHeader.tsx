@@ -1,52 +1,83 @@
 import MenuIcon from "@mui/icons-material/Menu";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
+import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+
 import {
     AppBar,
-    Box,
     IconButton,
     Toolbar,
     Tooltip,
     Typography,
 } from "@mui/material";
 
-import type { AppHeaderProps } from "./Layout.types";
+interface AppHeaderProps {
+    title?: string;
+    onMenuClick?: () => void;
+}
 
 export default function AppHeader({
-    title = "AIKP Portal",
+    title = "AIKP Platform",
+    onMenuClick,
 }: AppHeaderProps) {
     return (
         <AppBar
             position="sticky"
             elevation={1}
         >
-            <Toolbar>
+            <Toolbar
+                sx={{
+                    minHeight: {
+                        xs: 64,
+                        md: 72,
+                    },
+                }}
+            >
                 <IconButton
                     edge="start"
                     color="inherit"
                     aria-label="Open navigation menu"
-                    sx={{ mr: 2 }}
+                    onClick={onMenuClick}
+                    sx={{
+                        mr: 2,
+                        display: {
+                            xs: "inline-flex",
+                            md: "none",
+                        },
+                    }}
                 >
                     <MenuIcon />
                 </IconButton>
 
                 <Typography
                     variant="h6"
-                    component="h1"
-                    sx={{ flexGrow: 1 }}
+                    component="div"
+                    sx={{
+                        fontWeight: 700,
+                        letterSpacing: 0.3,
+                        flexGrow: 1,
+                    }}
                 >
                     {title}
                 </Typography>
 
-                <Box>
-                    <Tooltip title="User account">
-                        <IconButton
-                            color="inherit"
-                            aria-label="User account"
-                        >
-                            <AccountCircleIcon />
-                        </IconButton>
-                    </Tooltip>
-                </Box>
+                <Tooltip title="Notifications">
+                    <IconButton
+                        color="inherit"
+                        aria-label="Notifications"
+                    >
+                        <NotificationsNoneOutlinedIcon />
+                    </IconButton>
+                </Tooltip>
+
+                <Tooltip title="User account">
+                    <IconButton
+                        color="inherit"
+                        aria-label="User account"
+                        sx={{ ml: 1 }}
+                    >
+                        <AccountCircleOutlinedIcon />
+                    </IconButton>
+                </Tooltip>
             </Toolbar>
         </AppBar>
     );

@@ -9,7 +9,7 @@ import org.afdb.aikp.modules.organization.infrastructure.persistence.entity.Orga
 import org.afdb.aikp.modules.organization.infrastructure.persistence.mapper.OrganizationPersistenceMapper;
 import org.afdb.aikp.modules.organization.infrastructure.persistence.repository.OrganizationJpaRepository;
 import org.springframework.stereotype.Repository;
-import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationType;
+import org.afdb.aikp.modules.organization.domain.enums.OrganizationType;
 
 import java.util.List;
 import java.util.Optional;

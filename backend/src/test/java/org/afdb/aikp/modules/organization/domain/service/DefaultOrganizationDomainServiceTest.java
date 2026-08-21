@@ -7,7 +7,7 @@ import org.afdb.aikp.modules.organization.domain.repository.OrganizationReposito
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationCode;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationName;
-import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationType;
+import org.afdb.aikp.modules.organization.domain.enums.OrganizationType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -106,7 +106,7 @@ class DefaultOrganizationDomainServiceTest {
                 organizationId,
                 code,
                 OrganizationName.of("African Development Bank"),
-                OrganizationType.DEVELOPMENT_PARTNER,
+                OrganizationType.GOVERNMENT_AGENCY,
                 CountryId.generate(),
                 true
         );
@@ -137,7 +137,7 @@ class DefaultOrganizationDomainServiceTest {
                 otherOrganizationId,
                 code,
                 OrganizationName.of("African Development Bank"),
-                OrganizationType.DEVELOPMENT_PARTNER,
+                OrganizationType.GOVERNMENT_AGENCY,
                 CountryId.generate(),
                 true
         );

@@ -4,7 +4,7 @@ import org.afdb.aikp.modules.country.domain.valueobject.CountryId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationCode;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationName;
-import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationType;
+import org.afdb.aikp.modules.organization.domain.enums.OrganizationType;
 import org.afdb.aikp.shared.domain.AggregateRoot;
 
 import java.util.Objects;

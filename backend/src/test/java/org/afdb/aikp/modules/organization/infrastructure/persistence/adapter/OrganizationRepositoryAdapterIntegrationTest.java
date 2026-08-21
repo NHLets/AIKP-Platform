@@ -6,7 +6,7 @@ import org.afdb.aikp.modules.organization.domain.repository.OrganizationReposito
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationCode;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationName;
-import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationType;
+import org.afdb.aikp.modules.organization.domain.enums.OrganizationType;
 import org.afdb.aikp.modules.organization.infrastructure.persistence.repository.OrganizationJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -116,7 +116,7 @@ class OrganizationRepositoryAdapterIntegrationTest {
                 result.get().getName().getValue());
 
         assertEquals(
-                OrganizationType.DEVELOPMENT_PARTNER,
+                OrganizationType.GOVERNMENT_AGENCY,
                 result.get().getType());
 
         assertEquals(
@@ -174,7 +174,7 @@ class OrganizationRepositoryAdapterIntegrationTest {
 
         List<Organization> result =
                 adapter.findByType(
-                        OrganizationType.DEVELOPMENT_PARTNER);
+                        OrganizationType.GOVERNMENT_AGENCY);
 
         assertEquals(1, result.size());
 
@@ -195,7 +195,7 @@ class OrganizationRepositoryAdapterIntegrationTest {
                         OrganizationCode.of("COMESA"),
                         OrganizationName.of(
                                 "Common Market for Eastern and Southern Africa"),
-                        OrganizationType.REGIONAL_ORGANIZATION,
+                        OrganizationType.MINISTRY,
                         countryId(),
                         true);
 
@@ -220,7 +220,7 @@ class OrganizationRepositoryAdapterIntegrationTest {
                         OrganizationCode.of("COMESA"),
                         OrganizationName.of(
                                 "Common Market for Eastern and Southern Africa"),
-                        OrganizationType.REGIONAL_ORGANIZATION,
+                        OrganizationType.MINISTRY,
                         countryId(),
                         false);
 
@@ -301,7 +301,7 @@ class OrganizationRepositoryAdapterIntegrationTest {
                 OrganizationCode.of("AFDB"),
                 OrganizationName.of(
                         "African Development Bank"),
-                OrganizationType.DEVELOPMENT_PARTNER,
+                OrganizationType.GOVERNMENT_AGENCY,
                 countryId(),
                 true);
     }

@@ -13,6 +13,16 @@ import java.util.Objects;
 
 /**
  * Aggregate Root representing an AIKP data collection Campaign.
+ *
+ * <p>The Campaign lifecycle is strictly controlled by the following
+ * transitions:</p>
+ *
+ * <pre>
+ * DRAFT -> PLANNED -> ACTIVE -> COMPLETED -> ARCHIVED
+ * </pre>
+ *
+ * <p>The Campaign status is the single source of truth for its lifecycle
+ * state. There is deliberately no separate {@code active} flag.</p>
  */
 public class Campaign extends AggregateRoot<CampaignId> {
 
@@ -28,8 +38,6 @@ public class Campaign extends AggregateRoot<CampaignId> {
 
     private CampaignStatus status;
 
-    private boolean active;
-
     private Campaign(
             CampaignId id,
             CampaignCode code,
@@ -37,8 +45,7 @@ public class Campaign extends AggregateRoot<CampaignId> {
             CampaignDescription description,
             LocalDate startDate,
             LocalDate endDate,
-            CampaignStatus status,
-            boolean active) {
+            CampaignStatus status) {
 
         super(Objects.requireNonNull(
                 id,
@@ -67,12 +74,13 @@ public class Campaign extends AggregateRoot<CampaignId> {
         this.status = Objects.requireNonNull(
                 status,
                 "Campaign status cannot be null.");
-
-        this.active = active;
     }
 
     /**
      * Creates a new Campaign.
+     *
+     * <p>A newly created Campaign always starts in {@link CampaignStatus#DRAFT}.
+     * </p>
      */
     public static Campaign create(
             CampaignCode code,
@@ -90,8 +98,7 @@ public class Campaign extends AggregateRoot<CampaignId> {
                 description,
                 startDate,
                 endDate,
-                CampaignStatus.DRAFT,
-                true);
+                CampaignStatus.DRAFT);
     }
 
     /**
@@ -104,8 +111,7 @@ public class Campaign extends AggregateRoot<CampaignId> {
             CampaignDescription description,
             LocalDate startDate,
             LocalDate endDate,
-            CampaignStatus status,
-            boolean active) {
+            CampaignStatus status) {
 
         validateDates(startDate, endDate);
 
@@ -116,16 +122,22 @@ public class Campaign extends AggregateRoot<CampaignId> {
                 description,
                 startDate,
                 endDate,
-                status,
-                active);
+                status);
     }
 
+    /**
+     * Changes the Campaign name.
+     */
     public void rename(CampaignName newName) {
+
         this.name = Objects.requireNonNull(
                 newName,
                 "Campaign name cannot be null.");
     }
 
+    /**
+     * Changes the Campaign description.
+     */
     public void changeDescription(
             CampaignDescription newDescription) {
 
@@ -134,9 +146,20 @@ public class Campaign extends AggregateRoot<CampaignId> {
                 "Campaign description cannot be null.");
     }
 
+    /**
+     * Changes the Campaign period.
+     *
+     * <p>The period can only be changed while the Campaign is in
+     * {@link CampaignStatus#DRAFT} or {@link CampaignStatus#PLANNED}.</p>
+     *
+     * @throws CampaignLifecycleException if the Campaign is already
+     *         ACTIVE, COMPLETED or ARCHIVED
+     */
     public void changePeriod(
             LocalDate newStartDate,
             LocalDate newEndDate) {
+
+        ensurePeriodCanBeChanged();
 
         validateDates(newStartDate, newEndDate);
 
@@ -144,6 +167,9 @@ public class Campaign extends AggregateRoot<CampaignId> {
         this.endDate = newEndDate;
     }
 
+    /**
+     * Moves the Campaign from DRAFT to PLANNED.
+     */
     public void plan() {
 
         if (status != CampaignStatus.DRAFT) {
@@ -154,6 +180,9 @@ public class Campaign extends AggregateRoot<CampaignId> {
         status = CampaignStatus.PLANNED;
     }
 
+    /**
+     * Moves the Campaign from PLANNED to ACTIVE.
+     */
     public void activate() {
 
         if (status != CampaignStatus.PLANNED) {
@@ -162,9 +191,11 @@ public class Campaign extends AggregateRoot<CampaignId> {
         }
 
         status = CampaignStatus.ACTIVE;
-        active = true;
     }
 
+    /**
+     * Moves the Campaign from ACTIVE to COMPLETED.
+     */
     public void complete() {
 
         if (status != CampaignStatus.ACTIVE) {
@@ -173,9 +204,11 @@ public class Campaign extends AggregateRoot<CampaignId> {
         }
 
         status = CampaignStatus.COMPLETED;
-        active = false;
     }
 
+    /**
+     * Moves the Campaign from COMPLETED to ARCHIVED.
+     */
     public void archive() {
 
         if (status != CampaignStatus.COMPLETED) {
@@ -184,13 +217,35 @@ public class Campaign extends AggregateRoot<CampaignId> {
         }
 
         status = CampaignStatus.ARCHIVED;
-        active = false;
     }
 
-    public void deactivate() {
-        active = false;
+    /**
+     * Returns whether the Campaign is currently active.
+     *
+     * <p>The value is derived exclusively from the Campaign status.
+     * There is no independent active flag.</p>
+     */
+    public boolean isActive() {
+        return status == CampaignStatus.ACTIVE;
     }
 
+    /**
+     * Ensures that the Campaign period can still be modified.
+     */
+    private void ensurePeriodCanBeChanged() {
+
+        if (status != CampaignStatus.DRAFT
+                && status != CampaignStatus.PLANNED) {
+
+            throw new CampaignLifecycleException(
+                    "Campaign period can only be changed "
+                            + "while the campaign is draft or planned.");
+        }
+    }
+
+    /**
+     * Validates the Campaign period.
+     */
     private static void validateDates(
             LocalDate startDate,
             LocalDate endDate) {
@@ -231,9 +286,5 @@ public class Campaign extends AggregateRoot<CampaignId> {
 
     public CampaignStatus getStatus() {
         return status;
-    }
-
-    public boolean isActive() {
-        return active;
     }
 }

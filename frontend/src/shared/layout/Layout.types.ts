@@ -1,16 +1,15 @@
-import type { ReactNode } from "react";
-
 export interface AppLayoutProps {
-    children: ReactNode;
 }
 
 export interface AppHeaderProps {
     title?: string;
+    onMenuClick?: () => void;
 }
 
 export interface AppSidebarProps {
     open: boolean;
     onClose: () => void;
+    width?: number;
 }
 
 export interface AppFooterProps {

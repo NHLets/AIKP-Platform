@@ -1,37 +1,42 @@
 package org.afdb.aikp.modules.organization.domain.valueobject;
 
-import org.afdb.aikp.shared.domain.ValueObject;
+import java.util.Objects;
 
 /**
- * Business code identifying an Organization.
+ * Value object representing the business code
+ * of an Organization.
  */
-public final class OrganizationCode extends ValueObject<String> {
+public record OrganizationCode(String value) {
 
-    private OrganizationCode(String value) {
-        super(normalize(value));
+    private static final int MAX_LENGTH = 50;
+
+    public OrganizationCode {
+        Objects.requireNonNull(
+                value,
+                "Organization code must not be null"
+        );
+
+        value = value.trim();
+
+        if (value.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Organization code must not be blank"
+            );
+        }
+
+        if (value.length() > MAX_LENGTH) {
+            throw new IllegalArgumentException(
+                    "Organization code must not exceed "
+                            + MAX_LENGTH + " characters"
+            );
+        }
     }
 
-    /**
-     * Creates an OrganizationCode.
-     */
     public static OrganizationCode of(String value) {
         return new OrganizationCode(value);
     }
 
-    private static String normalize(String value) {
-
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Organization code cannot be null or blank.");
-        }
-
-        value = value.trim().toUpperCase();
-
-        if (value.length() > 50) {
-            throw new IllegalArgumentException(
-                    "Organization code cannot exceed 50 characters.");
-        }
-
+    public String getValue() {
         return value;
     }
 }

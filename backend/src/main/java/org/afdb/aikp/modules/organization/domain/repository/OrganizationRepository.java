@@ -3,7 +3,7 @@ package org.afdb.aikp.modules.organization.domain.repository;
 import org.afdb.aikp.modules.organization.domain.model.Organization;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationCode;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
-import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationType;
+import org.afdb.aikp.modules.organization.domain.enums.OrganizationType;
 import org.afdb.aikp.modules.country.domain.valueobject.CountryId;
 
 import java.util.List;

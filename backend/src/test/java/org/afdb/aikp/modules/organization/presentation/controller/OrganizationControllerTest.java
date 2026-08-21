@@ -59,7 +59,7 @@ class OrganizationControllerTest {
                 new CreateOrganizationRequest(
                         "AFDB",
                         "African Development Bank",
-                        "DEVELOPMENT_PARTNER",
+                        "MINISTRY",
                         countryId);
 
         OrganizationResponse response =
@@ -67,7 +67,7 @@ class OrganizationControllerTest {
                         id,
                         "AFDB",
                         "African Development Bank",
-                        "DEVELOPMENT_PARTNER",
+                        "MINISTRY",
                         countryId,
                         true);
 
@@ -87,7 +87,7 @@ class OrganizationControllerTest {
                 .andExpect(jsonPath("$.name")
                         .value("African Development Bank"))
                 .andExpect(jsonPath("$.type")
-                        .value("DEVELOPMENT_PARTNER"))
+                        .value("MINISTRY"))
                 .andExpect(jsonPath("$.countryId")
                         .value(countryId.toString()))
                 .andExpect(jsonPath("$.active").value(true));
@@ -104,7 +104,7 @@ class OrganizationControllerTest {
                         id,
                         "AFDB",
                         "African Development Bank",
-                        "DEVELOPMENT_PARTNER",
+                        "MINISTRY",
                         countryId,
                         true);
 
@@ -119,7 +119,7 @@ class OrganizationControllerTest {
                 .andExpect(jsonPath("$.name")
                         .value("African Development Bank"))
                 .andExpect(jsonPath("$.type")
-                        .value("DEVELOPMENT_PARTNER"))
+                        .value("MINISTRY"))
                 .andExpect(jsonPath("$.countryId")
                         .value(countryId.toString()));
     }
@@ -135,7 +135,7 @@ class OrganizationControllerTest {
                         id,
                         "AFDB",
                         "African Development Bank",
-                        "DEVELOPMENT_PARTNER",
+                        "MINISTRY",
                         countryId,
                         true);
 
@@ -150,7 +150,7 @@ class OrganizationControllerTest {
                 .andExpect(jsonPath("$[0].code")
                         .value("AFDB"))
                 .andExpect(jsonPath("$[0].type")
-                        .value("DEVELOPMENT_PARTNER"))
+                        .value("MINISTRY"))
                 .andExpect(jsonPath("$[0].countryId")
                         .value(countryId.toString()));
     }
@@ -166,7 +166,7 @@ class OrganizationControllerTest {
                         id,
                         "AFDB",
                         "African Development Bank",
-                        "DEVELOPMENT_PARTNER",
+                        "MINISTRY",
                         countryId,
                         true);
 
@@ -195,7 +195,7 @@ class OrganizationControllerTest {
                         id,
                         "AFDB",
                         "African Development Bank",
-                        "DEVELOPMENT_PARTNER",
+                        "MINISTRY",
                         countryId,
                         true);
 
@@ -226,7 +226,7 @@ class OrganizationControllerTest {
                         id,
                         "AFDB",
                         "African Development Bank",
-                        "DEVELOPMENT_PARTNER",
+                        "MINISTRY",
                         countryId,
                         true);
 
@@ -236,14 +236,14 @@ class OrganizationControllerTest {
         mockMvc.perform(
                         get(
                                 "/api/v1/organizations/by-type/{type}",
-                                "DEVELOPMENT_PARTNER"))
+                                "MINISTRY"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id")
                         .value(id.toString()))
                 .andExpect(jsonPath("$[0].code")
                         .value("AFDB"))
                 .andExpect(jsonPath("$[0].type")
-                        .value("DEVELOPMENT_PARTNER"));
+                        .value("MINISTRY"));
     }
 
     @Test
@@ -256,7 +256,7 @@ class OrganizationControllerTest {
                 new UpdateOrganizationRequest(
                         "AFDB",
                         "African Development Bank",
-                        "DEVELOPMENT_PARTNER",
+                        "MINISTRY",
                         countryId);
 
         OrganizationResponse response =
@@ -264,7 +264,7 @@ class OrganizationControllerTest {
                         id,
                         "AFDB",
                         "African Development Bank",
-                        "DEVELOPMENT_PARTNER",
+                        "MINISTRY",
                         countryId,
                         true);
 
@@ -297,7 +297,7 @@ class OrganizationControllerTest {
                         id,
                         "AFDB",
                         "African Development Bank",
-                        "DEVELOPMENT_PARTNER",
+                        "MINISTRY",
                         countryId,
                         true);
 
@@ -326,7 +326,7 @@ class OrganizationControllerTest {
                         id,
                         "AFDB",
                         "African Development Bank",
-                        "DEVELOPMENT_PARTNER",
+                        "MINISTRY",
                         countryId,
                         false);
 
@@ -413,7 +413,7 @@ class OrganizationControllerTest {
                 new CreateOrganizationRequest(
                         "AFDB",
                         "African Development Bank",
-                        "DEVELOPMENT_PARTNER",
+                        "MINISTRY",
                         countryId);
 
         when(applicationService.create(any()))

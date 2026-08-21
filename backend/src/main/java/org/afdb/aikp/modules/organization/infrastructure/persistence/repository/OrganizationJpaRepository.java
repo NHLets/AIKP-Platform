@@ -2,7 +2,7 @@ package org.afdb.aikp.modules.organization.infrastructure.persistence.repository
 
 import org.afdb.aikp.modules.organization.infrastructure.persistence.entity.OrganizationEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationType;
+import org.afdb.aikp.modules.organization.domain.enums.OrganizationType;
 
 import java.util.List;
 import java.util.Optional;

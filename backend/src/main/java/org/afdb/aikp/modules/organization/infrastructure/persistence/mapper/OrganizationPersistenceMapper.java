@@ -5,7 +5,7 @@ import org.afdb.aikp.modules.organization.domain.model.Organization;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationCode;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationName;
-import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationType;
+import org.afdb.aikp.modules.organization.domain.enums.OrganizationType;
 import org.afdb.aikp.modules.organization.infrastructure.persistence.entity.OrganizationEntity;
 
 import java.util.UUID;

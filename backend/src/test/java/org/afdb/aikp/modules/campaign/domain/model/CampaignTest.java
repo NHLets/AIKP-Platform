@@ -34,7 +34,7 @@ class CampaignTest {
                 .isEqualTo(CampaignStatus.DRAFT);
 
         assertThat(campaign.isActive())
-                .isTrue();
+                .isFalse();
     }
 
     @Test
@@ -86,6 +86,9 @@ class CampaignTest {
 
         assertThat(campaign.getStatus())
                 .isEqualTo(CampaignStatus.PLANNED);
+
+        assertThat(campaign.isActive())
+                .isFalse();
     }
 
     @Test
@@ -208,9 +211,27 @@ class CampaignTest {
     }
 
     @Test
-    void shouldChangeCampaignPeriod() {
+    void shouldChangeCampaignPeriodWhileDraft() {
 
         Campaign campaign = createCampaign();
+
+        campaign.changePeriod(
+                LocalDate.of(2026, 9, 1),
+                LocalDate.of(2026, 11, 30));
+
+        assertThat(campaign.getStartDate())
+                .isEqualTo(LocalDate.of(2026, 9, 1));
+
+        assertThat(campaign.getEndDate())
+                .isEqualTo(LocalDate.of(2026, 11, 30));
+    }
+
+    @Test
+    void shouldChangeCampaignPeriodWhilePlanned() {
+
+        Campaign campaign = createCampaign();
+
+        campaign.plan();
 
         campaign.changePeriod(
                 LocalDate.of(2026, 9, 1),
@@ -238,29 +259,88 @@ class CampaignTest {
     }
 
     @Test
-    void shouldDeactivateCampaign() {
+    void shouldRejectPeriodChangeWhenCampaignIsActive() {
 
         Campaign campaign = createCampaign();
 
-        campaign.deactivate();
-
-        assertThat(campaign.isActive())
-                .isFalse();
-    }
-
-    @Test
-    void shouldActivateCampaignAfterDeactivation() {
-
-        Campaign campaign = createCampaign();
-
-        campaign.deactivate();
         campaign.plan();
         campaign.activate();
 
-        assertThat(campaign.getStatus())
-                .isEqualTo(CampaignStatus.ACTIVE);
+        assertThatThrownBy(() ->
+                campaign.changePeriod(
+                        LocalDate.of(2026, 9, 1),
+                        LocalDate.of(2026, 11, 30)))
+                .isInstanceOf(CampaignLifecycleException.class)
+                .hasMessage(
+                        "Campaign period can only be changed "
+                                + "while the campaign is draft or planned.");
+    }
+
+    @Test
+    void shouldRejectPeriodChangeWhenCampaignIsCompleted() {
+
+        Campaign campaign = createCampaign();
+
+        campaign.plan();
+        campaign.activate();
+        campaign.complete();
+
+        assertThatThrownBy(() ->
+                campaign.changePeriod(
+                        LocalDate.of(2026, 9, 1),
+                        LocalDate.of(2026, 11, 30)))
+                .isInstanceOf(CampaignLifecycleException.class)
+                .hasMessage(
+                        "Campaign period can only be changed "
+                                + "while the campaign is draft or planned.");
+    }
+
+    @Test
+    void shouldRejectPeriodChangeWhenCampaignIsArchived() {
+
+        Campaign campaign = createCampaign();
+
+        campaign.plan();
+        campaign.activate();
+        campaign.complete();
+        campaign.archive();
+
+        assertThatThrownBy(() ->
+                campaign.changePeriod(
+                        LocalDate.of(2026, 9, 1),
+                        LocalDate.of(2026, 11, 30)))
+                .isInstanceOf(CampaignLifecycleException.class)
+                .hasMessage(
+                        "Campaign period can only be changed "
+                                + "while the campaign is draft or planned.");
+    }
+
+    @Test
+    void shouldReportActiveOnlyForActiveStatus() {
+
+        Campaign campaign = createCampaign();
+
+        assertThat(campaign.isActive())
+                .isFalse();
+
+        campaign.plan();
+
+        assertThat(campaign.isActive())
+                .isFalse();
+
+        campaign.activate();
 
         assertThat(campaign.isActive())
                 .isTrue();
+
+        campaign.complete();
+
+        assertThat(campaign.isActive())
+                .isFalse();
+
+        campaign.archive();
+
+        assertThat(campaign.isActive())
+                .isFalse();
     }
 }

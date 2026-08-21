@@ -24,6 +24,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 import java.util.Optional;
+import jakarta.persistence.EntityManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -82,6 +83,9 @@ class QuestionnaireRepositoryAdapterIntegrationTest {
     @Autowired
     private QuestionnaireJpaRepository jpaRepository;
 
+    @Autowired
+    private EntityManager entityManager;
+
     private QuestionnairePersistenceMapper mapper;
 
     private QuestionnaireRepositoryAdapter adapter;
@@ -95,6 +99,7 @@ class QuestionnaireRepositoryAdapterIntegrationTest {
                 jpaRepository,
                 mapper);
     }
+
 
     @Test
     void shouldSaveAndFindQuestionnaireById() {
@@ -259,23 +264,29 @@ class QuestionnaireRepositoryAdapterIntegrationTest {
     @Test
     void shouldDeleteQuestionnaire() {
 
-        Questionnaire questionnaire =
-                createQuestionnaire("PW_IT_010");
+    Questionnaire questionnaire =
+            createQuestionnaire("PW_IT_010");
 
-        adapter.save(questionnaire);
+    adapter.save(questionnaire);
 
-        assertThat(
-                adapter.findById(
-                        questionnaire.getId()))
-                .isPresent();
+    entityManager.flush();
+    entityManager.clear();
 
-        adapter.delete(questionnaire);
+    assertThat(
+            adapter.findById(
+                    questionnaire.getId()))
+            .isPresent();
 
-        assertThat(
-                adapter.findById(
-                        questionnaire.getId()))
-                .isEmpty();
-    }
+    adapter.delete(questionnaire);
+
+    entityManager.flush();
+    entityManager.clear();
+
+    assertThat(
+            adapter.findById(
+                    questionnaire.getId()))
+            .isEmpty();
+        }
 
     @Test
     void shouldPersistLifecycleState() {

@@ -1,8 +1,13 @@
 package org.afdb.aikp.modules.questionnaire.infrastructure.persistence.adapter;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.afdb.aikp.modules.questionnaire.domain.enums.QuestionnaireStatus;
 import org.afdb.aikp.modules.questionnaire.domain.model.Questionnaire;
 import org.afdb.aikp.modules.questionnaire.domain.repository.QuestionnaireRepository;
-import org.afdb.aikp.modules.questionnaire.domain.enums.QuestionnaireStatus;
 import org.afdb.aikp.modules.questionnaire.domain.valueobject.QuestionnaireCode;
 import org.afdb.aikp.modules.questionnaire.domain.valueobject.QuestionnaireId;
 import org.afdb.aikp.modules.questionnaire.infrastructure.persistence.entity.QuestionnaireEntity;
@@ -10,13 +15,12 @@ import org.afdb.aikp.modules.questionnaire.infrastructure.persistence.mapper.Que
 import org.afdb.aikp.modules.questionnaire.infrastructure.persistence.repository.QuestionnaireJpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Objects;
-import java.util.UUID;
-
+/**
+ * Persistence adapter for Questionnaire aggregates.
+ */
 @Repository
-public class QuestionnaireRepositoryAdapter implements QuestionnaireRepository {
+public class QuestionnaireRepositoryAdapter
+        implements QuestionnaireRepository {
 
     private final QuestionnaireJpaRepository jpaRepository;
     private final QuestionnairePersistenceMapper mapper;
@@ -25,50 +29,72 @@ public class QuestionnaireRepositoryAdapter implements QuestionnaireRepository {
             QuestionnaireJpaRepository jpaRepository,
             QuestionnairePersistenceMapper mapper) {
 
-        this.jpaRepository = jpaRepository;
-        this.mapper = mapper;
+        this.jpaRepository = Objects.requireNonNull(
+                jpaRepository,
+                "QuestionnaireJpaRepository cannot be null.");
+
+        this.mapper = Objects.requireNonNull(
+                mapper,
+                "QuestionnairePersistenceMapper cannot be null.");
     }
 
     @Override
-    public Questionnaire save(Questionnaire questionnaire) {
+    public Questionnaire save(
+            Questionnaire questionnaire) {
 
-    Objects.requireNonNull(
-            questionnaire,
-            "Questionnaire cannot be null.");
+        Objects.requireNonNull(
+                questionnaire,
+                "Questionnaire cannot be null.");
 
-    UUID id = questionnaire.getId().getValue();
+        UUID id = Objects.requireNonNull(
+                questionnaire.getId().getValue(),
+                "Questionnaire ID cannot be null.");
 
-    QuestionnaireEntity entity =
-            jpaRepository.findById(id)
-                    .map(existingEntity -> {
-                        mapper.updateEntity(
-                                questionnaire,
-                                existingEntity);
-                        return existingEntity;
-                    })
-                    .orElseGet(() ->
-                            mapper.toEntity(questionnaire));
+        QuestionnaireEntity entity =
+                jpaRepository.findById(id)
+                        .map(existingEntity -> {
 
-    QuestionnaireEntity saved =
-            jpaRepository.save(entity);
+                            mapper.updateEntity(
+                                    questionnaire,
+                                    existingEntity);
 
-    return mapper.toDomain(saved);
+                            return existingEntity;
+                        })
+                        .orElseGet(() ->
+                                mapper.toEntity(questionnaire));
+
+        QuestionnaireEntity saved =
+                jpaRepository.saveAndFlush(entity);
+
+        return mapper.toDomain(saved);
     }
 
     @Override
-    public Optional<Questionnaire> findById(QuestionnaireId id) {
+    public Optional<Questionnaire> findById(
+            QuestionnaireId id) {
 
-    Objects.requireNonNull(id, "QuestionnaireId cannot be null.");
+        Objects.requireNonNull(
+                id,
+                "QuestionnaireId cannot be null.");
 
-    return jpaRepository.findById(
-            Objects.requireNonNull(id.getValue(), "QuestionnaireId value cannot be null."))
-            .map(mapper::toDomain);
+        UUID value = Objects.requireNonNull(
+                id.getValue(),
+                "QuestionnaireId value cannot be null.");
+
+        return jpaRepository.findById(value)
+                .map(mapper::toDomain);
     }
 
     @Override
-    public Optional<Questionnaire> findByCode(QuestionnaireCode code) {
+    public Optional<Questionnaire> findByCode(
+            QuestionnaireCode code) {
 
-        return jpaRepository.findByCode(code.getValue())
+        Objects.requireNonNull(
+                code,
+                "QuestionnaireCode cannot be null.");
+
+        return jpaRepository
+                .findByCode(code.getValue())
                 .map(mapper::toDomain);
     }
 
@@ -94,6 +120,10 @@ public class QuestionnaireRepositoryAdapter implements QuestionnaireRepository {
     public List<Questionnaire> findByStatus(
             QuestionnaireStatus status) {
 
+        Objects.requireNonNull(
+                status,
+                "QuestionnaireStatus cannot be null.");
+
         return jpaRepository.findByStatus(status)
                 .stream()
                 .map(mapper::toDomain)
@@ -101,21 +131,43 @@ public class QuestionnaireRepositoryAdapter implements QuestionnaireRepository {
     }
 
     @Override
-    public boolean existsById(QuestionnaireId id) {
+    public boolean existsById(
+            QuestionnaireId id) {
 
-        return jpaRepository.existsById(id.getValue());
+        Objects.requireNonNull(
+                id,
+                "QuestionnaireId cannot be null.");
+
+        return jpaRepository.existsById(
+                id.getValue());
     }
 
     @Override
-    public boolean existsByCode(QuestionnaireCode code) {
+    public boolean existsByCode(
+            QuestionnaireCode code) {
 
-        return jpaRepository.existsByCode(code.getValue());
+        Objects.requireNonNull(
+                code,
+                "QuestionnaireCode cannot be null.");
+
+        return jpaRepository.existsByCode(
+                code.getValue());
     }
 
     @Override
-public void delete(Questionnaire questionnaire) {
+public void delete(
+        Questionnaire questionnaire) {
 
-    jpaRepository.findById(questionnaire.getId().getValue())
-            .ifPresent(jpaRepository::delete);
+    Objects.requireNonNull(
+            questionnaire,
+            "Questionnaire cannot be null.");
+
+    UUID id = Objects.requireNonNull(
+            questionnaire.getId().getValue(),
+            "Questionnaire ID cannot be null.");
+
+    jpaRepository.deleteById(id);
+
+    jpaRepository.flush();
 }
 }

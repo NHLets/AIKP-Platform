@@ -13,6 +13,7 @@ import org.afdb.aikp.modules.organization.application.query.GetOrganizationsByTy
 import org.afdb.aikp.modules.organization.application.query.GetOrganizationsQuery;
 import org.afdb.aikp.modules.organization.application.response.OrganizationResponse;
 import org.afdb.aikp.modules.organization.application.response.OrganizationSummary;
+import org.afdb.aikp.modules.organization.domain.enums.OrganizationType;
 import org.afdb.aikp.modules.organization.domain.exception.OrganizationNotFoundException;
 import org.afdb.aikp.modules.organization.domain.model.Organization;
 import org.afdb.aikp.modules.organization.domain.repository.OrganizationRepository;
@@ -20,7 +21,6 @@ import org.afdb.aikp.modules.organization.domain.service.OrganizationDomainServi
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationCode;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationName;
-import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -81,7 +81,7 @@ class OrganizationApplicationServiceTest {
                 response.name());
 
         assertEquals(
-                "DEVELOPMENT_PARTNER",
+                "MINISTRY",
                 response.type());
 
         assertEquals(
@@ -124,7 +124,7 @@ class OrganizationApplicationServiceTest {
                         OrganizationCode.of("COMESA"),
                         OrganizationName.of(
                                 "Common Market for Eastern and Southern Africa"),
-                        OrganizationType.REGIONAL_ORGANIZATION,
+                        OrganizationType.MINISTRY,
                         countryId());
 
         when(repository.findAll())
@@ -210,13 +210,13 @@ class OrganizationApplicationServiceTest {
                 createOrganization();
 
         when(repository.findByType(
-                OrganizationType.DEVELOPMENT_PARTNER))
+                OrganizationType.MINISTRY))
                 .thenReturn(List.of(organization));
 
         List<OrganizationSummary> result =
                 service.getByType(
                         new GetOrganizationsByTypeQuery(
-                                "DEVELOPMENT_PARTNER"));
+                                "MINISTRY"));
 
         assertEquals(1, result.size());
 
@@ -225,11 +225,11 @@ class OrganizationApplicationServiceTest {
                 result.get(0).code());
 
         assertEquals(
-                "DEVELOPMENT_PARTNER",
+                "MINISTRY",
                 result.get(0).type());
 
         verify(repository).findByType(
-                OrganizationType.DEVELOPMENT_PARTNER);
+                OrganizationType.MINISTRY);
     }
 
     @Test
@@ -243,7 +243,7 @@ class OrganizationApplicationServiceTest {
                         OrganizationCode.of("AFDB"),
                         OrganizationName.of(
                                 "African Development Bank"),
-                        OrganizationType.DEVELOPMENT_PARTNER,
+                        OrganizationType.MINISTRY,
                         countryId());
 
         when(repository.save(
@@ -254,7 +254,7 @@ class OrganizationApplicationServiceTest {
                 new CreateOrganizationCommand(
                         "AFDB",
                         "African Development Bank",
-                        "DEVELOPMENT_PARTNER",
+                        "MINISTRY",
                         countryId().getValue());
 
         OrganizationResponse response =
@@ -275,7 +275,7 @@ class OrganizationApplicationServiceTest {
                 response.name());
 
         assertEquals(
-                "DEVELOPMENT_PARTNER",
+                "MINISTRY",
                 response.type());
 
         assertEquals(
@@ -304,7 +304,7 @@ class OrganizationApplicationServiceTest {
                         OrganizationCode.of("AFDB"),
                         OrganizationName.of(
                                 "African Development Bank"),
-                        OrganizationType.DEVELOPMENT_PARTNER,
+                        OrganizationType.MINISTRY,
                         countryId());
 
         when(repository.findById(id))
@@ -318,7 +318,7 @@ class OrganizationApplicationServiceTest {
                         id.getValue(),
                         "COMESA",
                         "Common Market for Eastern and Southern Africa",
-                        "REGIONAL_ORGANIZATION",
+                        "REGULATOR",
                         countryId().getValue());
 
         OrganizationResponse response =
@@ -339,7 +339,7 @@ class OrganizationApplicationServiceTest {
                 response.name());
 
         assertEquals(
-                "REGIONAL_ORGANIZATION",
+                "REGULATOR",
                 response.type());
 
         assertEquals(
@@ -453,7 +453,7 @@ class OrganizationApplicationServiceTest {
                         id,
                         "AFDB",
                         "African Development Bank",
-                        "DEVELOPMENT_PARTNER",
+                        "MINISTRY",
                         countryId().getValue());
 
         assertThrows(
@@ -495,7 +495,7 @@ class OrganizationApplicationServiceTest {
                 OrganizationCode.of("AFDB"),
                 OrganizationName.of(
                         "African Development Bank"),
-                OrganizationType.DEVELOPMENT_PARTNER,
+                OrganizationType.MINISTRY,
                 countryId());
     }
 
