@@ -359,12 +359,12 @@ class DataCollectionRepositoryAdapterIntegrationTest {
 
         String iso2 =
                 toAlphabeticCode(
-                        sequence,
+                        sequence + 100,
                         2);
 
         String iso3 =
                 toAlphabeticCode(
-                        sequence,
+                        sequence + 1000,
                         3);
 
         Country country =
@@ -375,7 +375,7 @@ class DataCollectionRepositoryAdapterIntegrationTest {
                         NumericCode.of(
                                 String.format(
                                         "%03d",
-                                        800 + (sequence % 100))),
+                                        600 + (sequence % 100))),
                         CountryName.of(
                                 "Test Country "
                                         + sequence),

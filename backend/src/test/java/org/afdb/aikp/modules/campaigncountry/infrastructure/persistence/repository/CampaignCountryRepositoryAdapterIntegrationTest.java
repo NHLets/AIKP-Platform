@@ -255,29 +255,51 @@ class CampaignCountryRepositoryAdapterIntegrationTest {
 
     private Country createAndSaveCountry() {
 
-        int sequence =
-                COUNTRY_SEQUENCE
-                        .incrementAndGet();
+        int sequence;
 
-        String iso2 =
-                toAlphabeticCode(
-                        sequence,
-                        2);
+        String iso2Value;
+        String iso3Value;
+        String numericCodeValue;
 
-        String iso3 =
-                toAlphabeticCode(
-                        sequence,
-                        3);
+        do {
+            sequence =
+                    COUNTRY_SEQUENCE
+                            .incrementAndGet();
+
+            iso2Value =
+                    toAlphabeticCode(
+                            sequence,
+                            2);
+
+            iso3Value =
+                    toAlphabeticCode(
+                            sequence,
+                            3);
+
+            numericCodeValue =
+                    String.format(
+                            "%03d",
+                            sequence % 1000);
+
+        } while (
+                countryRepository
+                        .existsByIso2Code(
+                                Iso2Code.of(iso2Value))
+                || countryRepository
+                        .existsByIso3Code(
+                                Iso3Code.of(iso3Value))
+                || countryRepository
+                        .existsByNumericCode(
+                                NumericCode.of(
+                                        numericCodeValue)));
 
         Country country =
                 Country.create(
                         CountryId.generate(),
-                        Iso2Code.of(iso2),
-                        Iso3Code.of(iso3),
+                        Iso2Code.of(iso2Value),
+                        Iso3Code.of(iso3Value),
                         NumericCode.of(
-                                String.format(
-                                        "%03d",
-                                        700 + (sequence % 100))),
+                                numericCodeValue),
                         CountryName.of(
                                 "Test Country "
                                         + sequence),
@@ -304,8 +326,9 @@ class CampaignCountryRepositoryAdapterIntegrationTest {
                 index++) {
 
             char letter =
-                    (char) ('A'
-                            + (currentValue % 26));
+                    (char) (
+                            'A'
+                                    + (currentValue % 26));
 
             builder.append(letter);
 

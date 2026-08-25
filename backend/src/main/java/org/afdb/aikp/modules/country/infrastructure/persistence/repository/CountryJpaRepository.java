@@ -21,6 +21,8 @@ public interface CountryJpaRepository
 
     List<CountryEntity> findByActiveTrue();
 
+    long countByActiveTrue();
+
     boolean existsByIso2Code(String iso2Code);
 
     boolean existsByIso3Code(String iso3Code);

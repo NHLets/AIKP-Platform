@@ -19,4 +19,6 @@ public interface PersonJpaRepository
             UUID organizationId);
 
     List<PersonEntity> findByActiveTrue();
+
+    long countByActiveTrue();
 }

@@ -3,6 +3,7 @@ package org.afdb.aikp.modules.collection.infrastructure.persistence.repository;
 import java.util.List;
 import java.util.UUID;
 
+import org.afdb.aikp.modules.collection.domain.enums.DataCollectionStatus;
 import org.afdb.aikp.modules.collection.infrastructure.persistence.entity.DataCollectionEntity;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,4 +21,6 @@ public interface DataCollectionJpaRepository
 
     List<DataCollectionEntity> findByCountryId(
             UUID countryId);
+
+    long countByStatus(DataCollectionStatus status);
 }
