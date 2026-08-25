@@ -1,0 +1,29 @@
+services:
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: aikp-postgres
+
+    environment:
+      POSTGRES_DB: aikp
+      POSTGRES_USER: aikp
+      POSTGRES_PASSWORD: aikp
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+    - ./postgres/data/pgdata:/var/lib/postgresql/data
+    - ./postgres/initdb:/docker-entrypoint-initdb.d:ro
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U aikp -d aikp"
+        ]
+
+      interval: 10s
+      timeout: 5s
+      retries: 5
+

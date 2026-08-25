@@ -39,6 +39,15 @@ public interface CampaignRepository {
      * @param code campaign business code
      * @return campaign when found
      */
+    
+    /**
+    * Checks whether a Campaign with the given identifier exists.
+    *
+    * @param id campaign identifier
+    * @return true when the campaign exists
+    */
+    boolean existsById(CampaignId id);
+    
     Optional<Campaign> findByCode(CampaignCode code);
 
     /**

@@ -83,6 +83,20 @@ public class CampaignRepositoryImpl implements CampaignRepository {
 
     @Override
     @Transactional(readOnly = true)
+    public boolean existsById(
+        CampaignId id) {
+
+    if (id == null) {
+        throw new IllegalArgumentException(
+                "Campaign id cannot be null.");
+    }
+
+    return jpaRepository.existsById(
+            id.getValue());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Optional<Campaign> findByCode(
             CampaignCode code) {
 

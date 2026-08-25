@@ -101,6 +101,22 @@ class CampaignRepositoryIntegrationTest {
     }
 
     @Test
+    void shouldCheckWhetherCampaignExistsById() {
+
+    assertThat(
+            campaignRepository.existsById(
+                    campaign.getId()))
+            .isFalse();
+
+    campaignRepository.save(campaign);
+
+    assertThat(
+            campaignRepository.existsById(
+                    campaign.getId()))
+            .isTrue();
+    }
+
+    @Test
     void shouldDeleteCampaign() {
 
         campaignRepository.save(campaign);

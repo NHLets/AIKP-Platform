@@ -1,315 +1,401 @@
 package org.afdb.aikp.modules.organization.infrastructure.persistence.adapter;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.afdb.aikp.modules.country.domain.valueobject.CountryId;
+import org.afdb.aikp.modules.country.infrastructure.persistence.entity.CountryEntity;
+import org.afdb.aikp.modules.country.infrastructure.persistence.repository.CountryJpaRepository;
+
+import org.afdb.aikp.modules.organization.domain.enums.OrganizationType;
 import org.afdb.aikp.modules.organization.domain.model.Organization;
 import org.afdb.aikp.modules.organization.domain.repository.OrganizationRepository;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationCode;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationName;
-import org.afdb.aikp.modules.organization.domain.enums.OrganizationType;
 import org.afdb.aikp.modules.organization.infrastructure.persistence.repository.OrganizationJpaRepository;
+import org.afdb.aikp.modules.person.infrastructure.persistence.repository.PersonJpaRepository;
+import org.afdb.aikp.modules.collection.infrastructure.persistence.repository.DataCollectionJpaRepository;
+
+import org.afdb.aikp.modules.person.infrastructure.persistence.repository.PersonJpaRepository;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.afdb.aikp.modules.country.infrastructure.persistence.entity.CountryEntity;
-import org.afdb.aikp.modules.country.infrastructure.persistence.repository.CountryJpaRepository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-
-@Testcontainers
 @SpringBootTest
 class OrganizationRepositoryAdapterIntegrationTest {
 
-    @Container
-    static PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:17-alpine")
-                    .withDatabaseName("aikp")
-                    .withUsername("postgres")
-                    .withPassword("postgres");
+    private static final String TEST_ISO2_CODE = "MG";
 
-    @DynamicPropertySource
-    static void configureDatabase(
-            DynamicPropertyRegistry registry) {
+    private static final String TEST_ISO3_CODE = "MDG";
 
-        registry.add(
-                "spring.datasource.url",
-                postgres::getJdbcUrl);
+    private static final String TEST_NUMERIC_CODE = "450";
 
-        registry.add(
-                "spring.datasource.username",
-                postgres::getUsername);
-
-        registry.add(
-                "spring.datasource.password",
-                postgres::getPassword);
-
-        registry.add(
-                "spring.datasource.driver-class-name",
-                postgres::getDriverClassName);
-    }
+    private static final AtomicInteger
+            ORGANIZATION_SEQUENCE =
+                    new AtomicInteger(30000);
 
     @Autowired
-    private OrganizationRepositoryAdapter adapter;
+    private OrganizationRepository organizationRepository;
 
     @Autowired
-    private OrganizationJpaRepository jpaRepository;
+    private OrganizationJpaRepository organizationJpaRepository;
+
+    @Autowired
+    private PersonJpaRepository personJpaRepository;
+
+    @Autowired
+    private DataCollectionJpaRepository dataCollectionJpaRepository;
+
 
     @Autowired
     private CountryJpaRepository countryJpaRepository;
 
-    @Autowired
-    private OrganizationRepository repository;
+    private CountryId countryId;
 
     @BeforeEach
-    void cleanDatabase() {
+    void setUp() {
 
-    jpaRepository.deleteAll();
-    countryJpaRepository.deleteAll();
+        dataCollectionJpaRepository.deleteAllInBatch();
 
-    countryJpaRepository.save(
-            new CountryEntity(
-                    countryId().getValue(),
-                    "MG",
-                    "MDG",
-                    "450",
-                    "Madagascar",
-                    "Republic of Madagascar",
-                    true
-            )
-    );
+        personJpaRepository.deleteAllInBatch();
+
+        organizationJpaRepository.deleteAllInBatch();
+
+        CountryEntity country =
+                countryJpaRepository.findByIso2Code(
+                        TEST_ISO2_CODE)
+                        .orElseGet(() ->
+                                countryJpaRepository.save(
+                                        new CountryEntity(
+                                                UUID.randomUUID(),
+                                                TEST_ISO2_CODE,
+                                                TEST_ISO3_CODE,
+                                                TEST_NUMERIC_CODE,
+                                                "Madagascar",
+                                                "Republic of Madagascar",
+                                                true)));
+
+        countryId =
+                CountryId.of(country.getId());
     }
+    @AfterEach
+    void cleanUp() {
 
+        dataCollectionJpaRepository.deleteAllInBatch();
+
+        personJpaRepository.deleteAllInBatch();
+
+        organizationJpaRepository.deleteAllInBatch();
+    }
     @Test
     void shouldSaveAndFindById() {
 
-        Organization organization =
-                createOrganization();
+        String code =
+                nextOrganizationCode("AFDB");
 
         Organization saved =
-                adapter.save(organization);
+                organizationRepository.save(
+                        createOrganization(
+                                code,
+                                "African Development Bank",
+                                OrganizationType.GOVERNMENT_AGENCY,
+                                true));
 
         Optional<Organization> result =
-                adapter.findById(
+                organizationRepository.findById(
                         saved.getOrganizationId());
 
-        assertTrue(result.isPresent());
-        assertEquals(
-                saved.getOrganizationId(),
-                result.get().getOrganizationId());
+        assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(found -> {
 
-        assertEquals(
-                "AFDB",
-                result.get().getCode().getValue());
+                    assertThat(found.getOrganizationId())
+                            .isEqualTo(
+                                    saved.getOrganizationId());
 
-        assertEquals(
-                "African Development Bank",
-                result.get().getName().getValue());
+                    assertThat(found.getCode().getValue())
+                            .isEqualTo(code);
 
-        assertEquals(
-                OrganizationType.GOVERNMENT_AGENCY,
-                result.get().getType());
+                    assertThat(found.getName().getValue())
+                            .isEqualTo(
+                                    "African Development Bank");
 
-        assertEquals(
-                countryId(),
-                result.get().getCountryId());
+                    assertThat(found.getType())
+                            .isEqualTo(
+                                    OrganizationType.GOVERNMENT_AGENCY);
 
-        assertTrue(result.get().isActive());
+                    assertThat(found.getCountryId())
+                            .isEqualTo(countryId);
+
+                    assertThat(found.isActive())
+                            .isTrue();
+                });
     }
 
     @Test
     void shouldFindByCode() {
 
-        Organization organization =
-                createOrganization();
+        String code =
+                nextOrganizationCode("AFDB");
 
-        adapter.save(organization);
+        Organization organization =
+                organizationRepository.save(
+                        createOrganization(
+                                code,
+                                "African Development Bank",
+                                OrganizationType.GOVERNMENT_AGENCY,
+                                true));
 
         Optional<Organization> result =
-                adapter.findByCode(
-                        OrganizationCode.of("AFDB"));
+                organizationRepository.findByCode(
+                        OrganizationCode.of(code));
 
-        assertTrue(result.isPresent());
-
-        assertEquals(
-                organization.getOrganizationId(),
-                result.get().getOrganizationId());
+        assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(found ->
+                        assertThat(found.getOrganizationId())
+                                .isEqualTo(
+                                        organization
+                                                .getOrganizationId()));
     }
 
     @Test
     void shouldFindByCountryId() {
 
-        Organization organization =
-                createOrganization();
+        String code =
+                nextOrganizationCode("AFDB");
 
-        adapter.save(organization);
+        Organization organization =
+                organizationRepository.save(
+                        createOrganization(
+                                code,
+                                "African Development Bank",
+                                OrganizationType.GOVERNMENT_AGENCY,
+                                true));
 
         List<Organization> result =
-                adapter.findByCountryId(
-                        countryId());
+                organizationRepository.findByCountryId(
+                        countryId);
 
-        assertEquals(1, result.size());
-
-        assertEquals(
-                organization.getOrganizationId(),
-                result.get(0).getOrganizationId());
+        assertThat(result)
+                .hasSize(1)
+                .extracting(
+                        Organization::getOrganizationId)
+                .containsExactly(
+                        organization.getOrganizationId());
     }
 
     @Test
     void shouldFindByType() {
 
-        Organization organization =
-                createOrganization();
+        String code =
+                nextOrganizationCode("AFDB");
 
-        adapter.save(organization);
+        Organization organization =
+                organizationRepository.save(
+                        createOrganization(
+                                code,
+                                "African Development Bank",
+                                OrganizationType.GOVERNMENT_AGENCY,
+                                true));
 
         List<Organization> result =
-                adapter.findByType(
+                organizationRepository.findByType(
                         OrganizationType.GOVERNMENT_AGENCY);
 
-        assertEquals(1, result.size());
-
-        assertEquals(
-                organization.getOrganizationId(),
-                result.get(0).getOrganizationId());
+        assertThat(result)
+                .hasSize(1)
+                .extracting(
+                        Organization::getOrganizationId)
+                .containsExactly(
+                        organization.getOrganizationId());
     }
 
     @Test
     void shouldFindAllOrganizations() {
 
-        Organization afdb =
-                createOrganization();
+        String firstCode =
+                nextOrganizationCode("AFDB");
 
-        Organization comesa =
-                Organization.restore(
-                        OrganizationId.generate(),
-                        OrganizationCode.of("COMESA"),
-                        OrganizationName.of(
-                                "Common Market for Eastern and Southern Africa"),
+        String secondCode =
+                nextOrganizationCode("COMESA");
+
+        organizationRepository.save(
+                createOrganization(
+                        firstCode,
+                        "African Development Bank",
+                        OrganizationType.GOVERNMENT_AGENCY,
+                        true));
+
+        organizationRepository.save(
+                createOrganization(
+                        secondCode,
+                        "Common Market for Eastern and Southern Africa",
                         OrganizationType.MINISTRY,
-                        countryId(),
-                        true);
-
-        adapter.save(afdb);
-        adapter.save(comesa);
+                        true));
 
         List<Organization> result =
-                adapter.findAll();
+                organizationRepository.findAll();
 
-        assertEquals(2, result.size());
+        assertThat(result)
+                .hasSize(2)
+                .extracting(
+                        organization ->
+                                organization.getCode()
+                                        .getValue())
+                .containsExactlyInAnyOrder(
+                        firstCode,
+                        secondCode);
     }
 
     @Test
     void shouldFindOnlyActiveOrganizations() {
 
+        String activeCode =
+                nextOrganizationCode("AFDB");
+
+        String inactiveCode =
+                nextOrganizationCode("COMESA");
+
         Organization activeOrganization =
-                createOrganization();
+                organizationRepository.save(
+                        createOrganization(
+                                activeCode,
+                                "African Development Bank",
+                                OrganizationType.GOVERNMENT_AGENCY,
+                                true));
 
-        Organization inactiveOrganization =
-                Organization.restore(
-                        OrganizationId.generate(),
-                        OrganizationCode.of("COMESA"),
-                        OrganizationName.of(
-                                "Common Market for Eastern and Southern Africa"),
+        organizationRepository.save(
+                createOrganization(
+                        inactiveCode,
+                        "Common Market for Eastern and Southern Africa",
                         OrganizationType.MINISTRY,
-                        countryId(),
-                        false);
-
-        adapter.save(activeOrganization);
-        adapter.save(inactiveOrganization);
+                        false));
 
         List<Organization> result =
-                adapter.findActive();
+                organizationRepository.findActive();
 
-        assertEquals(1, result.size());
-
-        assertEquals(
-                "AFDB",
-                result.get(0).getCode().getValue());
+        assertThat(result)
+                .hasSize(1)
+                .extracting(
+                        Organization::getOrganizationId)
+                .containsExactly(
+                        activeOrganization.getOrganizationId());
     }
 
     @Test
     void shouldCheckExistenceById() {
 
+        String code =
+                nextOrganizationCode("AFDB");
+
         Organization organization =
-                createOrganization();
+                organizationRepository.save(
+                        createOrganization(
+                                code,
+                                "African Development Bank",
+                                OrganizationType.GOVERNMENT_AGENCY,
+                                true));
 
-        adapter.save(organization);
+        assertThat(
+                organizationRepository.existsById(
+                        organization.getOrganizationId()))
+                .isTrue();
 
-        assertTrue(
-                adapter.existsById(
-                        organization.getOrganizationId()));
-
-        assertFalse(
-                adapter.existsById(
-                        OrganizationId.generate()));
+        assertThat(
+                organizationRepository.existsById(
+                        OrganizationId.generate()))
+                .isFalse();
     }
 
     @Test
     void shouldCheckExistenceByCode() {
 
-        Organization organization =
-                createOrganization();
+        String code =
+                nextOrganizationCode("AFDB");
 
-        adapter.save(organization);
+        organizationRepository.save(
+                createOrganization(
+                        code,
+                        "African Development Bank",
+                        OrganizationType.GOVERNMENT_AGENCY,
+                        true));
 
-        assertTrue(
-                adapter.existsByCode(
-                        OrganizationCode.of("AFDB")));
+        assertThat(
+                organizationRepository.existsByCode(
+                        OrganizationCode.of(code)))
+                .isTrue();
 
-        assertFalse(
-                adapter.existsByCode(
-                        OrganizationCode.of("COMESA")));
+        String unknownCode =
+                nextOrganizationCode("COMESA");
+
+        assertThat(
+                organizationRepository.existsByCode(
+                        OrganizationCode.of(unknownCode)))
+                .isFalse();
     }
 
     @Test
     void shouldDeleteOrganization() {
 
+        String code =
+                nextOrganizationCode("AFDB");
+
         Organization organization =
-                createOrganization();
+                organizationRepository.save(
+                        createOrganization(
+                                code,
+                                "African Development Bank",
+                                OrganizationType.GOVERNMENT_AGENCY,
+                                true));
 
-        adapter.save(organization);
+        assertThat(
+                organizationRepository.existsById(
+                        organization.getOrganizationId()))
+                .isTrue();
 
-        assertTrue(
-                adapter.existsById(
-                        organization.getOrganizationId()));
+        organizationRepository.delete(organization);
 
-        adapter.delete(organization);
+        assertThat(
+                organizationRepository.existsById(
+                        organization.getOrganizationId()))
+                .isFalse();
 
-        assertFalse(
-                adapter.existsById(
-                        organization.getOrganizationId()));
-
-        assertTrue(
-                adapter.findById(
-                        organization.getOrganizationId()).isEmpty());
+        assertThat(
+                organizationRepository.findById(
+                        organization.getOrganizationId()))
+                .isEmpty();
     }
 
-    private Organization createOrganization() {
+    private String nextOrganizationCode(
+            String prefix) {
+
+        return prefix
+                + ORGANIZATION_SEQUENCE
+                        .incrementAndGet();
+    }
+
+    private Organization createOrganization(
+            String code,
+            String name,
+            OrganizationType type,
+            boolean active) {
 
         return Organization.restore(
                 OrganizationId.generate(),
-                OrganizationCode.of("AFDB"),
-                OrganizationName.of(
-                        "African Development Bank"),
-                OrganizationType.GOVERNMENT_AGENCY,
-                countryId(),
-                true);
-    }
-
-    private CountryId countryId() {
-
-        return CountryId.of(
-                UUID.fromString(
-                        "11111111-1111-1111-1111-111111111111"));
+                OrganizationCode.of(code),
+                OrganizationName.of(name),
+                type,
+                countryId,
+                active);
     }
 }
