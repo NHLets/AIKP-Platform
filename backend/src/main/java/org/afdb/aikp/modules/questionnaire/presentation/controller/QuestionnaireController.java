@@ -20,6 +20,10 @@ import org.afdb.aikp.modules.questionnaire.application.query.GetQuestionnairesQu
 import org.afdb.aikp.modules.questionnaire.application.response.QuestionnaireResponse;
 import org.afdb.aikp.modules.questionnaire.application.response.QuestionnaireSummary;
 import org.afdb.aikp.modules.questionnaire.application.service.QuestionnaireApplicationService;
+import org.afdb.aikp.modules.questionnaire.application.dto.CreateQuestionnaireGroupRequest;
+import org.afdb.aikp.modules.questionnaire.application.dto.QuestionnaireGroupResponse;
+import org.afdb.aikp.modules.questionnaire.application.dto.UpdateQuestionnaireGroupRequest;
+import org.afdb.aikp.modules.questionnaire.application.service.QuestionnaireGroupApplicationService;
 import org.afdb.aikp.modules.questionnaire.presentation.contract.QuestionnaireApi;
 import org.afdb.aikp.modules.questionnaire.presentation.mapper.QuestionnaireRestMapper;
 import org.afdb.aikp.modules.questionnaire.presentation.request.CreateQuestionnaireRequest;
@@ -44,10 +48,18 @@ public class QuestionnaireController implements QuestionnaireApi {
 
     private final QuestionnaireApplicationService applicationService;
 
+    private final QuestionnaireGroupApplicationService
+            questionnaireGroupApplicationService;
+
     public QuestionnaireController(
-            QuestionnaireApplicationService applicationService) {
+            QuestionnaireApplicationService applicationService,
+            QuestionnaireGroupApplicationService
+                    questionnaireGroupApplicationService) {
 
         this.applicationService = applicationService;
+
+        this.questionnaireGroupApplicationService =
+                questionnaireGroupApplicationService;
     }
 
     @Override
@@ -231,6 +243,128 @@ public class QuestionnaireController implements QuestionnaireApi {
                 new DeleteQuestionnaireCommand(id));
 
         return ResponseEntity.noContent().build();
+    }
+
+
+    // ============================================================
+    // QUESTIONNAIRE GROUPS
+    // ============================================================
+
+    @PostMapping("/{questionnaireId}/groups")
+    @Operation(summary = "Create a questionnaire group")
+    public ResponseEntity<QuestionnaireGroupResponse> createGroup(
+
+            @PathVariable("questionnaireId")
+            UUID questionnaireId,
+
+            @Valid
+            @RequestBody
+            CreateQuestionnaireGroupRequest request) {
+
+        if (!questionnaireId.equals(request.questionnaireId())) {
+            throw new IllegalArgumentException(
+                    "Questionnaire ID in path must match "
+                            + "questionnaire ID in request.");
+        }
+
+        QuestionnaireGroupResponse response =
+                questionnaireGroupApplicationService
+                        .createGroup(request);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{groupId}")
+                .buildAndExpand(response.id())
+                .toUri();
+
+        return ResponseEntity
+                .created(location)
+                .body(response);
+    }
+
+    @GetMapping("/{questionnaireId}/groups")
+    @Operation(summary = "Retrieve questionnaire groups")
+    public ResponseEntity<List<QuestionnaireGroupResponse>>
+            getGroupsByQuestionnaire(
+
+                    @PathVariable("questionnaireId")
+                    UUID questionnaireId) {
+
+        return ResponseEntity.ok(
+                questionnaireGroupApplicationService
+                        .getGroupsByQuestionnaire(
+                                questionnaireId));
+    }
+
+    @GetMapping("/groups/{groupId}")
+    @Operation(summary = "Retrieve a questionnaire group")
+    public ResponseEntity<QuestionnaireGroupResponse>
+            getGroupById(
+
+                    @PathVariable("groupId")
+                    UUID groupId) {
+
+        return ResponseEntity.ok(
+                questionnaireGroupApplicationService
+                        .getGroupById(groupId));
+    }
+
+    @PutMapping("/groups/{groupId}")
+    @Operation(summary = "Update a questionnaire group")
+    public ResponseEntity<QuestionnaireGroupResponse>
+            updateGroup(
+
+                    @PathVariable("groupId")
+                    UUID groupId,
+
+                    @Valid
+                    @RequestBody
+                    UpdateQuestionnaireGroupRequest request) {
+
+        return ResponseEntity.ok(
+                questionnaireGroupApplicationService
+                        .updateGroup(
+                                groupId,
+                                request));
+    }
+
+    @DeleteMapping("/groups/{groupId}")
+    @Operation(summary = "Delete a questionnaire group")
+    public ResponseEntity<Void> deleteGroup(
+
+            @PathVariable("groupId")
+            UUID groupId) {
+
+        questionnaireGroupApplicationService
+                .deleteGroup(groupId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/groups/{groupId}/activate")
+    @Operation(summary = "Activate a questionnaire group")
+    public ResponseEntity<QuestionnaireGroupResponse>
+            activateGroup(
+
+                    @PathVariable("groupId")
+                    UUID groupId) {
+
+        return ResponseEntity.ok(
+                questionnaireGroupApplicationService
+                        .activateGroup(groupId));
+    }
+
+    @PostMapping("/groups/{groupId}/deactivate")
+    @Operation(summary = "Deactivate a questionnaire group")
+    public ResponseEntity<QuestionnaireGroupResponse>
+            deactivateGroup(
+
+                    @PathVariable("groupId")
+                    UUID groupId) {
+
+        return ResponseEntity.ok(
+                questionnaireGroupApplicationService
+                        .deactivateGroup(groupId));
     }
 
 }
