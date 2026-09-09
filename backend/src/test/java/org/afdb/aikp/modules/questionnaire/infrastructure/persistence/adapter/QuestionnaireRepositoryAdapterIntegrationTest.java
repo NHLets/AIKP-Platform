@@ -133,6 +133,32 @@ class QuestionnaireRepositoryAdapterIntegrationTest {
 
         assertThat(found.get().isActive())
                 .isTrue();
+
+        assertThat(found.get().wasPreviouslySubmittedForReview())
+                .isFalse();
+    }
+
+    @Test
+    void shouldPersistPreviouslySubmittedForReview() {
+
+        Questionnaire questionnaire =
+                createQuestionnaire("PW_IT_REVIEW");
+
+        questionnaire.submitForReview();
+
+        adapter.save(questionnaire);
+
+        Optional<Questionnaire> found =
+                adapter.findById(questionnaire.getId());
+
+        assertThat(found)
+                .isPresent();
+
+        assertThat(found.get().getStatus())
+                .isEqualTo(QuestionnaireStatus.UNDER_REVIEW);
+
+        assertThat(found.get().wasPreviouslySubmittedForReview())
+                .isTrue();
     }
 
     @Test

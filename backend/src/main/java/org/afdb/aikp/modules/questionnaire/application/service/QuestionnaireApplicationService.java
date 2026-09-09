@@ -6,6 +6,7 @@ import org.afdb.aikp.modules.questionnaire.application.command.CreateQuestionnai
 import org.afdb.aikp.modules.questionnaire.application.command.DeactivateQuestionnaireCommand;
 import org.afdb.aikp.modules.questionnaire.application.command.DeleteQuestionnaireCommand;
 import org.afdb.aikp.modules.questionnaire.application.command.PublishQuestionnaireCommand;
+import org.afdb.aikp.modules.questionnaire.application.command.RejectQuestionnaireCommand;
 import org.afdb.aikp.modules.questionnaire.application.command.UpdateQuestionnaireCommand;
 import org.afdb.aikp.modules.questionnaire.application.mapper.QuestionnaireApplicationMapper;
 import org.afdb.aikp.modules.questionnaire.application.response.QuestionnaireResponse;
@@ -135,6 +136,22 @@ public class QuestionnaireApplicationService {
 
     return QuestionnaireApplicationMapper.toResponse(questionnaire);
         }
+
+        /**
+     * Rejects a questionnaire under review and returns it to draft.
+     */
+    public QuestionnaireResponse reject(
+            RejectQuestionnaireCommand command) {
+
+        Questionnaire questionnaire =
+                findByIdOrThrow(command.id());
+
+        questionnaire.reject();
+
+        repository.save(questionnaire);
+
+        return QuestionnaireApplicationMapper.toResponse(questionnaire);
+    }
 
         /**
      * Activates a questionnaire.

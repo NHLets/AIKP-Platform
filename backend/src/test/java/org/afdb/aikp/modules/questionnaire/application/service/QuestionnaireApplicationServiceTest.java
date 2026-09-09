@@ -7,6 +7,7 @@ import org.afdb.aikp.modules.questionnaire.application.command.CreateQuestionnai
 import org.afdb.aikp.modules.questionnaire.application.command.DeactivateQuestionnaireCommand;
 import org.afdb.aikp.modules.questionnaire.application.command.DeleteQuestionnaireCommand;
 import org.afdb.aikp.modules.questionnaire.application.command.PublishQuestionnaireCommand;
+import org.afdb.aikp.modules.questionnaire.application.command.RejectQuestionnaireCommand;
 import org.afdb.aikp.modules.questionnaire.application.command.SubmitQuestionnaireForReviewCommand;
 import org.afdb.aikp.modules.questionnaire.application.command.UpdateQuestionnaireCommand;
 import org.afdb.aikp.modules.questionnaire.application.query.GetActiveQuestionnairesQuery;
@@ -204,6 +205,38 @@ class QuestionnaireApplicationServiceTest {
     }
 
     @Test
+    void shouldRejectQuestionnaire() {
+
+        Questionnaire questionnaire =
+                createQuestionnaire("PW_TEST");
+
+        questionnaire.submitForReview();
+
+        UUID id =
+                questionnaire.getId().getValue();
+
+        when(repository.findById(
+                QuestionnaireId.of(id)))
+                .thenReturn(Optional.of(questionnaire));
+
+        when(repository.save(any(Questionnaire.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        QuestionnaireResponse response =
+                service.reject(
+                        new RejectQuestionnaireCommand(id));
+
+        assertThat(response.status())
+                .isEqualTo("DRAFT");
+
+        assertThat(questionnaire.wasPreviouslySubmittedForReview())
+                .isTrue();
+
+        verify(repository)
+                .save(questionnaire);
+    }
+
+    @Test
     void shouldActivateQuestionnaire() {
 
         Questionnaire questionnaire =
@@ -294,6 +327,10 @@ class QuestionnaireApplicationServiceTest {
 
         Questionnaire questionnaire =
                 createQuestionnaire("PW_TEST");
+
+        questionnaire.submitForReview();
+        questionnaire.approve();
+        questionnaire.publish();
 
         UUID id =
                 questionnaire.getId().getValue();

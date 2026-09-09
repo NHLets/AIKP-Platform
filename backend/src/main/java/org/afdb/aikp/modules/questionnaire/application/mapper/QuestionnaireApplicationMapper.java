@@ -35,7 +35,8 @@ public final class QuestionnaireApplicationMapper {
                 questionnaire.getDefaultLanguage().getValue(),
                 questionnaire.getStatus().name(),
                 questionnaire.getRenderType().name(),
-                questionnaire.isActive()
+                questionnaire.isActive(),
+                questionnaire.wasPreviouslySubmittedForReview()
         );
     }
 

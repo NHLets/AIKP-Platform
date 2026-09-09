@@ -44,6 +44,8 @@ public class Questionnaire extends AggregateRoot<QuestionnaireId> {
 
     private boolean active;
 
+    private boolean previouslySubmittedForReview;
+
     /**
      * Private constructor.
      */
@@ -56,7 +58,8 @@ public class Questionnaire extends AggregateRoot<QuestionnaireId> {
             DefaultLanguage defaultLanguage,
             QuestionnaireStatus status,
             RenderType renderType,
-            boolean active) {
+            boolean active,
+            boolean previouslySubmittedForReview) {
 
         super(Objects.requireNonNull(id, "Questionnaire id cannot be null."));
 
@@ -86,6 +89,8 @@ public class Questionnaire extends AggregateRoot<QuestionnaireId> {
                 "Render type cannot be null.");
 
         this.active = active;
+        this.previouslySubmittedForReview =
+                previouslySubmittedForReview;
     }
 
     /**
@@ -108,7 +113,8 @@ public class Questionnaire extends AggregateRoot<QuestionnaireId> {
                 defaultLanguage,
                 QuestionnaireStatus.DRAFT,
                 renderType,
-                true);
+                true,
+                false);
     }
 
     /**
@@ -123,7 +129,8 @@ public class Questionnaire extends AggregateRoot<QuestionnaireId> {
             DefaultLanguage defaultLanguage,
             QuestionnaireStatus status,
             RenderType renderType,
-            boolean active) {
+            boolean active,
+            boolean previouslySubmittedForReview) {
 
         return new Questionnaire(
                 id,
@@ -134,7 +141,8 @@ public class Questionnaire extends AggregateRoot<QuestionnaireId> {
                 defaultLanguage,
                 status,
                 renderType,
-                active);
+                active,
+                previouslySubmittedForReview);
     }
 
     // ---------------------------------------------------------------------
@@ -176,6 +184,20 @@ public class Questionnaire extends AggregateRoot<QuestionnaireId> {
         }
 
         status = QuestionnaireStatus.UNDER_REVIEW;
+        previouslySubmittedForReview = true;
+    }
+
+    /**
+     * Rejects a questionnaire under review and returns it to draft.
+     */
+    public void reject() {
+
+        if (status != QuestionnaireStatus.UNDER_REVIEW) {
+            throw new QuestionnaireLifecycleException(
+                    "Only questionnaires under review can be rejected.");
+        }
+
+        status = QuestionnaireStatus.DRAFT;
     }
 
     public void approve() {
@@ -199,6 +221,12 @@ public class Questionnaire extends AggregateRoot<QuestionnaireId> {
     }
 
     public void archive() {
+
+        if (status != QuestionnaireStatus.PUBLISHED) {
+            throw new QuestionnaireLifecycleException(
+                    "Only published questionnaires can be archived.");
+        }
+
         status = QuestionnaireStatus.ARCHIVED;
         active = false;
     }
@@ -245,5 +273,9 @@ public class Questionnaire extends AggregateRoot<QuestionnaireId> {
 
     public boolean isActive() {
         return active;
+    }
+
+    public boolean wasPreviouslySubmittedForReview() {
+        return previouslySubmittedForReview;
     }
 }

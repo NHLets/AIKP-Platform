@@ -97,6 +97,12 @@ public class QuestionnaireEntity extends AuditableEntity {
     )
     private boolean active;
 
+    @Column(
+            name = "previously_submitted_for_review",
+            nullable = false
+    )
+    private boolean previouslySubmittedForReview;
+
     /**
      * Required by JPA.
      */
@@ -184,5 +190,16 @@ public class QuestionnaireEntity extends AuditableEntity {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public boolean isPreviouslySubmittedForReview() {
+        return previouslySubmittedForReview;
+    }
+
+    public void setPreviouslySubmittedForReview(
+            boolean previouslySubmittedForReview) {
+
+        this.previouslySubmittedForReview =
+                previouslySubmittedForReview;
     }
 }

@@ -37,6 +37,9 @@ class QuestionnaireTest {
 
         assertThat(questionnaire.isActive())
                 .isTrue();
+
+        assertThat(questionnaire.wasPreviouslySubmittedForReview())
+                .isFalse();
     }
 
     @Test
@@ -48,6 +51,51 @@ class QuestionnaireTest {
 
         assertThat(questionnaire.getStatus())
                 .isEqualTo(QuestionnaireStatus.UNDER_REVIEW);
+
+        assertThat(questionnaire.wasPreviouslySubmittedForReview())
+                .isTrue();
+    }
+
+    @Test
+    void shouldRejectQuestionnaireUnderReviewAndReturnToDraft() {
+
+        Questionnaire questionnaire = createQuestionnaire();
+
+        questionnaire.submitForReview();
+        questionnaire.reject();
+
+        assertThat(questionnaire.getStatus())
+                .isEqualTo(QuestionnaireStatus.DRAFT);
+
+        assertThat(questionnaire.wasPreviouslySubmittedForReview())
+                .isTrue();
+    }
+
+    @Test
+    void shouldRejectQuestionnaireWhenNotUnderReview() {
+
+        Questionnaire questionnaire = createQuestionnaire();
+
+        assertThatThrownBy(questionnaire::reject)
+                .isInstanceOf(QuestionnaireLifecycleException.class)
+                .hasMessage(
+                        "Only questionnaires under review can be rejected.");
+    }
+
+    @Test
+    void shouldAllowResubmissionAfterRejection() {
+
+        Questionnaire questionnaire = createQuestionnaire();
+
+        questionnaire.submitForReview();
+        questionnaire.reject();
+        questionnaire.submitForReview();
+
+        assertThat(questionnaire.getStatus())
+                .isEqualTo(QuestionnaireStatus.UNDER_REVIEW);
+
+        assertThat(questionnaire.wasPreviouslySubmittedForReview())
+                .isTrue();
     }
 
     @Test
@@ -125,6 +173,44 @@ class QuestionnaireTest {
                 .isInstanceOf(QuestionnaireLifecycleException.class)
                 .hasMessage(
                         "Only approved questionnaires can be published.");
+    }
+
+    @Test
+    void shouldRejectArchiveWhenQuestionnaireIsDraft() {
+
+        Questionnaire questionnaire = createQuestionnaire();
+
+        assertThatThrownBy(questionnaire::archive)
+                .isInstanceOf(QuestionnaireLifecycleException.class)
+                .hasMessage(
+                        "Only published questionnaires can be archived.");
+    }
+
+    @Test
+    void shouldRejectArchiveWhenQuestionnaireIsUnderReview() {
+
+        Questionnaire questionnaire = createQuestionnaire();
+
+        questionnaire.submitForReview();
+
+        assertThatThrownBy(questionnaire::archive)
+                .isInstanceOf(QuestionnaireLifecycleException.class)
+                .hasMessage(
+                        "Only published questionnaires can be archived.");
+    }
+
+    @Test
+    void shouldRejectArchiveWhenQuestionnaireIsApproved() {
+
+        Questionnaire questionnaire = createQuestionnaire();
+
+        questionnaire.submitForReview();
+        questionnaire.approve();
+
+        assertThatThrownBy(questionnaire::archive)
+                .isInstanceOf(QuestionnaireLifecycleException.class)
+                .hasMessage(
+                        "Only published questionnaires can be archived.");
     }
 
     @Test

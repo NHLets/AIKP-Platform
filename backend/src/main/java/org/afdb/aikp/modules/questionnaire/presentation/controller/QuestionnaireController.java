@@ -12,6 +12,7 @@ import org.afdb.aikp.modules.questionnaire.application.command.ArchiveQuestionna
 import org.afdb.aikp.modules.questionnaire.application.command.DeactivateQuestionnaireCommand;
 import org.afdb.aikp.modules.questionnaire.application.command.DeleteQuestionnaireCommand;
 import org.afdb.aikp.modules.questionnaire.application.command.PublishQuestionnaireCommand;
+import org.afdb.aikp.modules.questionnaire.application.command.RejectQuestionnaireCommand;
 import org.afdb.aikp.modules.questionnaire.application.query.GetActiveQuestionnairesQuery;
 import org.afdb.aikp.modules.questionnaire.application.query.GetPublishedQuestionnairesQuery;
 import org.afdb.aikp.modules.questionnaire.application.query.GetQuestionnaireQuery;
@@ -148,6 +149,17 @@ public class QuestionnaireController implements QuestionnaireApi {
         return ResponseEntity.ok(
             applicationService.submitForReview(
                     new SubmitQuestionnaireForReviewCommand(id)));
+        }
+
+        @Override
+        @PatchMapping("/{id}/reject")
+        @Operation(summary = "Reject a questionnaire and return it to draft")
+        public ResponseEntity<QuestionnaireResponse> reject(
+                @PathVariable("id") UUID id) {
+
+            return ResponseEntity.ok(
+                    applicationService.reject(
+                            new RejectQuestionnaireCommand(id)));
         }
 
         @PatchMapping("/{id}/approve")

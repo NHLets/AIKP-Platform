@@ -61,7 +61,8 @@ public class QuestionnairePersistenceMapper {
                         entity.getDefaultLanguage()),
                 entity.getStatus(),
                 entity.getRenderType(),
-                entity.isActive()
+                entity.isActive(),
+                entity.isPreviouslySubmittedForReview()
         );
     }
 
@@ -111,5 +112,8 @@ public class QuestionnairePersistenceMapper {
 
         entity.setActive(
                 questionnaire.isActive());
+
+        entity.setPreviouslySubmittedForReview(
+                questionnaire.wasPreviouslySubmittedForReview());
     }
 }

@@ -23,7 +23,9 @@ public record QuestionnaireResponse(
 
         String renderType,
 
-        boolean active
+        boolean active,
+
+        boolean previouslySubmittedForReview
 
 ) {
 }

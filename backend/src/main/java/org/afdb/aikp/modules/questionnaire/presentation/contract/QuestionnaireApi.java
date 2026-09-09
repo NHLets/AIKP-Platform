@@ -34,6 +34,9 @@ public interface QuestionnaireApi {
     ResponseEntity<QuestionnaireResponse> submitForReview(
             UUID id);
 
+    ResponseEntity<QuestionnaireResponse> reject(
+            UUID id);
+
     ResponseEntity<QuestionnaireResponse> approve(
             UUID id);
     ResponseEntity<QuestionnaireResponse> activate(
