@@ -152,9 +152,11 @@ public final class DataCollection
      */
     public void start() {
 
-        if (status != DataCollectionStatus.DRAFT) {
+        if (status != DataCollectionStatus.DRAFT
+                && status != DataCollectionStatus.REJECTED) {
             throw new IllegalStateException(
-                    "Only a draft data collection can be started.");
+                    "Only a draft or rejected data collection "
+                            + "can be started.");
         }
 
         status = DataCollectionStatus.IN_PROGRESS;

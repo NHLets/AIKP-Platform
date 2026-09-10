@@ -12,6 +12,8 @@ import org.afdb.aikp.modules.person.domain.valueobject.PersonId;
 import org.afdb.aikp.modules.questionnaire.domain.valueobject.QuestionnaireId;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * Unit tests for DataCollection aggregate.
@@ -43,12 +45,52 @@ class DataCollectionTest {
     }
 
     @Test
-    void shouldNotStartNonDraftDataCollection() {
+    void shouldStartRejectedDataCollection() {
 
         DataCollection dataCollection =
                 createDataCollection();
 
         dataCollection.start();
+        dataCollection.submit();
+        dataCollection.reject();
+
+        dataCollection.start();
+
+        assertEquals(
+                DataCollectionStatus.IN_PROGRESS,
+                dataCollection.getStatus());
+    }
+
+    @ParameterizedTest
+    @EnumSource(
+            value = DataCollectionStatus.class,
+            names = {
+                    "IN_PROGRESS",
+                    "SUBMITTED",
+                    "VALIDATED",
+                    "CANCELLED"
+            })
+    void shouldNotStartInvalidDataCollectionStatuses(
+            DataCollectionStatus status) {
+
+        DataCollection dataCollection =
+                createDataCollection();
+
+        switch (status) {
+            case IN_PROGRESS -> dataCollection.start();
+            case SUBMITTED -> {
+                dataCollection.start();
+                dataCollection.submit();
+            }
+            case VALIDATED -> {
+                dataCollection.start();
+                dataCollection.submit();
+                dataCollection.validate();
+            }
+            case CANCELLED -> dataCollection.cancel();
+            default -> throw new IllegalArgumentException(
+                    "Unsupported test status: " + status);
+        }
 
         assertThrows(
                 IllegalStateException.class,

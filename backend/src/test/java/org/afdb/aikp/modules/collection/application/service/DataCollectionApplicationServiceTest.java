@@ -562,6 +562,42 @@ class DataCollectionApplicationServiceTest {
     }
 
     @Test
+    void shouldRestartRejectedDataCollection() {
+
+        DataCollection dataCollection =
+                createSubmittedDataCollection();
+
+        dataCollection.reject();
+
+        when(dataCollectionRepository.findById(dataCollectionId))
+                .thenReturn(Optional.of(dataCollection));
+
+        when(dataCollectionRepository.save(any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        DataCollectionResponse expected =
+                responseWithStatus(
+                        DataCollectionStatus.IN_PROGRESS);
+
+        when(mapper.toResponse(any()))
+                .thenReturn(expected);
+
+        DataCollectionResponse result =
+                service.startDataCollection(
+                        new StartDataCollectionCommand(
+                                dataCollectionUuid));
+
+        assertEquals(expected, result);
+
+        assertEquals(
+                DataCollectionStatus.IN_PROGRESS,
+                dataCollection.getStatus());
+
+        verify(dataCollectionRepository)
+                .save(dataCollection);
+    }
+
+    @Test
     void shouldCancelDataCollection() {
 
         DataCollection dataCollection =

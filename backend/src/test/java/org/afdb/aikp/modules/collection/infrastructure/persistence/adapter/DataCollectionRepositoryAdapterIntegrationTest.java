@@ -51,11 +51,45 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.springframework.transaction.annotation.Transactional;
 
+@Testcontainers
 @SpringBootTest
 @Transactional
 class DataCollectionRepositoryAdapterIntegrationTest {
+
+    @Container
+    static PostgreSQLContainer<?> postgres =
+            new PostgreSQLContainer<>("postgres:17-alpine")
+                    .withDatabaseName("aikp")
+                    .withUsername("postgres")
+                    .withPassword("postgres");
+
+    @DynamicPropertySource
+    static void configureDatabase(
+            DynamicPropertyRegistry registry) {
+
+        registry.add(
+                "spring.datasource.url",
+                postgres::getJdbcUrl);
+
+        registry.add(
+                "spring.datasource.username",
+                postgres::getUsername);
+
+        registry.add(
+                "spring.datasource.password",
+                postgres::getPassword);
+
+        registry.add(
+                "spring.datasource.driver-class-name",
+                postgres::getDriverClassName);
+    }
 
     private static final AtomicInteger
             COUNTRY_SEQUENCE =
@@ -353,29 +387,46 @@ class DataCollectionRepositoryAdapterIntegrationTest {
 
     private Country createAndSaveCountry() {
 
-        int sequence =
-                COUNTRY_SEQUENCE
-                        .incrementAndGet();
+        int sequence;
 
-        String iso2 =
-                toAlphabeticCode(
-                        sequence + 100,
-                        2);
+        String iso2;
+        String iso3;
+        String numericCode;
 
-        String iso3 =
-                toAlphabeticCode(
-                        sequence + 1000,
-                        3);
+        do {
+            sequence =
+                    COUNTRY_SEQUENCE
+                            .incrementAndGet();
+
+            iso2 =
+                    toAlphabeticCode(
+                            sequence + 100,
+                            2);
+
+            iso3 =
+                    toAlphabeticCode(
+                            sequence + 1000,
+                            3);
+
+            numericCode =
+                    String.format(
+                            "%03d",
+                            600 + (sequence % 100));
+
+        } while (
+                countryRepository.existsByIso2Code(
+                        Iso2Code.of(iso2))
+                || countryRepository.existsByIso3Code(
+                        Iso3Code.of(iso3))
+                || countryRepository.existsByNumericCode(
+                        NumericCode.of(numericCode)));
 
         Country country =
                 Country.create(
                         CountryId.generate(),
                         Iso2Code.of(iso2),
                         Iso3Code.of(iso3),
-                        NumericCode.of(
-                                String.format(
-                                        "%03d",
-                                        600 + (sequence % 100))),
+                        NumericCode.of(numericCode),
                         CountryName.of(
                                 "Test Country "
                                         + sequence),
