@@ -5,6 +5,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.afdb.aikp.modules.collection.domain.enums.DataCollectionStatus;
+import org.afdb.aikp.modules.collection.domain.model.DataCollection;
+import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
+import org.afdb.aikp.modules.questionnaire.domain.valueobject.QuestionnaireId;
+import org.afdb.aikp.modules.country.domain.valueobject.CountryId;
+import org.afdb.aikp.modules.campaign.domain.valueobject.CampaignId;
 import org.afdb.aikp.modules.collection.domain.exception.DataCollectionNotFoundException;
 import org.afdb.aikp.modules.collection.domain.repository.DataCollectionRepository;
 import org.afdb.aikp.modules.collection.domain.valueobject.DataCollectionId;
@@ -20,6 +26,7 @@ import org.afdb.aikp.modules.validation.application.response.DataCollectionValid
 import org.afdb.aikp.modules.validation.application.response.DataCollectionValidationSummary;
 import org.afdb.aikp.modules.validation.domain.enums.ValidationDecision;
 import org.afdb.aikp.modules.validation.domain.exception.DataCollectionValidationNotFoundException;
+import org.afdb.aikp.modules.validation.domain.exception.DataCollectionValidationNotAllowedException;
 import org.afdb.aikp.modules.validation.domain.model.DataCollectionValidation;
 import org.afdb.aikp.modules.validation.domain.repository.DataCollectionValidationRepository;
 import org.afdb.aikp.modules.validation.domain.valueobject.DataCollectionValidationId;
@@ -72,8 +79,13 @@ class DataCollectionValidationApplicationServiceTest {
         UUID validatorUuid = UUID.randomUUID();
         Instant validatedAt = Instant.now();
 
-        when(dataCollectionRepository.existsById(any()))
-                .thenReturn(true);
+        DataCollection dataCollection =
+                createDataCollection(
+                        dataCollectionUuid,
+                        DataCollectionStatus.SUBMITTED);
+
+        when(dataCollectionRepository.findById(any()))
+                .thenReturn(Optional.of(dataCollection));
 
         when(personRepository.existsById(any()))
                 .thenReturn(true);
@@ -102,7 +114,132 @@ class DataCollectionValidationApplicationServiceTest {
         assertEquals("Validation successful",
                 response.comments());
 
+        verify(dataCollectionRepository).save(dataCollection);
         verify(validationRepository).save(any());
+    }
+
+    @Test
+    void shouldCreateRejectedValidationAndRejectDataCollection() {
+
+        UUID dataCollectionUuid = UUID.randomUUID();
+
+        DataCollection dataCollection =
+                createDataCollection(
+                        dataCollectionUuid,
+                        DataCollectionStatus.SUBMITTED);
+
+        when(dataCollectionRepository.findById(any()))
+                .thenReturn(Optional.of(dataCollection));
+
+        when(personRepository.existsById(any()))
+                .thenReturn(true);
+
+        when(validationRepository.save(any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        DataCollectionValidationResponse response =
+                service.create(
+                        new CreateDataCollectionValidationCommand(
+                                dataCollectionUuid,
+                                UUID.randomUUID(),
+                                ValidationDecision.REJECTED,
+                                "Incomplete data",
+                                Instant.now()));
+
+        assertEquals(
+                ValidationDecision.REJECTED,
+                response.decision());
+
+        assertEquals(
+                DataCollectionStatus.REJECTED,
+                dataCollection.getStatus());
+
+        verify(dataCollectionRepository).save(dataCollection);
+        verify(validationRepository).save(any());
+    }
+
+    @Test
+    void shouldRejectCreationWhenDataCollectionIsNotSubmitted() {
+
+        UUID dataCollectionUuid = UUID.randomUUID();
+
+        DataCollection dataCollection =
+                createDataCollection(
+                        dataCollectionUuid,
+                        DataCollectionStatus.DRAFT);
+
+        when(dataCollectionRepository.findById(any()))
+                .thenReturn(Optional.of(dataCollection));
+
+        assertThrows(
+                DataCollectionValidationNotAllowedException.class,
+                () -> service.create(
+                        new CreateDataCollectionValidationCommand(
+                                dataCollectionUuid,
+                                UUID.randomUUID(),
+                                ValidationDecision.VALIDATED,
+                                null,
+                                Instant.now())));
+
+        verify(personRepository, never()).existsById(any());
+        verify(dataCollectionRepository, never()).save(any());
+        verify(validationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldRejectCreationWhenDataCollectionIsAlreadyValidated() {
+
+        UUID dataCollectionUuid = UUID.randomUUID();
+
+        DataCollection dataCollection =
+                createDataCollection(
+                        dataCollectionUuid,
+                        DataCollectionStatus.VALIDATED);
+
+        when(dataCollectionRepository.findById(any()))
+                .thenReturn(Optional.of(dataCollection));
+
+        assertThrows(
+                DataCollectionValidationNotAllowedException.class,
+                () -> service.create(
+                        new CreateDataCollectionValidationCommand(
+                                dataCollectionUuid,
+                                UUID.randomUUID(),
+                                ValidationDecision.VALIDATED,
+                                null,
+                                Instant.now())));
+
+        verify(personRepository, never()).existsById(any());
+        verify(dataCollectionRepository, never()).save(any());
+        verify(validationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldRejectCreationWhenDataCollectionIsAlreadyRejected() {
+
+        UUID dataCollectionUuid = UUID.randomUUID();
+
+        DataCollection dataCollection =
+                createDataCollection(
+                        dataCollectionUuid,
+                        DataCollectionStatus.REJECTED);
+
+        when(dataCollectionRepository.findById(any()))
+                .thenReturn(Optional.of(dataCollection));
+
+        assertThrows(
+                DataCollectionValidationNotAllowedException.class,
+                () -> service.create(
+                        new CreateDataCollectionValidationCommand(
+                                dataCollectionUuid,
+                                UUID.randomUUID(),
+                                ValidationDecision.VALIDATED,
+                                null,
+                                Instant.now())));
+
+        verify(personRepository, never()).existsById(any());
+        verify(dataCollectionRepository, never()).save(any());
+        verify(validationRepository, never()).save(any());
     }
 
     @Test
@@ -110,8 +247,8 @@ class DataCollectionValidationApplicationServiceTest {
 
         UUID dataCollectionUuid = UUID.randomUUID();
 
-        when(dataCollectionRepository.existsById(any()))
-                .thenReturn(false);
+        when(dataCollectionRepository.findById(any()))
+                .thenReturn(Optional.empty());
 
         assertThrows(
                 DataCollectionNotFoundException.class,
@@ -129,8 +266,13 @@ class DataCollectionValidationApplicationServiceTest {
     @Test
     void shouldRejectCreationWhenValidatorDoesNotExist() {
 
-        when(dataCollectionRepository.existsById(any()))
-                .thenReturn(true);
+        DataCollection dataCollection =
+                createDataCollection(
+                        UUID.randomUUID(),
+                        DataCollectionStatus.SUBMITTED);
+
+        when(dataCollectionRepository.findById(any()))
+                .thenReturn(Optional.of(dataCollection));
 
         when(personRepository.existsById(any()))
                 .thenReturn(false);
@@ -266,6 +408,20 @@ class DataCollectionValidationApplicationServiceTest {
                 DataCollectionValidationNotFoundException.class,
                 () -> service.delete(
                         new DeleteDataCollectionValidationCommand(id)));
+    }
+
+    private DataCollection createDataCollection(
+            UUID id,
+            DataCollectionStatus status) {
+
+        return DataCollection.restore(
+                DataCollectionId.of(id),
+                CampaignId.generate(),
+                CountryId.generate(),
+                QuestionnaireId.generate(),
+                OrganizationId.generate(),
+                PersonId.generate(),
+                status);
     }
 
     private DataCollectionValidation createValidation() {

@@ -2,6 +2,8 @@ package org.afdb.aikp.modules.validation.application.service;
 
 import java.util.List;
 
+import org.afdb.aikp.modules.collection.domain.enums.DataCollectionStatus;
+import org.afdb.aikp.modules.collection.domain.model.DataCollection;
 import org.afdb.aikp.modules.collection.domain.exception.DataCollectionNotFoundException;
 import org.afdb.aikp.modules.collection.domain.repository.DataCollectionRepository;
 import org.afdb.aikp.modules.collection.domain.valueobject.DataCollectionId;
@@ -15,7 +17,9 @@ import org.afdb.aikp.modules.validation.application.query.GetDataCollectionValid
 import org.afdb.aikp.modules.validation.application.query.GetDataCollectionValidationsByDataCollectionQuery;
 import org.afdb.aikp.modules.validation.application.response.DataCollectionValidationResponse;
 import org.afdb.aikp.modules.validation.application.response.DataCollectionValidationSummary;
+import org.afdb.aikp.modules.validation.domain.enums.ValidationDecision;
 import org.afdb.aikp.modules.validation.domain.exception.DataCollectionValidationNotFoundException;
+import org.afdb.aikp.modules.validation.domain.exception.DataCollectionValidationNotAllowedException;
 import org.afdb.aikp.modules.validation.domain.model.DataCollectionValidation;
 import org.afdb.aikp.modules.validation.domain.repository.DataCollectionValidationRepository;
 import org.afdb.aikp.modules.validation.domain.valueobject.DataCollectionValidationId;
@@ -64,11 +68,18 @@ public class DataCollectionValidationApplicationService {
         DataCollectionId dataCollectionId =
                 DataCollectionId.of(command.dataCollectionId());
 
-        if (!dataCollectionRepository.existsById(
-                dataCollectionId)) {
+        DataCollection dataCollection =
+                dataCollectionRepository.findById(dataCollectionId)
+                        .orElseThrow(() ->
+                                new DataCollectionNotFoundException(
+                                        dataCollectionId));
 
-            throw new DataCollectionNotFoundException(
-                    dataCollectionId);
+        if (dataCollection.getStatus()
+                != DataCollectionStatus.SUBMITTED) {
+
+            throw new DataCollectionValidationNotAllowedException(
+                    dataCollectionId.getValue(),
+                    dataCollection.getStatus());
         }
 
         PersonId validatorId =
@@ -87,6 +98,18 @@ public class DataCollectionValidationApplicationService {
                         ValidationComments.of(
                                 command.comments()),
                         command.validatedAt());
+
+        if (command.decision()
+                == ValidationDecision.VALIDATED) {
+
+            dataCollection.validate();
+
+        } else {
+
+            dataCollection.reject();
+        }
+
+        dataCollectionRepository.save(dataCollection);
 
         DataCollectionValidation savedValidation =
                 validationRepository.save(validation);
