@@ -35,6 +35,7 @@ import {
     deleteQuestionnaire,
 } from "../api/questionnaireApi";
 import { getQuestionnaireGroups } from "../api/questionnaireGroupApi";
+import { getQuestionnaireVariables } from "../api/questionnaireVariableApi";
 
 import type {
     Questionnaire,
@@ -42,6 +43,9 @@ import type {
 import type {
     QuestionnaireGroup,
 } from "../types/questionnaireGroup.types";
+import type {
+    QuestionnaireVariable,
+} from "../types/questionnaireVariable.types";
 
 export default function QuestionnaireDetailPage() {
     const navigate = useNavigate();
@@ -59,6 +63,15 @@ export default function QuestionnaireDetailPage() {
         useState(false);
 
     const [groupsError, setGroupsError] =
+        useState<string | null>(null);
+
+    const [variables, setVariables] =
+        useState<QuestionnaireVariable[]>([]);
+
+    const [isVariablesLoading, setIsVariablesLoading] =
+        useState(false);
+
+    const [variablesError, setVariablesError] =
         useState<string | null>(null);
 
     const [isLoading, setIsLoading] =
@@ -169,6 +182,42 @@ export default function QuestionnaireDetailPage() {
         }
 
         void loadGroups();
+    }, [id]);
+
+    useEffect(() => {
+        async function loadVariables() {
+            if (!id) {
+                return;
+            }
+
+            try {
+                setIsVariablesLoading(true);
+                setVariablesError(null);
+
+                const data =
+                    await getQuestionnaireVariables(id);
+
+                const sortedVariables = [...data].sort(
+                    (a, b) =>
+                        a.displayOrder - b.displayOrder,
+                );
+
+                setVariables(sortedVariables);
+            } catch (error) {
+                console.error(
+                    "Failed to load questionnaire variables:",
+                    error,
+                );
+
+                setVariablesError(
+                    "Unable to load questionnaire variables.",
+                );
+            } finally {
+                setIsVariablesLoading(false);
+            }
+        }
+
+        void loadVariables();
     }, [id]);
 
     async function handleDelete() {
@@ -756,6 +805,225 @@ export default function QuestionnaireDetailPage() {
                                         <Divider sx={{ mt: 2 }} />
                                     </Box>
                                 ))}
+                            </Stack>
+                        )}
+                </CardContent>
+            </Card>
+
+            <Card sx={{ mt: 3 }}>
+                <CardContent>
+                    <Typography
+                        variant="h6"
+                        sx={{ fontWeight: 600, mb: 2 }}
+                    >
+                        Variables
+                    </Typography>
+
+                    {isVariablesLoading && (
+                        <Box
+                            sx={{
+                                display: "flex",
+                                justifyContent: "center",
+                                py: 3,
+                            }}
+                        >
+                            <CircularProgress size={28} />
+                        </Box>
+                    )}
+
+                    {!isVariablesLoading && variablesError && (
+                        <Alert severity="error">
+                            {variablesError}
+                        </Alert>
+                    )}
+
+                    {!isVariablesLoading &&
+                        !variablesError &&
+                        variables.length === 0 && (
+                            <Typography color="text.secondary">
+                                No variables defined for this questionnaire.
+                            </Typography>
+                        )}
+
+                    {!isVariablesLoading &&
+                        !variablesError &&
+                        variables.length > 0 && (
+                            <Stack spacing={3}>
+                                {groups.map((group) => {
+                                    const groupVariables =
+                                        variables.filter(
+                                            (variable) =>
+                                                variable.questionnaireGroupId ===
+                                                group.id,
+                                        );
+
+                                    if (groupVariables.length === 0) {
+                                        return null;
+                                    }
+
+                                    return (
+                                        <Box key={group.id}>
+                                            <Typography
+                                                variant="subtitle1"
+                                                sx={{
+                                                    fontWeight: 600,
+                                                    mb: 1,
+                                                }}
+                                            >
+                                                {group.name}
+                                            </Typography>
+
+                                            <Stack spacing={2}>
+                                                {groupVariables.map(
+                                                    (variable) => (
+                                                        <Box
+                                                            key={variable.id}
+                                                            sx={{
+                                                                pl: 2,
+                                                                borderLeft: 2,
+                                                                borderColor:
+                                                                    "divider",
+                                                            }}
+                                                        >
+                                                            <Typography
+                                                                variant="body1"
+                                                                sx={{
+                                                                    fontWeight: 600,
+                                                                }}
+                                                            >
+                                                                {
+                                                                    variable.name
+                                                                }
+                                                            </Typography>
+
+                                                            <Typography
+                                                                variant="body2"
+                                                                color="text.secondary"
+                                                            >
+                                                                {
+                                                                    variable.seriesCode
+                                                                }{" "}
+                                                                ·{" "}
+                                                                {
+                                                                    variable.dataType
+                                                                }
+                                                                {variable.unit
+                                                                    ? ` · ${variable.unit}`
+                                                                    : ""}
+                                                                {variable.required
+                                                                    ? " · Required"
+                                                                    : ""}
+                                                            </Typography>
+
+                                                            {variable.definition && (
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    color="text.secondary"
+                                                                    sx={{
+                                                                        mt: 0.5,
+                                                                    }}
+                                                                >
+                                                                    {
+                                                                        variable.definition
+                                                                    }
+                                                                </Typography>
+                                                            )}
+                                                        </Box>
+                                                    ),
+                                                )}
+                                            </Stack>
+                                        </Box>
+                                    );
+                                })}
+
+                                {(() => {
+                                    const ungroupedVariables =
+                                        variables.filter(
+                                            (variable) =>
+                                                variable.questionnaireGroupId ===
+                                                null,
+                                        );
+
+                                    if (
+                                        ungroupedVariables.length === 0
+                                    ) {
+                                        return null;
+                                    }
+
+                                    return (
+                                        <Box>
+                                            <Typography
+                                                variant="subtitle1"
+                                                sx={{
+                                                    fontWeight: 600,
+                                                    mb: 1,
+                                                }}
+                                            >
+                                                Variables without group
+                                            </Typography>
+
+                                            <Stack spacing={2}>
+                                                {ungroupedVariables.map(
+                                                    (variable) => (
+                                                        <Box
+                                                            key={variable.id}
+                                                            sx={{
+                                                                pl: 2,
+                                                                borderLeft: 2,
+                                                                borderColor:
+                                                                    "divider",
+                                                            }}
+                                                        >
+                                                            <Typography
+                                                                variant="body1"
+                                                                sx={{
+                                                                    fontWeight: 600,
+                                                                }}
+                                                            >
+                                                                {
+                                                                    variable.name
+                                                                }
+                                                            </Typography>
+
+                                                            <Typography
+                                                                variant="body2"
+                                                                color="text.secondary"
+                                                            >
+                                                                {
+                                                                    variable.seriesCode
+                                                                }{" "}
+                                                                ·{" "}
+                                                                {
+                                                                    variable.dataType
+                                                                }
+                                                                {variable.unit
+                                                                    ? ` · ${variable.unit}`
+                                                                    : ""}
+                                                                {variable.required
+                                                                    ? " · Required"
+                                                                    : ""}
+                                                            </Typography>
+
+                                                            {variable.definition && (
+                                                                <Typography
+                                                                    variant="body2"
+                                                                    color="text.secondary"
+                                                                    sx={{
+                                                                        mt: 0.5,
+                                                                    }}
+                                                                >
+                                                                    {
+                                                                        variable.definition
+                                                                    }
+                                                                </Typography>
+                                                            )}
+                                                        </Box>
+                                                    ),
+                                                )}
+                                            </Stack>
+                                        </Box>
+                                    );
+                                })()}
                             </Stack>
                         )}
                 </CardContent>
