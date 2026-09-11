@@ -376,6 +376,207 @@ export default function HomePage() {
                     </Card>
                 </Grid>
             </Grid>
+        <Card sx={{ mt: 3 }}>
+            <CardContent>
+                <Box sx={{ mb: 3 }}>
+                    <Typography
+                        variant="h6"
+                        sx={{ fontWeight: 600 }}
+                    >
+                        Quick Access
+                    </Typography>
+
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mt: 0.5 }}
+                    >
+                        Access the main AIKP functional areas.
+                    </Typography>
+                </Box>
+
+                <Grid
+                    container
+                    spacing={2}
+                >
+                    <Grid
+                        size={{
+                            xs: 12,
+                            sm: 6,
+                            md: 4,
+                        }}
+                    >
+                        <Box
+                            onClick={() => navigate("/campaigns")}
+                            sx={{
+                                cursor: "pointer",
+                                height: "100%",
+                            }}
+                        >
+                            <DashboardCard
+                                title="Campaigns"
+                                value={String(
+                                    dashboard.totalCampaigns,
+                                )}
+                                description="Manage AIKP campaigns"
+                                icon={<CampaignOutlinedIcon />}
+                            />
+                        </Box>
+                    </Grid>
+
+                    <Grid
+                        size={{
+                            xs: 12,
+                            sm: 6,
+                            md: 4,
+                        }}
+                    >
+                        <Box
+                            onClick={() =>
+                                navigate("/questionnaires")
+                            }
+                            sx={{
+                                cursor: "pointer",
+                                height: "100%",
+                            }}
+                        >
+                            <DashboardCard
+                                title="Questionnaires"
+                                value="→"
+                                description="Manage questionnaires, groups and variables"
+                                icon={<TaskAltIcon />}
+                            />
+                        </Box>
+                    </Grid>
+
+                    <Grid
+                        size={{
+                            xs: 12,
+                            sm: 6,
+                            md: 4,
+                        }}
+                    >
+                        <Box
+                            onClick={() =>
+                                navigate("/data-collections")
+                            }
+                            sx={{
+                                cursor: "pointer",
+                                height: "100%",
+                            }}
+                        >
+                            <DashboardCard
+                                title="Data Collections"
+                                value={String(
+                                    dashboard.totalDataCollections,
+                                )}
+                                description="Manage data collection activities"
+                                icon={<TrendingUpOutlinedIcon />}
+                            />
+                        </Box>
+                    </Grid>
+
+                    <Grid
+                        size={{
+                            xs: 12,
+                            sm: 6,
+                            md: 4,
+                        }}
+                    >
+                        <Box
+                            onClick={() => navigate("/submissions")}
+                            sx={{
+                                cursor: "pointer",
+                                height: "100%",
+                            }}
+                        >
+                            <DashboardCard
+                                title="Submissions"
+                                value={String(
+                                    dashboard.submittedDataCollections,
+                                )}
+                                description="Review submitted collections"
+                                icon={<TaskAltIcon />}
+                            />
+                        </Box>
+                    </Grid>
+
+                    <Grid
+                        size={{
+                            xs: 12,
+                            sm: 6,
+                            md: 4,
+                        }}
+                    >
+                        <Box
+                            onClick={() => navigate("/validation")}
+                            sx={{
+                                cursor: "pointer",
+                                height: "100%",
+                            }}
+                        >
+                            <DashboardCard
+                                title="Validation"
+                                value={String(
+                                    dashboard.validatedDataCollections,
+                                )}
+                                description="Review and validate collections"
+                                icon={<TaskAltIcon />}
+                            />
+                        </Box>
+                    </Grid>
+
+                    <Grid
+                        size={{
+                            xs: 12,
+                            sm: 6,
+                            md: 4,
+                        }}
+                    >
+                        <Box
+                            onClick={() => navigate("/countries")}
+                            sx={{
+                                cursor: "pointer",
+                                height: "100%",
+                            }}
+                        >
+                            <DashboardCard
+                                title="Countries"
+                                value={String(
+                                    dashboard.totalCountries,
+                                )}
+                                description="View participating countries"
+                                icon={<PublicOutlinedIcon />}
+                            />
+                        </Box>
+                    </Grid>
+
+                    <Grid
+                        size={{
+                            xs: 12,
+                            sm: 6,
+                            md: 4,
+                        }}
+                    >
+                        <Box
+                            onClick={() => navigate("/sectors")}
+                            sx={{
+                                cursor: "pointer",
+                                height: "100%",
+                            }}
+                        >
+                            <DashboardCard
+                                title="Sectors"
+                                value="→"
+                                description="View infrastructure sectors"
+                                icon={<TrendingUpOutlinedIcon />}
+                            />
+                        </Box>
+                    </Grid>
+                </Grid>
+            </CardContent>
+        </Card>
+
         </Box>
     );
 }
