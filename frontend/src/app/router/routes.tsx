@@ -5,6 +5,8 @@ import {
 
 import HomePage from "@/pages/home/HomePage";
 import CountryListPage from "@/modules/country/pages/CountryListPage";
+import ValidationListPage from "@/modules/validation/pages/ValidationListPage";
+import ValidationReviewPage from "@/modules/validation/pages/ValidationReviewPage";
 import CampaignListPage from "@/modules/campaign/pages/CampaignListPage";
 import CampaignDetailPage from "@/modules/campaign/pages/CampaignDetailPage";
 
@@ -35,6 +37,14 @@ export const router = createBrowserRouter([
             {
                 path: "campaigns/:id",
                 element: <CampaignDetailPage />,
+            },
+            {
+                path: "validation",
+                element: <ValidationListPage />,
+            },
+            {
+                path: "validation/:id",
+                element: <ValidationReviewPage />,
             },
             {
                 path: "countries",
