@@ -39,6 +39,7 @@ import {
     getQuestionnaires,
 } from "../api/dataCollectionOptionsApi";
 
+import { getQuestionnaire } from "@/modules/questionnaire/api/questionnaireApi";
 import { getQuestionnaireGroups } from "@/modules/questionnaire/api/questionnaireGroupApi";
 import { getQuestionnaireVariables } from "@/modules/questionnaire/api/questionnaireVariableApi";
 
@@ -46,6 +47,7 @@ import type { QuestionnaireGroup } from "@/modules/questionnaire/types/questionn
 import type { QuestionnaireVariable } from "@/modules/questionnaire/types/questionnaireVariable.types";
 
 import DataEntryForm from "../components/DataEntryForm";
+import SpreadsheetDataEntryForm from "../components/SpreadsheetDataEntryForm";
 
 import type {
     CampaignOption,
@@ -92,6 +94,9 @@ export default function DataCollectionDetailPage() {
 
     const [questionnaireVariables, setQuestionnaireVariables] =
         useState<QuestionnaireVariable[]>([]);
+
+    const [questionnaireRenderType, setQuestionnaireRenderType] =
+        useState<"FORM" | "SPREADSHEET" | "HYBRID" | null>(null);
 
     const [isQuestionnaireStructureLoading, setIsQuestionnaireStructureLoading] =
         useState(false);
@@ -167,6 +172,7 @@ export default function DataCollectionDetailPage() {
             if (!dataCollection?.questionnaireId) {
                 setQuestionnaireGroups([]);
                 setQuestionnaireVariables([]);
+                setQuestionnaireRenderType(null);
                 setQuestionnaireStructureError(null);
                 return;
             }
@@ -175,8 +181,11 @@ export default function DataCollectionDetailPage() {
                 setIsQuestionnaireStructureLoading(true);
                 setQuestionnaireStructureError(null);
 
-                const [groups, variables] =
+                const [questionnaire, groups, variables] =
                     await Promise.all([
+                        getQuestionnaire(
+                            dataCollection.questionnaireId,
+                        ),
                         getQuestionnaireGroups(
                             dataCollection.questionnaireId,
                         ),
@@ -185,6 +194,9 @@ export default function DataCollectionDetailPage() {
                         ),
                     ]);
 
+                setQuestionnaireRenderType(
+                    questionnaire.renderType,
+                );
                 setQuestionnaireGroups(groups);
                 setQuestionnaireVariables(variables);
             } catch (error) {
@@ -611,7 +623,19 @@ export default function DataCollectionDetailPage() {
 
             {!isQuestionnaireStructureLoading &&
                 !questionnaireStructureError &&
-                dataCollection && (
+                dataCollection &&
+                questionnaireRenderType === "SPREADSHEET" && (
+                    <SpreadsheetDataEntryForm
+                        dataCollectionId={dataCollection.id}
+                        groups={questionnaireGroups}
+                        variables={questionnaireVariables}
+                    />
+                )}
+
+            {!isQuestionnaireStructureLoading &&
+                !questionnaireStructureError &&
+                dataCollection &&
+                questionnaireRenderType !== "SPREADSHEET" && (
                     <DataEntryForm
                         dataCollectionId={dataCollection.id}
                         groups={questionnaireGroups}
