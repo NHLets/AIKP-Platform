@@ -67,6 +67,7 @@ interface CellState {
     value: CellValue;
     status: ObservationStatus | null;
     observationId: string | null;
+    selectedUnit: string | null;
 }
 
 function makeCellKey(
@@ -119,6 +120,7 @@ function createInitialCells(
                 value: null,
                 status: null,
                 observationId: null,
+                selectedUnit: null,
             };
         }
     }
@@ -137,6 +139,7 @@ function createInitialCells(
             value: getObservationValue(observation),
             status: observation.status,
             observationId: observation.id,
+            selectedUnit: observation.selectedUnit ?? null,
         };
     }
 
@@ -184,6 +187,29 @@ function normalizeValue(
         default:
             return value;
     }
+}
+
+function getUnitOptions(
+    variable: QuestionnaireVariable,
+): string[] {
+    if (!variable.unit) {
+        return [];
+    }
+
+    return variable.unit
+        .split(",")
+        .map((unit) => unit.trim())
+        .filter(Boolean);
+}
+
+function getDefaultUnit(
+    variable: QuestionnaireVariable,
+): string | null {
+    const options = getUnitOptions(variable);
+
+    return options.length === 1
+        ? options[0]
+        : null;
 }
 
 export default function SpreadsheetDataEntryForm({
@@ -294,7 +320,8 @@ export default function SpreadsheetDataEntryForm({
 
             if (
                 current.value !== saved.value ||
-                current.status !== saved.status
+                current.status !== saved.status ||
+                current.selectedUnit !== saved.selectedUnit
             ) {
                 return true;
             }
@@ -308,6 +335,7 @@ export default function SpreadsheetDataEntryForm({
         year: number,
         value: CellValue,
         status: ObservationStatus | null = "PROVIDED",
+        selectedUnit?: string | null,
     ) {
         const key = makeCellKey(
             variable.id,
@@ -324,6 +352,10 @@ export default function SpreadsheetDataEntryForm({
                     status === "PROVIDED"
                         ? null
                         : status,
+                selectedUnit:
+                    selectedUnit ??
+                    current[key]?.selectedUnit ??
+                    getDefaultUnit(variable),
             },
         }));
 
@@ -344,6 +376,7 @@ export default function SpreadsheetDataEntryForm({
                 value: null,
                 status: null,
                 observationId: null,
+                selectedUnit: null,
             }
         );
     }
@@ -377,7 +410,8 @@ export default function SpreadsheetDataEntryForm({
                     ? cell.value
                     : null,
             selectedUnit:
-                variable.unit ?? null,
+                cell.selectedUnit ??
+                getDefaultUnit(variable),
             comment: null,
         };
 
@@ -506,7 +540,9 @@ export default function SpreadsheetDataEntryForm({
                             current.value !==
                                 saved.value ||
                             current.status !==
-                                saved.status
+                                saved.status ||
+                            current.selectedUnit !==
+                                saved.selectedUnit
                         ) {
                             changedEntries.push({
                                 variable,
@@ -639,7 +675,7 @@ export default function SpreadsheetDataEntryForm({
                         minWidth:
                             70 +
                             280 +
-                            60 +
+                            120 +
                             PW_A_REFERENCE_YEARS.length * 82,
                         tableLayout: "fixed",
                     }}
@@ -676,8 +712,8 @@ export default function SpreadsheetDataEntryForm({
 
                             <TableCell
                                 sx={{
-                                    width: 60,
-                                    minWidth: 60,
+                                    width: 120,
+                                    minWidth: 120,
                                     position: "sticky",
                                     left: 350,
                                     zIndex: 4,
@@ -798,16 +834,82 @@ export default function SpreadsheetDataEntryForm({
 
                                         <TableCell
                                             sx={{
-                                                width: 60,
-                                                minWidth: 60,
+                                                width: 120,
+                                                minWidth: 120,
                                                 position: "sticky",
                                                 left: 350,
                                                 zIndex: 2,
                                                 backgroundColor:
                                                     "background.paper",
+                                                p: 0.5,
                                             }}
                                         >
-                                            {variable.unit ?? "—"}
+                                            {getUnitOptions(variable).length > 1 ? (
+                                                <FormControl
+                                                    size="small"
+                                                    fullWidth
+                                                >
+                                                    <Select
+                                                        value={
+                                                            getCell(
+                                                                variable.id,
+                                                                2025,
+                                                            ).selectedUnit ??
+                                                            ""
+                                                        }
+                                                        displayEmpty
+                                                        onChange={(event) => {
+                                                            const selectedUnit =
+                                                                event.target.value;
+
+                                                            setCells((current) => {
+                                                                const updated = {
+                                                                    ...current,
+                                                                };
+
+                                                                for (
+                                                                    const year of
+                                                                        PW_A_REFERENCE_YEARS
+                                                                ) {
+                                                                    const key =
+                                                                        makeCellKey(
+                                                                            variable.id,
+                                                                            year,
+                                                                        );
+
+                                                                    if (updated[key]) {
+                                                                        updated[key] = {
+                                                                            ...updated[key],
+                                                                            selectedUnit,
+                                                                        };
+                                                                    }
+                                                                }
+
+                                                                return updated;
+                                                            });
+
+                                                            setSuccessMessage(null);
+                                                        }}
+                                                    >
+                                                        <MenuItem value="">
+                                                            Select unit
+                                                        </MenuItem>
+
+                                                        {getUnitOptions(
+                                                            variable,
+                                                        ).map((unit) => (
+                                                            <MenuItem
+                                                                key={unit}
+                                                                value={unit}
+                                                            >
+                                                                {unit}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                </FormControl>
+                                            ) : (
+                                                variable.unit ?? "—"
+                                            )}
                                         </TableCell>
 
                                         {PW_A_REFERENCE_YEARS.map(
@@ -1026,6 +1128,11 @@ export default function SpreadsheetDataEntryForm({
                                                                             .target
                                                                             .value,
                                                                     ),
+                                                                    "PROVIDED",
+                                                                    cell.selectedUnit ??
+                                                                        getDefaultUnit(
+                                                                            variable,
+                                                                        ),
                                                                 )
                                                             }
                                                             slotProps={{
