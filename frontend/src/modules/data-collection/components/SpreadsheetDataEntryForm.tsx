@@ -44,10 +44,9 @@ import type { QuestionnaireGroup } from
 import type { QuestionnaireVariable } from
     "@/modules/questionnaire/types/questionnaireVariable.types";
 
-import {
-    PW_A_CHOICE_OPTIONS,
-    PW_A_REFERENCE_YEARS,
-} from "../config/pwATemplate";
+import { PW_A_CHOICE_OPTIONS } from "../config/pwATemplate";
+
+import { REFERENCE_YEARS } from "../config/spreadsheetConfig";
 
 interface SpreadsheetDataEntryFormProps {
     dataCollectionId: string;
@@ -110,7 +109,7 @@ function createInitialCells(
     const cells: Record<string, CellState> = {};
 
     for (const variable of variables) {
-        for (const year of PW_A_REFERENCE_YEARS) {
+        for (const year of REFERENCE_YEARS) {
             const key = makeCellKey(
                 variable.id,
                 year,
@@ -517,7 +516,7 @@ export default function SpreadsheetDataEntryForm({
                 for (const variable of group.variables) {
                     for (
                         const year of
-                        PW_A_REFERENCE_YEARS
+                        REFERENCE_YEARS
                     ) {
                         const key =
                             makeCellKey(
@@ -676,7 +675,7 @@ export default function SpreadsheetDataEntryForm({
                             70 +
                             280 +
                             120 +
-                            PW_A_REFERENCE_YEARS.length * 82,
+                            REFERENCE_YEARS.length * 82,
                         tableLayout: "fixed",
                     }}
                 >
@@ -724,7 +723,7 @@ export default function SpreadsheetDataEntryForm({
                                 Unit
                             </TableCell>
 
-                            {PW_A_REFERENCE_YEARS.map((year) => (
+                            {REFERENCE_YEARS.map((year) => (
                                 <TableCell
                                     key={year}
                                     align="center"
@@ -748,7 +747,7 @@ export default function SpreadsheetDataEntryForm({
                                     <TableCell
                                         colSpan={
                                             3 +
-                                            PW_A_REFERENCE_YEARS.length
+                                            REFERENCE_YEARS.length
                                         }
                                         sx={{
                                             fontWeight: 700,
@@ -869,7 +868,7 @@ export default function SpreadsheetDataEntryForm({
 
                                                                 for (
                                                                     const year of
-                                                                        PW_A_REFERENCE_YEARS
+                                                                        REFERENCE_YEARS
                                                                 ) {
                                                                     const key =
                                                                         makeCellKey(
@@ -912,7 +911,7 @@ export default function SpreadsheetDataEntryForm({
                                             )}
                                         </TableCell>
 
-                                        {PW_A_REFERENCE_YEARS.map(
+                                        {REFERENCE_YEARS.map(
                                             (year) => {
                                                 const cell = getCell(
                                                     variable.id,
