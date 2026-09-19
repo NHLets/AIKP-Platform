@@ -10,6 +10,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 
+import org.afdb.aikp.modules.collection.domain.model.DataCollectionObservation;
 import org.afdb.aikp.modules.collection.domain.enums.ObservationStatus;
 import org.afdb.aikp.shared.persistence.AuditableEntity;
 
@@ -112,6 +113,25 @@ public class DataCollectionObservationEntity
         this.dateValue = dateValue;
         this.selectedUnit = selectedUnit;
         this.comment = comment;
+    }
+
+    /**
+     * Updates the mutable observation values on the existing JPA entity.
+     *
+     * <p>
+     * This method intentionally does not modify the entity identifier,
+     * observation key fields, audit fields, or optimistic-locking version.
+     * Those fields are managed by JPA/Hibernate.
+     * </p>
+     */
+    public void updateFrom(DataCollectionObservation observation) {
+        this.status = observation.getStatus();
+        this.numericValue = observation.getNumericValue();
+        this.textValue = observation.getTextValue();
+        this.booleanValue = observation.getBooleanValue();
+        this.dateValue = observation.getDateValue();
+        this.selectedUnit = observation.getSelectedUnit();
+        this.comment = observation.getComment();
     }
 
     public UUID getDataCollectionId() {

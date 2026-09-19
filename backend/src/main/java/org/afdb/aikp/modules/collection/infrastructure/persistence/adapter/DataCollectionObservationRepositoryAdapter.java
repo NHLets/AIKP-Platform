@@ -55,6 +55,19 @@ public class DataCollectionObservationRepositoryAdapter
     public DataCollectionObservation save(
             DataCollectionObservation observation) {
 
+        Optional<DataCollectionObservationEntity> existing =
+                jpaRepository.findById(
+                        observation.getId().getValue());
+
+        if (existing.isPresent()) {
+            DataCollectionObservationEntity entity =
+                    existing.get();
+
+            entity.updateFrom(observation);
+
+            return restoreDomain(entity);
+        }
+
         DataCollectionObservationEntity entity =
                 mapper.toEntity(observation);
 
