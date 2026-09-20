@@ -341,6 +341,13 @@ export default function DataCollectionDetailPage() {
                 item.responsibleOrganizationId,
         );
 
+    const operatorOrganization =
+        organizations.find(
+            (entry) =>
+                entry.id ===
+                item.operatorOrganizationId,
+        );
+
     const person =
         persons.find(
             (entry) =>
@@ -565,6 +572,21 @@ export default function DataCollectionDetailPage() {
                                 {organization
                                     ? `${organization.code} — ${organization.name}`
                                     : item.responsibleOrganizationId}
+                            </Typography>
+                        </Box>
+
+                        <Box>
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                            >
+                                Operator Organization
+                            </Typography>
+
+                            <Typography>
+                                {operatorOrganization
+                                    ? `${operatorOrganization.code} — ${operatorOrganization.name}`
+                                    : item.operatorOrganizationId}
                             </Typography>
                         </Box>
 
