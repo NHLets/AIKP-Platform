@@ -370,6 +370,7 @@ export default function DataCollectionDetailPage() {
                 sx={{
                     fontWeight: 700,
                     mb: 1,
+                    textAlign: "left",
                 }}
             >
                 Data Collection Details
@@ -379,13 +380,14 @@ export default function DataCollectionDetailPage() {
                 color="text.secondary"
                 sx={{
                     mb: 4,
+                    textAlign: "left",
                 }}
             >
                 Detailed information and workflow actions.
             </Typography>
 
             <Card>
-                <CardContent>
+                <CardContent sx={{ textAlign: "left" }}>
                     <Stack spacing={3}>
                         <Stack
                             direction="row"
