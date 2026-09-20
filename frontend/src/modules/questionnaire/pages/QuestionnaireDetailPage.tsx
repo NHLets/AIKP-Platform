@@ -594,7 +594,10 @@ export default function QuestionnaireDetailPage() {
                                 Code
                             </Typography>
 
-                            <Typography variant="body1">
+                            <Typography
+                                variant="body1"
+                                sx={{ textAlign: "left" }}
+                            >
                                 {questionnaire.code}
                             </Typography>
                         </Box>
@@ -605,11 +608,15 @@ export default function QuestionnaireDetailPage() {
                             <Typography
                                 variant="overline"
                                 color="text.secondary"
+                                sx={{ textAlign: "left" }}
                             >
                                 Description
                             </Typography>
 
-                            <Typography variant="body1">
+                            <Typography
+                                variant="body1"
+                                sx={{ textAlign: "left" }}
+                            >
                                 {
                                     questionnaire.description
                                 }
@@ -629,11 +636,15 @@ export default function QuestionnaireDetailPage() {
                                 <Typography
                                     variant="overline"
                                     color="text.secondary"
+                                    sx={{ textAlign: "left" }}
                                 >
                                     Version
                                 </Typography>
 
-                                <Typography variant="body1">
+                                <Typography
+                                    variant="body1"
+                                    sx={{ textAlign: "left" }}
+                                >
                                     {
                                         questionnaire.version
                                     }
@@ -644,11 +655,15 @@ export default function QuestionnaireDetailPage() {
                                 <Typography
                                     variant="overline"
                                     color="text.secondary"
+                                    sx={{ textAlign: "left" }}
                                 >
                                     Default Language
                                 </Typography>
 
-                                <Typography variant="body1">
+                                <Typography
+                                    variant="body1"
+                                    sx={{ textAlign: "left" }}
+                                >
                                     {
                                         questionnaire.defaultLanguage
                                     }
@@ -659,11 +674,15 @@ export default function QuestionnaireDetailPage() {
                                 <Typography
                                     variant="overline"
                                     color="text.secondary"
+                                    sx={{ textAlign: "left" }}
                                 >
                                     Render Type
                                 </Typography>
 
-                                <Typography variant="body1">
+                                <Typography
+                                    variant="body1"
+                                    sx={{ textAlign: "left" }}
+                                >
                                     {
                                         questionnaire.renderType
                                     }
@@ -684,11 +703,15 @@ export default function QuestionnaireDetailPage() {
                                 <Typography
                                     variant="overline"
                                     color="text.secondary"
+                                    sx={{ textAlign: "left" }}
                                 >
                                     Status
                                 </Typography>
 
-                                <Typography variant="body1">
+                                <Typography
+                                    variant="body1"
+                                    sx={{ textAlign: "left" }}
+                                >
                                     {
                                         questionnaire.status
                                     }
@@ -699,11 +722,15 @@ export default function QuestionnaireDetailPage() {
                                 <Typography
                                     variant="overline"
                                     color="text.secondary"
+                                    sx={{ textAlign: "left" }}
                                 >
                                     Active
                                 </Typography>
 
-                                <Typography variant="body1">
+                                <Typography
+                                    variant="body1"
+                                    sx={{ textAlign: "left" }}
+                                >
                                     {
                                         questionnaire.active
                                             ? "Yes"
