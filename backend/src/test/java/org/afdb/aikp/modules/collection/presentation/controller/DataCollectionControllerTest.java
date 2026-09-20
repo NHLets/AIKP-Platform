@@ -58,6 +58,7 @@ class DataCollectionControllerTest {
         UUID countryId = UUID.randomUUID();
         UUID questionnaireId = UUID.randomUUID();
         UUID organizationId = UUID.randomUUID();
+        UUID operatorId = UUID.randomUUID();
         UUID personId = UUID.randomUUID();
 
         CreateDataCollectionRequest request =
@@ -66,6 +67,7 @@ class DataCollectionControllerTest {
                         countryId,
                         questionnaireId,
                         organizationId,
+                        operatorId,
                         personId);
 
         DataCollectionResponse response =
@@ -75,6 +77,7 @@ class DataCollectionControllerTest {
                         countryId,
                         questionnaireId,
                         organizationId,
+                        operatorId,
                         personId,
                         DataCollectionStatus.DRAFT);
 
@@ -110,6 +113,7 @@ class DataCollectionControllerTest {
                         UUID.randomUUID(),
                         UUID.randomUUID(),
                         UUID.randomUUID(),
+                        null,
                         UUID.randomUUID(),
                         DataCollectionStatus.DRAFT);
 
@@ -136,6 +140,7 @@ class DataCollectionControllerTest {
                         UUID.randomUUID(),
                         UUID.randomUUID(),
                         UUID.randomUUID(),
+                        null,
                         UUID.randomUUID(),
                         DataCollectionStatus.DRAFT);
 
@@ -146,6 +151,7 @@ class DataCollectionControllerTest {
                         UUID.randomUUID(),
                         UUID.randomUUID(),
                         UUID.randomUUID(),
+                        null,
                         UUID.randomUUID(),
                         DataCollectionStatus.IN_PROGRESS);
 
@@ -176,6 +182,7 @@ class DataCollectionControllerTest {
                         UUID.randomUUID(),
                         UUID.randomUUID(),
                         UUID.randomUUID(),
+                        null,
                         UUID.randomUUID(),
                         DataCollectionStatus.DRAFT);
 
@@ -186,6 +193,7 @@ class DataCollectionControllerTest {
                         UUID.randomUUID(),
                         UUID.randomUUID(),
                         UUID.randomUUID(),
+                        null,
                         UUID.randomUUID(),
                         DataCollectionStatus.IN_PROGRESS);
 
@@ -219,6 +227,7 @@ class DataCollectionControllerTest {
                         countryId,
                         UUID.randomUUID(),
                         UUID.randomUUID(),
+                        null,
                         UUID.randomUUID(),
                         DataCollectionStatus.DRAFT);
 
@@ -229,6 +238,7 @@ class DataCollectionControllerTest {
                         countryId,
                         UUID.randomUUID(),
                         UUID.randomUUID(),
+                        null,
                         UUID.randomUUID(),
                         DataCollectionStatus.SUBMITTED);
 
@@ -255,11 +265,13 @@ class DataCollectionControllerTest {
 
         UUID id = UUID.randomUUID();
         UUID organizationId = UUID.randomUUID();
+        UUID operatorId = UUID.randomUUID();
         UUID personId = UUID.randomUUID();
 
         UpdateDataCollectionRequest request =
                 new UpdateDataCollectionRequest(
                         organizationId,
+                        operatorId,
                         personId);
 
         DataCollectionResponse response =
@@ -269,6 +281,7 @@ class DataCollectionControllerTest {
                         UUID.randomUUID(),
                         UUID.randomUUID(),
                         organizationId,
+                        operatorId,
                         personId,
                         DataCollectionStatus.DRAFT);
 
@@ -287,6 +300,9 @@ class DataCollectionControllerTest {
                 .andExpect(
                         jsonPath("$.responsibleOrganizationId")
                                 .value(organizationId.toString()))
+                .andExpect(
+                        jsonPath("$.operatorOrganizationId")
+                                .value(operatorId.toString()))
                 .andExpect(
                         jsonPath("$.dataCollectorId")
                                 .value(personId.toString()));
@@ -417,6 +433,7 @@ class DataCollectionControllerTest {
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 UUID.randomUUID(),
+                null,
                 UUID.randomUUID(),
                 status);
     }
@@ -427,6 +444,7 @@ class DataCollectionControllerTest {
             UUID countryId,
             UUID questionnaireId,
             UUID organizationId,
+            UUID operatorId,
             UUID personId,
             DataCollectionStatus status) {
 
@@ -436,6 +454,7 @@ class DataCollectionControllerTest {
                 countryId,
                 questionnaireId,
                 organizationId,
+                operatorId,
                 personId,
                 status);
     }
@@ -446,6 +465,7 @@ class DataCollectionControllerTest {
             UUID countryId,
             UUID questionnaireId,
             UUID organizationId,
+            UUID operatorId,
             UUID personId,
             DataCollectionStatus status) {
 
@@ -455,6 +475,7 @@ class DataCollectionControllerTest {
                 countryId,
                 questionnaireId,
                 organizationId,
+                operatorId,
                 personId,
                 status);
     }

@@ -58,6 +58,7 @@ public class DataCollectionController {
                                 request.countryId(),
                                 request.questionnaireId(),
                                 request.responsibleOrganizationId(),
+                                request.operatorOrganizationId(),
                                 request.dataCollectorId()));
 
         return ResponseEntity
@@ -128,6 +129,7 @@ public class DataCollectionController {
                         new UpdateDataCollectionCommand(
                                 id,
                                 request.responsibleOrganizationId(),
+                                request.operatorOrganizationId(),
                                 request.dataCollectorId()));
 
         return ResponseEntity.ok(response);

@@ -36,6 +36,8 @@ public final class DataCollection
 
     private OrganizationId responsibleOrganizationId;
 
+    private OrganizationId operatorOrganizationId;
+
     private PersonId dataCollectorId;
 
     private DataCollectionStatus status;
@@ -46,6 +48,7 @@ public final class DataCollection
             CountryId countryId,
             QuestionnaireId questionnaireId,
             OrganizationId responsibleOrganizationId,
+            OrganizationId operatorOrganizationId,
             PersonId dataCollectorId,
             DataCollectionStatus status) {
 
@@ -70,6 +73,9 @@ public final class DataCollection
                         responsibleOrganizationId,
                         "Responsible organization ID cannot be null.");
 
+        this.operatorOrganizationId =
+                operatorOrganizationId;
+
         this.dataCollectorId =
                 Objects.requireNonNull(
                         dataCollectorId,
@@ -91,12 +97,32 @@ public final class DataCollection
             OrganizationId responsibleOrganizationId,
             PersonId dataCollectorId) {
 
+        return create(
+                id,
+                campaignId,
+                countryId,
+                questionnaireId,
+                responsibleOrganizationId,
+                null,
+                dataCollectorId);
+    }
+
+    public static DataCollection create(
+            DataCollectionId id,
+            CampaignId campaignId,
+            CountryId countryId,
+            QuestionnaireId questionnaireId,
+            OrganizationId responsibleOrganizationId,
+            OrganizationId operatorOrganizationId,
+            PersonId dataCollectorId) {
+
         return new DataCollection(
                 id,
                 campaignId,
                 countryId,
                 questionnaireId,
                 responsibleOrganizationId,
+                operatorOrganizationId,
                 dataCollectorId,
                 DataCollectionStatus.DRAFT);
     }
@@ -113,12 +139,34 @@ public final class DataCollection
             PersonId dataCollectorId,
             DataCollectionStatus status) {
 
+        return restore(
+                id,
+                campaignId,
+                countryId,
+                questionnaireId,
+                responsibleOrganizationId,
+                null,
+                dataCollectorId,
+                status);
+    }
+
+    public static DataCollection restore(
+            DataCollectionId id,
+            CampaignId campaignId,
+            CountryId countryId,
+            QuestionnaireId questionnaireId,
+            OrganizationId responsibleOrganizationId,
+            OrganizationId operatorOrganizationId,
+            PersonId dataCollectorId,
+            DataCollectionStatus status) {
+
         return new DataCollection(
                 id,
                 campaignId,
                 countryId,
                 questionnaireId,
                 responsibleOrganizationId,
+                operatorOrganizationId,
                 dataCollectorId,
                 status);
     }
@@ -133,6 +181,21 @@ public final class DataCollection
                 Objects.requireNonNull(
                         responsibleOrganizationId,
                         "Responsible organization ID cannot be null.");
+    }
+
+    /**
+     * Changes the operator organization.
+     *
+     * <p>
+     * The operator organization is optional at the generic
+     * DataCollection level. Questionnaire-specific business rules
+     * may require it.
+     * </p>
+     */
+    public void changeOperatorOrganization(
+            OrganizationId operatorOrganizationId) {
+
+        this.operatorOrganizationId = operatorOrganizationId;
     }
 
     /**
@@ -240,6 +303,10 @@ public final class DataCollection
 
     public OrganizationId getResponsibleOrganizationId() {
         return responsibleOrganizationId;
+    }
+
+    public OrganizationId getOperatorOrganizationId() {
+        return operatorOrganizationId;
     }
 
     public PersonId getDataCollectorId() {

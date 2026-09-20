@@ -9,5 +9,6 @@ import java.util.UUID;
 public record UpdateDataCollectionCommand(
         UUID dataCollectionId,
         UUID responsibleOrganizationId,
+        UUID operatorOrganizationId,
         UUID dataCollectorId) {
 }

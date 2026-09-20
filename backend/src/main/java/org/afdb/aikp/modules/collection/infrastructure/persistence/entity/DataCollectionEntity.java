@@ -48,6 +48,10 @@ public class DataCollectionEntity {
     private UUID responsibleOrganizationId;
 
     @Column(
+            name = "operator_organization_id")
+    private UUID operatorOrganizationId;
+
+    @Column(
             name = "data_collector_id",
             nullable = false)
     private UUID dataCollectorId;
@@ -72,12 +76,35 @@ public class DataCollectionEntity {
             UUID dataCollectorId,
             DataCollectionStatus status) {
 
+        this(
+                id,
+                campaignId,
+                countryId,
+                questionnaireId,
+                responsibleOrganizationId,
+                null,
+                dataCollectorId,
+                status);
+    }
+
+    public DataCollectionEntity(
+            UUID id,
+            UUID campaignId,
+            UUID countryId,
+            UUID questionnaireId,
+            UUID responsibleOrganizationId,
+            UUID operatorOrganizationId,
+            UUID dataCollectorId,
+            DataCollectionStatus status) {
+
         this.id = id;
         this.campaignId = campaignId;
         this.countryId = countryId;
         this.questionnaireId = questionnaireId;
         this.responsibleOrganizationId =
                 responsibleOrganizationId;
+        this.operatorOrganizationId =
+                operatorOrganizationId;
         this.dataCollectorId = dataCollectorId;
         this.status = status;
     }
@@ -100,6 +127,10 @@ public class DataCollectionEntity {
 
     public UUID getResponsibleOrganizationId() {
         return responsibleOrganizationId;
+    }
+
+    public UUID getOperatorOrganizationId() {
+        return operatorOrganizationId;
     }
 
     public UUID getDataCollectorId() {

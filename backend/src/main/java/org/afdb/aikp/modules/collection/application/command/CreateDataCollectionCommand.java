@@ -10,5 +10,6 @@ public record CreateDataCollectionCommand(
         UUID countryId,
         UUID questionnaireId,
         UUID responsibleOrganizationId,
+        UUID operatorOrganizationId,
         UUID dataCollectorId) {
 }

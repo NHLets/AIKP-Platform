@@ -96,6 +96,7 @@ class DataCollectionApplicationServiceTest {
     private UUID countryUuid;
     private UUID questionnaireUuid;
     private UUID organizationUuid;
+    private UUID operatorUuid;
     private UUID personUuid;
     private UUID dataCollectionUuid;
 
@@ -103,6 +104,7 @@ class DataCollectionApplicationServiceTest {
     private CountryId countryId;
     private QuestionnaireId questionnaireId;
     private OrganizationId organizationId;
+    private OrganizationId operatorId;
     private PersonId personId;
     private DataCollectionId dataCollectionId;
 
@@ -113,6 +115,7 @@ class DataCollectionApplicationServiceTest {
         countryUuid = UUID.randomUUID();
         questionnaireUuid = UUID.randomUUID();
         organizationUuid = UUID.randomUUID();
+        operatorUuid = UUID.randomUUID();
         personUuid = UUID.randomUUID();
         dataCollectionUuid = UUID.randomUUID();
 
@@ -120,6 +123,7 @@ class DataCollectionApplicationServiceTest {
         countryId = CountryId.of(countryUuid);
         questionnaireId = QuestionnaireId.of(questionnaireUuid);
         organizationId = OrganizationId.of(organizationUuid);
+        operatorId = OrganizationId.of(operatorUuid);
         personId = PersonId.of(personUuid);
         dataCollectionId =
                 DataCollectionId.of(dataCollectionUuid);
@@ -138,6 +142,7 @@ class DataCollectionApplicationServiceTest {
                         countryUuid,
                         questionnaireUuid,
                         organizationUuid,
+                        operatorUuid,
                         personUuid);
 
         when(campaignRepository.existsById(campaignId))
@@ -150,6 +155,9 @@ class DataCollectionApplicationServiceTest {
                 .thenReturn(true);
 
         when(organizationRepository.existsById(organizationId))
+                .thenReturn(true);
+
+        when(organizationRepository.existsById(operatorId))
                 .thenReturn(true);
 
         when(personRepository.existsById(personId))
@@ -165,6 +173,7 @@ class DataCollectionApplicationServiceTest {
                         countryUuid,
                         questionnaireUuid,
                         organizationUuid,
+                        operatorUuid,
                         personUuid,
                         DataCollectionStatus.DRAFT);
 
@@ -188,6 +197,9 @@ class DataCollectionApplicationServiceTest {
         assertEquals(
                 organizationId,
                 saved.getResponsibleOrganizationId());
+        assertEquals(
+                operatorId,
+                saved.getOperatorOrganizationId());
         assertEquals(personId, saved.getDataCollectorId());
         assertEquals(
                 DataCollectionStatus.DRAFT,
@@ -203,6 +215,7 @@ class DataCollectionApplicationServiceTest {
                         countryUuid,
                         questionnaireUuid,
                         organizationUuid,
+                        null,
                         personUuid);
 
         when(campaignRepository.existsById(campaignId))
@@ -225,6 +238,7 @@ class DataCollectionApplicationServiceTest {
                         countryUuid,
                         questionnaireUuid,
                         organizationUuid,
+                        null,
                         personUuid);
 
         when(campaignRepository.existsById(campaignId))
@@ -250,6 +264,7 @@ class DataCollectionApplicationServiceTest {
                         countryUuid,
                         questionnaireUuid,
                         organizationUuid,
+                        null,
                         personUuid);
 
         when(campaignRepository.existsById(campaignId))
@@ -278,6 +293,7 @@ class DataCollectionApplicationServiceTest {
                         countryUuid,
                         questionnaireUuid,
                         organizationUuid,
+                        null,
                         personUuid);
 
         when(campaignRepository.existsById(campaignId))
@@ -309,6 +325,7 @@ class DataCollectionApplicationServiceTest {
                         countryUuid,
                         questionnaireUuid,
                         organizationUuid,
+                        null,
                         personUuid);
 
         when(campaignRepository.existsById(campaignId))
@@ -342,10 +359,14 @@ class DataCollectionApplicationServiceTest {
     void shouldUpdateDataCollection() {
 
         UUID newOrganizationUuid = UUID.randomUUID();
+        UUID newOperatorUuid = UUID.randomUUID();
         UUID newPersonUuid = UUID.randomUUID();
 
         OrganizationId newOrganizationId =
                 OrganizationId.of(newOrganizationUuid);
+
+        OrganizationId newOperatorId =
+                OrganizationId.of(newOperatorUuid);
 
         PersonId newPersonId =
                 PersonId.of(newPersonUuid);
@@ -357,12 +378,16 @@ class DataCollectionApplicationServiceTest {
                 new UpdateDataCollectionCommand(
                         dataCollectionUuid,
                         newOrganizationUuid,
+                        newOperatorUuid,
                         newPersonUuid);
 
         when(dataCollectionRepository.findById(dataCollectionId))
                 .thenReturn(Optional.of(dataCollection));
 
         when(organizationRepository.existsById(newOrganizationId))
+                .thenReturn(true);
+
+        when(organizationRepository.existsById(newOperatorId))
                 .thenReturn(true);
 
         when(personRepository.existsById(newPersonId))
@@ -378,6 +403,7 @@ class DataCollectionApplicationServiceTest {
                         countryUuid,
                         questionnaireUuid,
                         newOrganizationUuid,
+                        newOperatorUuid,
                         newPersonUuid,
                         DataCollectionStatus.DRAFT);
 
@@ -394,6 +420,10 @@ class DataCollectionApplicationServiceTest {
                 dataCollection.getResponsibleOrganizationId());
 
         assertEquals(
+                newOperatorId,
+                dataCollection.getOperatorOrganizationId());
+
+        assertEquals(
                 newPersonId,
                 dataCollection.getDataCollectorId());
 
@@ -408,6 +438,7 @@ class DataCollectionApplicationServiceTest {
                 new UpdateDataCollectionCommand(
                         dataCollectionUuid,
                         organizationUuid,
+                        null,
                         personUuid);
 
         when(dataCollectionRepository.findById(dataCollectionId))
@@ -823,6 +854,7 @@ class DataCollectionApplicationServiceTest {
                 countryUuid,
                 questionnaireUuid,
                 organizationUuid,
+                null,
                 personUuid,
                 status);
     }
@@ -833,6 +865,7 @@ class DataCollectionApplicationServiceTest {
             UUID country,
             UUID questionnaire,
             UUID organization,
+            UUID operator,
             UUID person,
             DataCollectionStatus status) {
 
@@ -842,6 +875,7 @@ class DataCollectionApplicationServiceTest {
                 country,
                 questionnaire,
                 organization,
+                operator,
                 person,
                 status);
     }
@@ -857,6 +891,11 @@ class DataCollectionApplicationServiceTest {
                 dataCollection
                         .getResponsibleOrganizationId()
                         .getValue(),
+                dataCollection.getOperatorOrganizationId() == null
+                        ? null
+                        : dataCollection
+                                .getOperatorOrganizationId()
+                                .getValue(),
                 dataCollection
                         .getDataCollectorId()
                         .getValue(),

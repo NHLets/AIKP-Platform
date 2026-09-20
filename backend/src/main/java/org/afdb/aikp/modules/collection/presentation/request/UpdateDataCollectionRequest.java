@@ -8,5 +8,6 @@ import java.util.UUID;
  */
 public record UpdateDataCollectionRequest(
         UUID responsibleOrganizationId,
+        UUID operatorOrganizationId,
         UUID dataCollectorId) {
 }

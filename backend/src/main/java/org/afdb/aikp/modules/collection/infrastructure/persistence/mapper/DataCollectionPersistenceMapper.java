@@ -32,6 +32,10 @@ public class DataCollectionPersistenceMapper {
                         .getValue(),
                 dataCollection.getResponsibleOrganizationId()
                         .getValue(),
+                dataCollection.getOperatorOrganizationId() == null
+                        ? null
+                        : dataCollection.getOperatorOrganizationId()
+                                .getValue(),
                 dataCollection.getDataCollectorId()
                         .getValue(),
                 dataCollection.getStatus());
@@ -48,6 +52,10 @@ public class DataCollectionPersistenceMapper {
                         entity.getQuestionnaireId()),
                 OrganizationId.of(
                         entity.getResponsibleOrganizationId()),
+                entity.getOperatorOrganizationId() == null
+                        ? null
+                        : OrganizationId.of(
+                                entity.getOperatorOrganizationId()),
                 PersonId.of(
                         entity.getDataCollectorId()),
                 entity.getStatus());

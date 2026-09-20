@@ -129,6 +129,12 @@ public class DataCollectionApplicationService {
                 OrganizationId.of(
                         command.responsibleOrganizationId());
 
+        OrganizationId operatorOrganizationId =
+                command.operatorOrganizationId() == null
+                        ? null
+                        : OrganizationId.of(
+                                command.operatorOrganizationId());
+
         PersonId personId =
                 PersonId.of(command.dataCollectorId());
 
@@ -136,6 +142,11 @@ public class DataCollectionApplicationService {
         ensureCountryExists(countryId);
         ensureQuestionnaireExists(questionnaireId);
         ensureOrganizationExists(organizationId);
+
+        if (operatorOrganizationId != null) {
+            ensureOrganizationExists(operatorOrganizationId);
+        }
+
         ensurePersonExists(personId);
 
         DataCollection dataCollection =
@@ -145,6 +156,7 @@ public class DataCollectionApplicationService {
                         countryId,
                         questionnaireId,
                         organizationId,
+                        operatorOrganizationId,
                         personId);
 
         DataCollection savedDataCollection =
@@ -176,15 +188,29 @@ public class DataCollectionApplicationService {
                 OrganizationId.of(
                         command.responsibleOrganizationId());
 
+        OrganizationId operatorOrganizationId =
+                command.operatorOrganizationId() == null
+                        ? null
+                        : OrganizationId.of(
+                                command.operatorOrganizationId());
+
         PersonId personId =
                 PersonId.of(
                         command.dataCollectorId());
 
         ensureOrganizationExists(organizationId);
+
+        if (operatorOrganizationId != null) {
+            ensureOrganizationExists(operatorOrganizationId);
+        }
+
         ensurePersonExists(personId);
 
         dataCollection.changeResponsibleOrganization(
                 organizationId);
+
+        dataCollection.changeOperatorOrganization(
+                operatorOrganizationId);
 
         dataCollection.changeDataCollector(personId);
 

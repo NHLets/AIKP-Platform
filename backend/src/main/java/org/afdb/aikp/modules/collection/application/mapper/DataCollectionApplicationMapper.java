@@ -23,6 +23,11 @@ public class DataCollectionApplicationMapper {
                 dataCollection
                         .getResponsibleOrganizationId()
                         .getValue(),
+                dataCollection.getOperatorOrganizationId() == null
+                        ? null
+                        : dataCollection
+                                .getOperatorOrganizationId()
+                                .getValue(),
                 dataCollection
                         .getDataCollectorId()
                         .getValue(),
@@ -40,6 +45,11 @@ public class DataCollectionApplicationMapper {
                 dataCollection
                         .getResponsibleOrganizationId()
                         .getValue(),
+                dataCollection.getOperatorOrganizationId() == null
+                        ? null
+                        : dataCollection
+                                .getOperatorOrganizationId()
+                                .getValue(),
                 dataCollection
                         .getDataCollectorId()
                         .getValue(),

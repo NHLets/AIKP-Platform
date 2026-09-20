@@ -13,6 +13,7 @@ public record DataCollectionResponse(
         UUID countryId,
         UUID questionnaireId,
         UUID responsibleOrganizationId,
+        UUID operatorOrganizationId,
         UUID dataCollectorId,
         DataCollectionStatus status) {
 }
