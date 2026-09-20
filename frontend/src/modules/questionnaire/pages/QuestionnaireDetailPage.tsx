@@ -744,7 +744,7 @@ export default function QuestionnaireDetailPage() {
             </Card>
 
             <Card sx={{ mt: 3 }}>
-                <CardContent>
+                <CardContent sx={{ textAlign: "left" }}>
                     <Typography
                         variant="h6"
                         sx={{ fontWeight: 600, mb: 2 }}
@@ -838,7 +838,7 @@ export default function QuestionnaireDetailPage() {
             </Card>
 
             <Card sx={{ mt: 3 }}>
-                <CardContent>
+                <CardContent sx={{ textAlign: "left" }}>
                     <Typography
                         variant="h6"
                         sx={{ fontWeight: 600, mb: 2 }}
