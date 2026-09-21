@@ -11,6 +11,7 @@ import org.springframework.data.domain.Persistable;
 import java.util.Objects;
 import java.util.UUID;
 import jakarta.persistence.PostLoad;
+import jakarta.persistence.PostPersist;
 
 /**
  * Base class for all JPA entities.
@@ -102,6 +103,15 @@ public abstract class BaseEntity
     protected void onLoad() {
     this.isNew = false;
     }
+
+    /**
+     * Marks the entity as existing after persistence.
+     */
+    @PostPersist
+    protected void onPersist() {
+        this.isNew = false;
+    }
+
     /**
      * Marks the entity as new.
      */
