@@ -62,6 +62,8 @@ public class DashboardRepositoryImpl
                         DataCollectionStatus.VALIDATED),
                 dataCollectionJpaRepository.countByStatus(
                         DataCollectionStatus.REJECTED),
+                dataCollectionJpaRepository.countByStatus(
+                        DataCollectionStatus.CANCELLED),
                 personJpaRepository.count(),
                 personJpaRepository.countByActiveTrue());
     }

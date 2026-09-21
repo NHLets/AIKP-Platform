@@ -36,6 +36,7 @@ class DashboardApplicationServiceTest {
                         6,
                         10,
                         2,
+                        3,
                         100,
                         80);
 

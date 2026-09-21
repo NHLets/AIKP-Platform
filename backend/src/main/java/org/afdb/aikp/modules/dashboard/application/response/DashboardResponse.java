@@ -10,5 +10,6 @@ public record DashboardResponse(
         long submittedDataCollections,
         long validatedDataCollections,
         long rejectedDataCollections,
+        long cancelledDataCollections,
         long totalPersons,
         long activePersons) {}

@@ -41,6 +41,7 @@ class DashboardControllerTest {
                         6,
                         10,
                         2,
+                        3,
                         100,
                         80);
 
