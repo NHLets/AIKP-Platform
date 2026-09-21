@@ -8,10 +8,12 @@ import org.afdb.aikp.modules.country.domain.valueobject.Iso2Code;
 import org.afdb.aikp.modules.country.domain.valueobject.Iso3Code;
 import org.afdb.aikp.modules.country.domain.valueobject.NumericCode;
 import org.afdb.aikp.modules.country.domain.valueobject.OfficialCountryName;
+import org.afdb.aikp.modules.country.infrastructure.persistence.entity.CountryEntity;
 import org.afdb.aikp.modules.country.infrastructure.persistence.repository.CountryJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -85,6 +87,79 @@ class CountryRepositoryAdapterIntegrationTest {
         assertEquals("450", result.get().getNumericCode().getValue());
         assertEquals("Madagascar", result.get().getName().getValue());
         assertTrue(result.get().isActive());
+    }
+
+    @Test
+    void shouldUpdateExistingCountry() {
+
+        Country country = createCountry();
+
+        Country saved = adapter.save(country);
+
+        saved.rename(
+                CountryName.of("Republic of Madagascar"),
+                OfficialCountryName.of(
+                        "Republic of Madagascar"));
+
+        Country updated = adapter.save(saved);
+
+        Optional<Country> result =
+                adapter.findById(saved.getCountryId());
+
+        assertTrue(result.isPresent());
+        assertEquals(saved.getCountryId(), updated.getCountryId());
+        assertEquals(
+                "Republic of Madagascar",
+                result.get().getName().getValue());
+        assertEquals(
+                "Republic of Madagascar",
+                result.get().getOfficialName().getValue());
+    }
+
+    @Test
+    void shouldIncrementVersionWhenUpdatingCountry() {
+
+        Country country = createCountry();
+
+        Country saved = adapter.save(country);
+
+        CountryEntity persistedAfterCreate =
+                jpaRepository.findById(
+                        saved.getCountryId().getValue()).orElseThrow();
+
+        assertEquals(0L, persistedAfterCreate.getVersion());
+
+        saved.rename(
+                CountryName.of("Republic of Madagascar"),
+                OfficialCountryName.of(
+                        "Republic of Madagascar"));
+
+        adapter.save(saved);
+
+        CountryEntity persistedAfterUpdate =
+                jpaRepository.findById(
+                        saved.getCountryId().getValue()).orElseThrow();
+
+        assertEquals(1L, persistedAfterUpdate.getVersion());
+    }
+
+    @Test
+    void shouldRejectDuplicateIso2Code() {
+
+        Country first = createCountry();
+        adapter.save(first);
+
+        Country duplicate = Country.create(
+                CountryId.of(UUID.randomUUID()),
+                Iso2Code.of("MG"),
+                Iso3Code.of("XYZ"),
+                NumericCode.of("999"),
+                CountryName.of("Duplicate"),
+                OfficialCountryName.of("Duplicate Country"));
+
+        assertThrows(
+                DataIntegrityViolationException.class,
+                () -> adapter.save(duplicate));
     }
 
     @Test
