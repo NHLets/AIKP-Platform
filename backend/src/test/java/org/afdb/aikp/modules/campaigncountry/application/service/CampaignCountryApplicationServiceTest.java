@@ -13,7 +13,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.afdb.aikp.modules.campaign.domain.enums.CampaignStatus;
+import org.afdb.aikp.modules.campaign.domain.exception.CampaignLifecycleException;
 import org.afdb.aikp.modules.campaign.domain.exception.CampaignNotFoundException;
+import org.afdb.aikp.modules.campaign.domain.model.Campaign;
 import org.afdb.aikp.modules.campaign.domain.repository.CampaignRepository;
 import org.afdb.aikp.modules.campaign.domain.valueobject.CampaignId;
 
@@ -72,6 +75,21 @@ class CampaignCountryApplicationServiceTest {
                 );
     }
 
+    private Campaign createCampaign(CampaignStatus status) {
+
+        return Campaign.restore(
+                CampaignId.of(UUID.randomUUID()),
+                org.afdb.aikp.modules.campaign.domain.valueobject.CampaignCode.of(
+                        "AIKP_2026"),
+                org.afdb.aikp.modules.campaign.domain.valueobject.CampaignName.of(
+                        "AIKP Data Collection 2026"),
+                org.afdb.aikp.modules.campaign.domain.valueobject.CampaignDescription.of(
+                        "AIKP data collection campaign for 2026."),
+                java.time.LocalDate.of(2026, 8, 1),
+                java.time.LocalDate.of(2026, 10, 30),
+                status);
+    }
+
     @Test
     void shouldAddCountryToCampaign() {
 
@@ -84,8 +102,11 @@ class CampaignCountryApplicationServiceTest {
         CountryId countryId =
                 CountryId.of(countryUuid);
 
-        when(campaignRepository.existsById(campaignId))
-                .thenReturn(true);
+        Campaign campaign =
+                createCampaign(CampaignStatus.DRAFT);
+
+        when(campaignRepository.findById(campaignId))
+                .thenReturn(Optional.of(campaign));
 
         when(countryRepository.existsById(countryId))
                 .thenReturn(true);
@@ -153,9 +174,12 @@ class CampaignCountryApplicationServiceTest {
         UUID campaignUuid = UUID.randomUUID();
         UUID countryUuid = UUID.randomUUID();
 
-        when(campaignRepository.existsById(
+        Campaign campaign =
+                createCampaign(CampaignStatus.DRAFT);
+
+        when(campaignRepository.findById(
                 CampaignId.of(campaignUuid)))
-                .thenReturn(true);
+                .thenReturn(Optional.of(campaign));
 
         when(countryRepository.existsById(
                 CountryId.of(countryUuid)))
@@ -187,8 +211,11 @@ class CampaignCountryApplicationServiceTest {
         CountryId countryId =
                 CountryId.of(countryUuid);
 
-        when(campaignRepository.existsById(campaignId))
-                .thenReturn(true);
+        Campaign campaign =
+                createCampaign(CampaignStatus.DRAFT);
+
+        when(campaignRepository.findById(campaignId))
+                .thenReturn(Optional.of(campaign));
 
         when(countryRepository.existsById(countryId))
                 .thenReturn(true);
@@ -208,6 +235,70 @@ class CampaignCountryApplicationServiceTest {
                         )
                 )
         );
+
+        verify(campaignCountryRepository, never())
+                .save(any());
+    }
+
+    @Test
+    void shouldRejectAddingCountryWhenCampaignIsCompleted() {
+
+        UUID campaignUuid = UUID.randomUUID();
+        UUID countryUuid = UUID.randomUUID();
+
+        CampaignId campaignId =
+                CampaignId.of(campaignUuid);
+
+        Campaign campaign =
+                createCampaign(CampaignStatus.COMPLETED);
+
+        when(campaignRepository.findById(campaignId))
+                .thenReturn(Optional.of(campaign));
+
+        assertThrows(
+                CampaignLifecycleException.class,
+                () -> service.addCountryToCampaign(
+                        new AddCountryToCampaignCommand(
+                                campaignUuid,
+                                countryUuid
+                        )
+                )
+        );
+
+        verify(countryRepository, never())
+                .existsById(any());
+
+        verify(campaignCountryRepository, never())
+                .save(any());
+    }
+
+    @Test
+    void shouldRejectAddingCountryWhenCampaignIsArchived() {
+
+        UUID campaignUuid = UUID.randomUUID();
+        UUID countryUuid = UUID.randomUUID();
+
+        CampaignId campaignId =
+                CampaignId.of(campaignUuid);
+
+        Campaign campaign =
+                createCampaign(CampaignStatus.ARCHIVED);
+
+        when(campaignRepository.findById(campaignId))
+                .thenReturn(Optional.of(campaign));
+
+        assertThrows(
+                CampaignLifecycleException.class,
+                () -> service.addCountryToCampaign(
+                        new AddCountryToCampaignCommand(
+                                campaignUuid,
+                                countryUuid
+                        )
+                )
+        );
+
+        verify(countryRepository, never())
+                .existsById(any());
 
         verify(campaignCountryRepository, never())
                 .save(any());
@@ -372,6 +463,12 @@ class CampaignCountryApplicationServiceTest {
                         countryId
                 );
 
+        Campaign campaign =
+                createCampaign(CampaignStatus.DRAFT);
+
+        when(campaignRepository.findById(campaignId))
+                .thenReturn(Optional.of(campaign));
+
         when(campaignCountryRepository
                 .findByCampaignIdAndCountryId(
                         campaignId,
@@ -394,10 +491,85 @@ class CampaignCountryApplicationServiceTest {
     }
 
     @Test
+    void shouldRejectRemovingCountryWhenCampaignIsCompleted() {
+
+        UUID campaignUuid = UUID.randomUUID();
+        UUID countryUuid = UUID.randomUUID();
+
+        CampaignId campaignId =
+                CampaignId.of(campaignUuid);
+
+        Campaign campaign =
+                createCampaign(CampaignStatus.COMPLETED);
+
+        when(campaignRepository.findById(campaignId))
+                .thenReturn(Optional.of(campaign));
+
+        assertThrows(
+                CampaignLifecycleException.class,
+                () -> service.removeCountryFromCampaign(
+                        new RemoveCountryFromCampaignCommand(
+                                campaignUuid,
+                                countryUuid
+                        )
+                )
+        );
+
+        verify(campaignCountryRepository, never())
+                .findByCampaignIdAndCountryId(
+                        any(),
+                        any());
+
+        verify(campaignCountryRepository, never())
+                .delete(any());
+    }
+
+    @Test
+    void shouldRejectRemovingCountryWhenCampaignIsArchived() {
+
+        UUID campaignUuid = UUID.randomUUID();
+        UUID countryUuid = UUID.randomUUID();
+
+        CampaignId campaignId =
+                CampaignId.of(campaignUuid);
+
+        Campaign campaign =
+                createCampaign(CampaignStatus.ARCHIVED);
+
+        when(campaignRepository.findById(campaignId))
+                .thenReturn(Optional.of(campaign));
+
+        assertThrows(
+                CampaignLifecycleException.class,
+                () -> service.removeCountryFromCampaign(
+                        new RemoveCountryFromCampaignCommand(
+                                campaignUuid,
+                                countryUuid
+                        )
+                )
+        );
+
+        verify(campaignCountryRepository, never())
+                .findByCampaignIdAndCountryId(
+                        any(),
+                        any());
+
+        verify(campaignCountryRepository, never())
+                .delete(any());
+    }
+
+    @Test
     void shouldThrowWhenRemovingUnknownCampaignCountry() {
 
         UUID campaignUuid = UUID.randomUUID();
         UUID countryUuid = UUID.randomUUID();
+
+        Campaign campaign =
+                createCampaign(CampaignStatus.DRAFT);
+
+        when(campaignRepository.findById(
+                CampaignId.of(campaignUuid)))
+                .thenReturn(Optional.of(campaign));
 
         when(campaignCountryRepository
                 .findByCampaignIdAndCountryId(

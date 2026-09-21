@@ -126,6 +126,29 @@ public class Campaign extends AggregateRoot<CampaignId> {
     }
 
     /**
+     * Ensures that country participation can still be changed.
+     *
+     * <p>Countries may join or leave a Campaign while it is in
+     * {@link CampaignStatus#DRAFT}, {@link CampaignStatus#PLANNED}
+     * or {@link CampaignStatus#ACTIVE}. Once the Campaign is
+     * {@link CampaignStatus#COMPLETED} or {@link CampaignStatus#ARCHIVED},
+     * country participation is read-only.</p>
+     *
+     * @throws CampaignLifecycleException if the Campaign is completed
+     *         or archived
+     */
+    public void ensureCountryParticipationCanBeChanged() {
+
+        if (status == CampaignStatus.COMPLETED
+                || status == CampaignStatus.ARCHIVED) {
+
+            throw new CampaignLifecycleException(
+                    "Country participation can only be changed "
+                            + "while the campaign is draft, planned or active.");
+        }
+    }
+
+    /**
      * Changes the Campaign name.
      */
     public void rename(CampaignName newName) {

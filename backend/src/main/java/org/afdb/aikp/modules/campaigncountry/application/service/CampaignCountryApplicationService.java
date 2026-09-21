@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.afdb.aikp.modules.campaign.domain.exception.CampaignNotFoundException;
+import org.afdb.aikp.modules.campaign.domain.model.Campaign;
 import org.afdb.aikp.modules.campaign.domain.repository.CampaignRepository;
 import org.afdb.aikp.modules.campaign.domain.valueobject.CampaignId;
 
@@ -82,11 +83,14 @@ public class CampaignCountryApplicationService {
         CountryId countryId =
                 CountryId.of(command.countryId());
 
-        if (!campaignRepository.existsById(campaignId)) {
-            throw new CampaignNotFoundException(
-                    "Campaign not found with id: "
-                            + campaignId.getValue());
-        }
+        Campaign campaign =
+                campaignRepository.findById(campaignId)
+                        .orElseThrow(() ->
+                                new CampaignNotFoundException(
+                                        "Campaign not found with id: "
+                                                + campaignId.getValue()));
+
+        campaign.ensureCountryParticipationCanBeChanged();
 
         if (!countryRepository.existsById(countryId)) {
             throw new CountryNotFoundException(
@@ -187,6 +191,15 @@ public class CampaignCountryApplicationService {
 
         CountryId countryId =
                 CountryId.of(command.countryId());
+
+        Campaign campaign =
+                campaignRepository.findById(campaignId)
+                        .orElseThrow(() ->
+                                new CampaignNotFoundException(
+                                        "Campaign not found with id: "
+                                                + campaignId.getValue()));
+
+        campaign.ensureCountryParticipationCanBeChanged();
 
         CampaignCountry campaignCountry =
                 campaignCountryRepository

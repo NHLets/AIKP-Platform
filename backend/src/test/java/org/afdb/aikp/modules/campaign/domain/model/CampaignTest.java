@@ -6,10 +6,13 @@ import org.afdb.aikp.modules.campaign.domain.valueobject.CampaignCode;
 import org.afdb.aikp.modules.campaign.domain.valueobject.CampaignDescription;
 import org.afdb.aikp.modules.campaign.domain.valueobject.CampaignName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CampaignTest {
@@ -183,6 +186,38 @@ class CampaignTest {
                 .isInstanceOf(CampaignLifecycleException.class)
                 .hasMessage(
                         "Only completed campaigns can be archived.");
+    }
+
+
+    @ParameterizedTest
+    @EnumSource(CampaignStatus.class)
+    void shouldValidateCountryParticipationChangesByCampaignStatus(
+            CampaignStatus status) {
+
+        Campaign campaign = Campaign.restore(
+                org.afdb.aikp.modules.campaign.domain.valueobject.CampaignId.of(
+                        java.util.UUID.randomUUID()),
+                CampaignCode.of("AIKP_2026"),
+                CampaignName.of("AIKP Data Collection 2026"),
+                CampaignDescription.of(
+                        "AIKP data collection campaign for 2026."),
+                LocalDate.of(2026, 8, 1),
+                LocalDate.of(2026, 10, 30),
+                status);
+
+        if (status == CampaignStatus.COMPLETED
+                || status == CampaignStatus.ARCHIVED) {
+
+            assertThatThrownBy(
+                    campaign::ensureCountryParticipationCanBeChanged)
+                    .isInstanceOf(CampaignLifecycleException.class);
+
+        } else {
+
+            assertThatCode(
+                    campaign::ensureCountryParticipationCanBeChanged)
+                    .doesNotThrowAnyException();
+        }
     }
 
     @Test
