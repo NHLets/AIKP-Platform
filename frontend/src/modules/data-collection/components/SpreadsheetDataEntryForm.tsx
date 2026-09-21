@@ -329,6 +329,118 @@ export default function SpreadsheetDataEntryForm({
         return false;
     }, [cells, savedCells]);
 
+    function handleSpreadsheetPaste(
+        event: React.ClipboardEvent<HTMLElement>,
+        startVariable: QuestionnaireVariable,
+        startYear: number,
+    ) {
+        const clipboardText = event.clipboardData.getData("text/plain");
+
+        // Let normal single-cell paste behave normally.
+        if (
+            !clipboardText ||
+            (!clipboardText.includes("\t") && !clipboardText.includes("\n"))
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const rows = clipboardText
+            .replace(/\r\n/g, "\n")
+            .replace(/\r/g, "\n")
+            .split("\n")
+            .map((row) => row.split("\t"));
+
+        const startVariableIndex = variables.findIndex(
+            (variable) => variable.id === startVariable.id,
+        );
+
+        const startYearIndex = REFERENCE_YEARS.findIndex(
+            (year) => year === startYear,
+        );
+
+        if (startVariableIndex < 0 || startYearIndex < 0) {
+            return;
+        }
+
+        let pastedCount = 0;
+
+        rows.forEach((row, rowOffset) => {
+            const variableIndex = startVariableIndex + rowOffset;
+
+            if (variableIndex >= variables.length) {
+                return;
+            }
+
+            row.forEach((rawValue, columnOffset) => {
+                const yearIndex = startYearIndex + columnOffset;
+
+                if (yearIndex >= REFERENCE_YEARS.length) {
+                    return;
+                }
+
+                if (rawValue.trim() === "") {
+                    return;
+                }
+
+                pastedCount += 1;
+            });
+        });
+
+        setCells((current) => {
+            const next = { ...current };
+
+            rows.forEach((row, rowOffset) => {
+                const variableIndex = startVariableIndex + rowOffset;
+
+                if (variableIndex >= variables.length) {
+                    return;
+                }
+
+                const variable = variables[variableIndex];
+
+                row.forEach((rawValue, columnOffset) => {
+                    const yearIndex = startYearIndex + columnOffset;
+
+                    if (yearIndex >= REFERENCE_YEARS.length) {
+                        return;
+                    }
+
+                    // Empty cells from Excel do not overwrite existing data.
+                    if (rawValue.trim() === "") {
+                        return;
+                    }
+
+                    const year = REFERENCE_YEARS[yearIndex];
+                    const key = makeCellKey(variable.id, year);
+
+                    const existing = current[key];
+
+                    next[key] = {
+                        ...existing,
+                        value: normalizeValue(
+                            variable,
+                            rawValue.trim(),
+                        ),
+                        status: "PROVIDED",
+                        selectedUnit:
+                            existing?.selectedUnit ??
+                            getDefaultUnit(variable),
+                    };
+                });
+            });
+
+            return next;
+        });
+
+        if (pastedCount > 0) {
+            setSuccessMessage(
+                `${pastedCount} cell${pastedCount === 1 ? "" : "s"} pasted from Excel.`,
+            );
+        }
+    }
+
     function updateCell(
         variable: QuestionnaireVariable,
         year: number,
@@ -1132,6 +1244,13 @@ export default function SpreadsheetDataEntryForm({
                                                                         getDefaultUnit(
                                                                             variable,
                                                                         ),
+                                                                )
+                                                            }
+                                                            onPaste={(event) =>
+                                                                handleSpreadsheetPaste(
+                                                                    event,
+                                                                    variable,
+                                                                    year,
                                                                 )
                                                             }
                                                             slotProps={{
