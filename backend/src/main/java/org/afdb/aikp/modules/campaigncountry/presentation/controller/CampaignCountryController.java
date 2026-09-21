@@ -80,7 +80,7 @@ public class CampaignCountryController {
                     description = "Campaign UUID",
                     required = true
             )
-            @PathVariable UUID campaignId,
+            @PathVariable("campaignId") UUID campaignId,
 
             @Valid
             @RequestBody
@@ -129,7 +129,7 @@ public class CampaignCountryController {
                     description = "Campaign UUID",
                     required = true
             )
-            @PathVariable UUID campaignId) {
+            @PathVariable("campaignId") UUID campaignId) {
 
         return ResponseEntity.ok(
                 applicationService.getCampaignCountries(
@@ -163,13 +163,13 @@ public class CampaignCountryController {
                     description = "Campaign UUID",
                     required = true
             )
-            @PathVariable UUID campaignId,
+            @PathVariable("campaignId") UUID campaignId,
 
             @Parameter(
                     description = "Country UUID",
                     required = true
             )
-            @PathVariable UUID countryId) {
+            @PathVariable("countryId") UUID countryId) {
 
         return ResponseEntity.ok(
                 applicationService.getCampaignCountry(
@@ -203,13 +203,13 @@ public class CampaignCountryController {
                     description = "Campaign UUID",
                     required = true
             )
-            @PathVariable UUID campaignId,
+            @PathVariable("campaignId") UUID campaignId,
 
             @Parameter(
                     description = "Country UUID",
                     required = true
             )
-            @PathVariable UUID countryId) {
+            @PathVariable("countryId") UUID countryId) {
 
         applicationService.removeCountryFromCampaign(
                 new RemoveCountryFromCampaignCommand(
