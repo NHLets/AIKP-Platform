@@ -153,7 +153,7 @@ function getInputType(
         case "INTEGER":
         case "DECIMAL":
         case "PERCENTAGE":
-            return "number";
+            return "text";
 
         default:
             return "text";
@@ -222,6 +222,10 @@ export default function SpreadsheetDataEntryForm({
 
     const [savedCells, setSavedCells] = useState<
         Record<string, CellState>
+    >({});
+
+    const [inputValues, setInputValues] = useState<
+        Record<string, string>
     >({});
 
     const [isLoading, setIsLoading] =
@@ -334,12 +338,21 @@ export default function SpreadsheetDataEntryForm({
         startVariable: QuestionnaireVariable,
         startYear: number,
     ) {
-        const clipboardText = event.clipboardData.getData("text/plain");
+        const clipboardText =
+            event.clipboardData.getData("text/plain");
 
-        // Let normal single-cell paste behave normally.
+        /*
+         * Let the browser handle an ordinary single-cell paste.
+         * This handler is only responsible for rectangular clipboard
+         * content containing tabs or multiple rows.
+         */
         if (
             !clipboardText ||
-            (!clipboardText.includes("\t") && !clipboardText.includes("\n"))
+            (
+                !clipboardText.includes("\t") &&
+                !clipboardText.includes("\n") &&
+                !clipboardText.includes("\r")
+            )
         ) {
             return;
         }
@@ -352,93 +365,255 @@ export default function SpreadsheetDataEntryForm({
             .split("\n")
             .map((row) => row.split("\t"));
 
-        const startVariableIndex = variables.findIndex(
-            (variable) => variable.id === startVariable.id,
-        );
+        const startVariableIndex =
+            variables.findIndex(
+                (variable) =>
+                    variable.id === startVariable.id,
+            );
 
-        const startYearIndex = REFERENCE_YEARS.findIndex(
-            (year) => year === startYear,
-        );
+        const startYearIndex =
+            REFERENCE_YEARS.findIndex(
+                (year) => year === startYear,
+            );
 
-        if (startVariableIndex < 0 || startYearIndex < 0) {
+        if (
+            startVariableIndex < 0 ||
+            startYearIndex < 0
+        ) {
             return;
         }
 
-        let pastedCount = 0;
+        /*
+         * Build the entire paste matrix before touching React state.
+         * This prevents asynchronous setState behaviour from affecting
+         * the mapping of rows and columns.
+         */
+        const pastedCells: Array<{
+            key: string;
+            variable: QuestionnaireVariable;
+            year: number;
+            rawValue: string;
+        }> = [];
 
-        rows.forEach((row, rowOffset) => {
-            const variableIndex = startVariableIndex + rowOffset;
+        rows.forEach(
+            (row, rowOffset) => {
+                const variableIndex =
+                    startVariableIndex +
+                    rowOffset;
 
-            if (variableIndex >= variables.length) {
-                return;
-            }
-
-            row.forEach((rawValue, columnOffset) => {
-                const yearIndex = startYearIndex + columnOffset;
-
-                if (yearIndex >= REFERENCE_YEARS.length) {
+                if (
+                    variableIndex < 0 ||
+                    variableIndex >=
+                        variables.length
+                ) {
                     return;
                 }
 
-                if (rawValue.trim() === "") {
-                    return;
-                }
+                const variable =
+                    variables[variableIndex];
 
-                pastedCount += 1;
-            });
-        });
+                row.forEach(
+                    (
+                        rawValue,
+                        columnOffset,
+                    ) => {
+                        const yearIndex =
+                            startYearIndex +
+                            columnOffset;
 
+                        if (
+                            yearIndex < 0 ||
+                            yearIndex >=
+                                REFERENCE_YEARS.length
+                        ) {
+                            return;
+                        }
+
+                        /*
+                         * Do not overwrite existing observations
+                         * with empty Excel cells.
+                         */
+                        if (
+                            rawValue.trim() === ""
+                        ) {
+                            return;
+                        }
+
+                        const year =
+                            REFERENCE_YEARS[
+                                yearIndex
+                            ];
+
+                        pastedCells.push({
+                            key: makeCellKey(
+                                variable.id,
+                                year,
+                            ),
+                            variable,
+                            year,
+                            rawValue:
+                                rawValue.trim(),
+                        });
+                    },
+                );
+            },
+        );
+
+        if (pastedCells.length === 0) {
+            return;
+        }
+
+        /*
+         * Apply the complete matrix in one React state update.
+         */
         setCells((current) => {
             const next = { ...current };
 
-            rows.forEach((row, rowOffset) => {
-                const variableIndex = startVariableIndex + rowOffset;
+            pastedCells.forEach(
+                ({
+                    key,
+                    variable,
+                    rawValue,
+                }) => {
+                    const existing =
+                        current[key];
 
-                if (variableIndex >= variables.length) {
-                    return;
-                }
+                    const normalizedText =
+                        rawValue
+                            .trim()
+                            .toUpperCase();
 
-                const variable = variables[variableIndex];
+                    /*
+                     * NA = NOT_AVAILABLE
+                     */
+                    if (
+                        normalizedText ===
+                        "NA"
+                    ) {
+                        next[key] = {
+                            ...existing,
+                            value: null,
+                            status:
+                                "NOT_AVAILABLE",
+                            selectedUnit:
+                                existing?.selectedUnit ??
+                                getDefaultUnit(
+                                    variable,
+                                ),
+                        };
 
-                row.forEach((rawValue, columnOffset) => {
-                    const yearIndex = startYearIndex + columnOffset;
-
-                    if (yearIndex >= REFERENCE_YEARS.length) {
                         return;
                     }
 
-                    // Empty cells from Excel do not overwrite existing data.
-                    if (rawValue.trim() === "") {
+                    /*
+                     * N/A = NOT_APPLICABLE
+                     */
+                    if (
+                        normalizedText ===
+                        "N/A"
+                    ) {
+                        next[key] = {
+                            ...existing,
+                            value: null,
+                            status:
+                                "NOT_APPLICABLE",
+                            selectedUnit:
+                                existing?.selectedUnit ??
+                                getDefaultUnit(
+                                    variable,
+                                ),
+                        };
+
                         return;
                     }
 
-                    const year = REFERENCE_YEARS[yearIndex];
-                    const key = makeCellKey(variable.id, year);
+                    const normalized =
+                        normalizeValue(
+                            variable,
+                            rawValue,
+                        );
 
-                    const existing = current[key];
+                    /*
+                     * Invalid numeric values do not overwrite
+                     * an existing valid observation.
+                     */
+                    if (
+                        normalized === null
+                    ) {
+                        return;
+                    }
 
                     next[key] = {
                         ...existing,
-                        value: normalizeValue(
-                            variable,
-                            rawValue.trim(),
-                        ),
+                        value: normalized,
                         status: "PROVIDED",
                         selectedUnit:
                             existing?.selectedUnit ??
-                            getDefaultUnit(variable),
+                            getDefaultUnit(
+                                variable,
+                            ),
                     };
-                });
-            });
+                },
+            );
 
             return next;
         });
 
-        if (pastedCount > 0) {
-            setSuccessMessage(
-                `${pastedCount} cell${pastedCount === 1 ? "" : "s"} pasted from Excel.`,
+        /*
+         * Clear any controlled-input text belonging to cells
+         * affected by the rectangular paste.
+         */
+        setInputValues((current) => {
+            const next = { ...current };
+
+            pastedCells.forEach(
+                ({ key }) => {
+                    delete next[key];
+                },
             );
+
+            return next;
+        });
+
+        setSuccessMessage(
+            `${pastedCells.length} cell${
+                pastedCells.length === 1
+                    ? ""
+                    : "s"
+            } pasted from Excel.`,
+        );
+    }
+
+    function getInputValue(
+        variable: QuestionnaireVariable,
+        year: number,
+        cell: CellState,
+    ): string {
+        const key = makeCellKey(
+            variable.id,
+            year,
+        );
+
+        if (
+            Object.prototype.hasOwnProperty.call(
+                inputValues,
+                key,
+            )
+        ) {
+            return inputValues[key];
         }
+
+        if (cell.status === "NOT_AVAILABLE") {
+            return "NA";
+        }
+
+        if (cell.status === "NOT_APPLICABLE") {
+            return "N/A";
+        }
+
+        return cell.value === null
+            ? ""
+            : String(cell.value);
     }
 
     function updateCell(
@@ -1223,29 +1398,101 @@ export default function SpreadsheetDataEntryForm({
                                                             type={getInputType(
                                                                 variable,
                                                             )}
-                                                            value={
-                                                                cell.value ??
-                                                                ""
-                                                            }
+                                                            value={getInputValue(
+                                                                variable,
+                                                                year,
+                                                                cell,
+                                                            )}
                                                             onChange={(
                                                                 event,
-                                                            ) =>
+                                                            ) => {
+                                                                const rawValue =
+                                                                    event.target.value;
+
+                                                                const normalizedText =
+                                                                    rawValue
+                                                                        .trim()
+                                                                        .toUpperCase();
+
+                                                                const key =
+                                                                    makeCellKey(
+                                                                        variable.id,
+                                                                        year,
+                                                                    );
+
+                                                                setInputValues(
+                                                                    (current) => ({
+                                                                        ...current,
+                                                                        [key]:
+                                                                            rawValue,
+                                                                    }),
+                                                                );
+
+                                                                if (
+                                                                    normalizedText ===
+                                                                    "NA"
+                                                                ) {
+                                                                    updateCell(
+                                                                        variable,
+                                                                        year,
+                                                                        null,
+                                                                        "NOT_AVAILABLE",
+                                                                        cell.selectedUnit ??
+                                                                            getDefaultUnit(
+                                                                                variable,
+                                                                            ),
+                                                                    );
+                                                                    return;
+                                                                }
+
+                                                                if (
+                                                                    normalizedText ===
+                                                                    "N/A"
+                                                                ) {
+                                                                    updateCell(
+                                                                        variable,
+                                                                        year,
+                                                                        null,
+                                                                        "NOT_APPLICABLE",
+                                                                        cell.selectedUnit ??
+                                                                            getDefaultUnit(
+                                                                                variable,
+                                                                            ),
+                                                                    );
+                                                                    return;
+                                                                }
+
+                                                                const normalized =
+                                                                    normalizeValue(
+                                                                        variable,
+                                                                        rawValue,
+                                                                    );
+
+                                                                /*
+                                                                 * Keep intermediate text such as
+                                                                 * "N" or "N/" visible without
+                                                                 * changing the business cell yet.
+                                                                 */
+                                                                if (
+                                                                    normalized ===
+                                                                        null &&
+                                                                    rawValue !==
+                                                                        ""
+                                                                ) {
+                                                                    return;
+                                                                }
+
                                                                 updateCell(
                                                                     variable,
                                                                     year,
-                                                                    normalizeValue(
-                                                                        variable,
-                                                                        event
-                                                                            .target
-                                                                            .value,
-                                                                    ),
+                                                                    normalized,
                                                                     "PROVIDED",
                                                                     cell.selectedUnit ??
                                                                         getDefaultUnit(
                                                                             variable,
                                                                         ),
-                                                                )
-                                                            }
+                                                                );
+                                                            }}
                                                             onPaste={(event) =>
                                                                 handleSpreadsheetPaste(
                                                                     event,
