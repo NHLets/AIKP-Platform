@@ -1,10 +1,228 @@
 
+function appendAudit(action: string) {
+
+  const now = new Date().toLocaleTimeString([], {
+    hour:"2-digit",
+    minute:"2-digit"
+  });
+
+  setAuditTimeline((previous) => [
+    {
+      time: now,
+      action
+    },
+    ...previous
+  ]);
+}
+
+
+interface AuditEvent {
+  time: string;
+  action: string;
+}
+
+
+function submitQuestionnaire() {
+
+  if (!isSubmissionReady) return;
+
+  setSubmissionStatus("SUBMITTED");
+  appendAudit("Questionnaire submitted");
+
+// AIKP Excel Workspace event
+useEffect(() => {
+  appendAudit("Excel imported");
+}, []);
+
+}
+
+
+function calculateSectionProgress(
+  variables: QuestionnaireVariable[],
+  values: Record<string, string>
+): SectionProgress[] {
+
+  const groups: Record<string, QuestionnaireVariable[]> = {};
+
+  variables.forEach((v) => {
+    const section = v.code.split("_")[0];
+    groups[section] ??= [];
+    groups[section].push(v);
+  });
+
+  return Object.entries(groups).map(([section, vars]) => {
+    const required = vars.filter(v => v.required);
+
+    const completed = required.filter(
+      v => (values[v.code] ?? "").trim() !== ""
+    );
+
+    return {
+      section,
+      percentage: required.length === 0
+        ? 100
+        : Math.round(completed.length / required.length * 100)
+    };
+  });
+}
+
+
+interface SectionProgress {
+  section: string;
+  percentage: number;
+}
+
+
+function isMissingRequired(
+  variable: QuestionnaireVariable,
+  values: Record<string, string>
+) {
+  if (!variable.required) return false;
+  return (values[variable.code] ?? "").trim() === "";
+}
+
+
+function calculateCompleteness(
+  variables: QuestionnaireVariable[],
+  values: Record<string, string>
+) {
+
+  const required = variables.filter(v => v.required);
+
+  if (required.length === 0) return 100;
+
+  const completed = required.filter(
+    v => (values[v.code] ?? "").trim() !== ""
+  );
+
+  return Math.round((completed.length / required.length) * 100);
+}
+
+
 function renderField(variable: QuestionnaireVariable) {
 
   switch (variable.variableType) {
 
     case "BOOLEAN":
       return (
+<>
+
+
+<div
+  style={{
+    padding:16,
+    border:"1px solid #D1D5DB",
+    borderRadius:8,
+    marginBottom:24
+  }}
+>
+  <h3>Questionnaire Completeness</h3>
+
+
+<div
+  style={{
+    display:"grid",
+    gridTemplateColumns:"repeat(2,1fr)",
+    gap:16,
+    marginBottom:24
+  }}
+>
+
+  <div style={{border:"1px solid #D1D5DB",borderRadius:8,padding:16}}>
+    <small>Completeness</small>
+    <h2>{completeness}%</h2>
+  </div>
+
+  <div style={{border:"1px solid #D1D5DB",borderRadius:8,padding:16}}>
+    <small>Sections</small>
+    <h2>{completedSections}/{sectionProgress.length}</h2>
+  </div>
+
+  <div style={{border:"1px solid #D1D5DB",borderRadius:8,padding:16}}>
+    <small>Missing Required</small>
+    <h2>{missingRequired}</h2>
+  </div>
+
+  <div style={{border:"1px solid #D1D5DB",borderRadius:8,padding:16}}>
+    <small>Last Saved</small>
+    <h2>{lastSaved}</h2>
+  </div>
+
+</div>
+
+
+
+<div
+  style={{
+    padding:16,
+    border:"1px solid #D1D5DB",
+    borderRadius:8,
+    marginBottom:24
+  }}
+>
+  <h3>Section Progress</h3>
+
+  {sectionProgress.map((section) => (
+    <div key={section.section} style={{marginBottom:12}}>
+
+      <div
+        style={{
+          display:"flex",
+          justifyContent:"space-between"
+        }}
+      >
+        <strong>{section.section}</strong>
+        <span>{section.percentage}%</span>
+      </div>
+
+      <div
+        style={{
+          width:"100%",
+          height:8,
+          background:"#E5E7EB",
+          borderRadius:4
+        }}
+      >
+        <div
+          style={{
+            width:`${section.percentage}%`,
+            height:"100%",
+            background:"#2563EB",
+            borderRadius:4
+          }}
+        />
+      </div>
+
+    </div>
+  ))}
+</div>
+
+
+
+  <div
+    style={{
+      width:"100%",
+      height:12,
+      background:"#E5E7EB",
+      borderRadius:6
+    }}
+  >
+    <div
+      style={{
+        width:`${completeness}%`,
+        height:"100%",
+        background:"#16A34A",
+        borderRadius:6
+      }}
+    />
+  </div>
+
+  <p style={{marginTop:8}}>
+    {completeness}% complete
+  </p>
+</div>
+
+
         <div key={variable.id}>
           <label>
             <input type="checkbox" />
@@ -17,7 +235,11 @@ function renderField(variable: QuestionnaireVariable) {
     case "INTEGER":
       return (
         <div key={variable.id}>
-          <label>{variable.label}</label>
+          <label>{variable.label}
+          {variable.required && (
+            <span style={{ color:"#DC2626" }}> *</span>
+          )}
+        </label>
           <input
             type="number"
             placeholder={variable.code}
@@ -28,7 +250,11 @@ function renderField(variable: QuestionnaireVariable) {
     case "DATE":
       return (
         <div key={variable.id}>
-          <label>{variable.label}</label>
+          <label>{variable.label}
+          {variable.required && (
+            <span style={{ color:"#DC2626" }}> *</span>
+          )}
+        </label>
           <input type="date" />
         </div>
       );
@@ -36,7 +262,11 @@ function renderField(variable: QuestionnaireVariable) {
     case "SELECT":
       return (
         <div key={variable.id}>
-          <label>{variable.label}</label>
+          <label>{variable.label}
+          {variable.required && (
+            <span style={{ color:"#DC2626" }}> *</span>
+          )}
+        </label>
           <select>
             <option>Select...</option>
           </select>
@@ -46,7 +276,11 @@ function renderField(variable: QuestionnaireVariable) {
     case "FORMULA":
       return (
         <div key={variable.id}>
-          <label>{variable.label}</label>
+          <label>{variable.label}
+          {variable.required && (
+            <span style={{ color:"#DC2626" }}> *</span>
+          )}
+        </label>
           <input
             readOnly
             placeholder="Calculated"
@@ -57,9 +291,24 @@ function renderField(variable: QuestionnaireVariable) {
     default:
       return (
         <div key={variable.id}>
-          <label>{variable.label}</label>
+          <label>{variable.label}
+          {variable.required && (
+            <span style={{ color:"#DC2626" }}> *</span>
+          )}
+        </label>
           <input
+            style={{
+              width: "100%",
+              padding: 8,
+              border: isMissingRequired(variable, formValues)
+                ? "2px solid #DC2626"
+                : variable.required
+                  ? "2px solid #16A34A"
+                  : "1px solid #D1D5DB",
+              borderRadius: 6
+            }}
             value={formValues[variable.code] ?? ""}
+            disabled={submissionStatus === "SUBMITTED"}
             onChange={(e) =>
               setFormValues({
                 ...formValues,
@@ -200,6 +449,19 @@ export default function DataEntryForm({
     const [isLoading, setIsLoading] = useState(true);
 const [variables, setVariables] = useState<QuestionnaireVariable[]>([]);
 const [formValues, setFormValues] = useState<Record<string, string>>({});
+const [completeness, setCompleteness] = useState(0);
+const [missingRequired, setMissingRequired] = useState(0);
+const [completedSections, setCompletedSections] = useState(0);
+const [lastSaved, setLastSaved] = useState("—");
+const [isSubmissionReady, setIsSubmissionReady] = useState(false);
+const [submissionStatus, setSubmissionStatus] =
+  useState("DRAFT");
+
+const [auditTimeline, setAuditTimeline] =
+  useState<AuditEvent[]>([]);
+
+const [sectionProgress, setSectionProgress] =
+  useState<SectionProgress[]>([]);
 const draftKey = "AIKP_DRAFT";
     const [savingVariableId, setSavingVariableId] =
         useState<string | null>(null);
@@ -1017,6 +1279,7 @@ function CardLikeContainer({
 
 useEffect(() => {
   const timer = setTimeout(() => {
+    appendAudit("Auto-save");
     localStorage.setItem(
       draftKey,
       JSON.stringify(formValues)
@@ -1025,3 +1288,163 @@ useEffect(() => {
 
   return () => clearTimeout(timer);
 }, [formValues]);
+
+
+useEffect(() => {
+  setCompleteness(
+    calculateCompleteness(
+      variables,
+      formValues
+    )
+  );
+}, [variables, formValues]>/<
+>;
+
+
+
+useEffect(() => {
+  setSectionProgress(
+    calculateSectionProgress(
+      variables,
+      formValues
+    )
+  );
+}, [variables, formValues]);
+
+
+
+useEffect(() => {
+
+  const required = variables.filter(v => v.required);
+
+  const completed = required.filter(
+    v => (formValues[v.code] ?? "").trim() !== ""
+  );
+
+  setMissingRequired(required.length - completed.length);
+
+  setCompletedSections(
+    sectionProgress.filter(
+      s => s.percentage === 100
+    ).length
+  );
+
+  setLastSaved(
+    new Date().toLocaleTimeString([], {
+      hour:"2-digit",
+      minute:"2-digit"
+    })
+  );
+
+}, [variables, formValues, sectionProgress]);
+
+
+
+useEffect(() => {
+
+  const ready =
+    completeness === 100 &&
+    missingRequired === 0 &&
+    sectionProgress.every(
+      s => s.percentage === 100
+    );
+
+  setIsSubmissionReady(ready);
+
+}, [
+  completeness,
+  missingRequired,
+  sectionProgress
+]);
+
+
+
+<div style={{marginTop:32}}>
+
+  <button onClick={submitQuestionnaire}
+    disabled={!isSubmissionReady}
+    style={{
+      padding:"12px 24px",
+      border:"none",
+      borderRadius:8,
+      background:isSubmissionReady
+        ? "#16A34A"
+        : "#9CA3AF",
+      color:"white",
+      cursor:isSubmissionReady
+        ? "pointer"
+        : "not-allowed"
+    }}
+  >
+    Submit Questionnaire
+  </button>
+
+  <div style={{marginTop:12}}>
+    {isSubmissionReady
+      ? "Ready for official submission"
+      : "Complete all required variables before submission"}
+  </div>
+
+</div>
+
+
+
+<div
+  style={{
+    marginTop:24,
+    padding:16,
+    border:"1px solid #D1D5DB",
+    borderRadius:8,
+    background:
+      submissionStatus==="SUBMITTED"
+        ? "#D1FAE5"
+        : "#F9FAFB"
+  }}
+>
+  <strong>Submission Status</strong>
+
+  <div style={{marginTop:8}}>
+    {submissionStatus}
+  </div>
+
+  {submissionStatus==="SUBMITTED" && (
+    <div style={{marginTop:8,color:"#047857"}}>
+      Questionnaire locked for editing
+    </div>
+  )}
+</div>
+
+
+
+useEffect(() => {
+  appendAudit("Draft created");
+}, []);
+
+
+
+<div
+  style={{
+    marginTop:32,
+    padding:16,
+    border:"1px solid #D1D5DB",
+    borderRadius:8
+  }}
+>
+  <h3>Audit Timeline</h3>
+
+  {auditTimeline.map((event, index) => (
+    <div
+      key={index}
+      style={{
+        display:"flex",
+        justifyContent:"space-between",
+        padding:"8px 0",
+        borderBottom:"1px solid #F3F4F6"
+      }}
+    >
+      <span>{event.action}</span>
+      <strong>{event.time}</strong>
+    </div>
+  ))}
+</div>
+
