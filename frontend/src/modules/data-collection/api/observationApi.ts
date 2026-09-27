@@ -1,125 +1,26 @@
-import { axiosClient } from "@/shared/api/axiosClient";
+import axios from "axios";
 
-import type {
-    CreateDataCollectionObservationRequest,
-    DataCollectionObservation,
-    UpdateDataCollectionObservationRequest,
-} from "../types/observation.types";
+const api = axios.create({
+  baseURL: "/api/v1/observations"
+});
 
-const OBSERVATIONS_ENDPOINT =
-    "http://localhost:8080/api/data-collection-observations";
-
-export async function createDataCollectionObservation(
-    request: CreateDataCollectionObservationRequest,
-): Promise<DataCollectionObservation> {
-    const response =
-        await axiosClient.post<DataCollectionObservation>(
-            OBSERVATIONS_ENDPOINT,
-            request,
-        );
-
-    return response.data;
+export interface CreateObservationRequest{
+  dataCollectionId:string;
+  variableId:string;
+  organizationId:string;
+  value:string;
 }
 
-export async function createNotAvailableObservation(
-    request: CreateDataCollectionObservationRequest,
-): Promise<DataCollectionObservation> {
-    const response =
-        await axiosClient.post<DataCollectionObservation>(
-            `${OBSERVATIONS_ENDPOINT}/not-available`,
-            request,
-        );
+export const observationApi = {
 
-    return response.data;
-}
+  async createObservation(request:CreateObservationRequest){
+    const {data} = await api.post("", request);
+    return data;
+  },
 
-export async function createNotApplicableObservation(
-    request: CreateDataCollectionObservationRequest,
-): Promise<DataCollectionObservation> {
-    const response =
-        await axiosClient.post<DataCollectionObservation>(
-            `${OBSERVATIONS_ENDPOINT}/not-applicable`,
-            request,
-        );
+  async getObservationsByCollection(id:string){
+    const {data} = await api.get(`/collection/${id}`);
+    return data;
+  }
 
-    return response.data;
-}
-
-export async function updateDataCollectionObservation(
-    id: string,
-    request: UpdateDataCollectionObservationRequest,
-): Promise<DataCollectionObservation> {
-    const response =
-        await axiosClient.put<DataCollectionObservation>(
-            `${OBSERVATIONS_ENDPOINT}/${id}`,
-            request,
-        );
-
-    return response.data;
-}
-
-export async function deleteDataCollectionObservation(
-    id: string,
-): Promise<void> {
-    await axiosClient.delete(
-        `${OBSERVATIONS_ENDPOINT}/${id}`,
-    );
-}
-
-export async function getDataCollectionObservations(
-    dataCollectionId: string,
-): Promise<DataCollectionObservation[]> {
-    const response =
-        await axiosClient.get<DataCollectionObservation[]>(
-            `${OBSERVATIONS_ENDPOINT}/collection/${dataCollectionId}`,
-        );
-
-    return response.data;
-}
-
-export async function getDataCollectionObservation(
-    id: string,
-): Promise<DataCollectionObservation> {
-    const response =
-        await axiosClient.get<DataCollectionObservation>(
-            `${OBSERVATIONS_ENDPOINT}/${id}`,
-        );
-
-    return response.data;
-}
-
-export async function getDataCollectionObservationByLookup(
-    dataCollectionId: string,
-    questionnaireVariableId: string,
-    referenceYear: number,
-): Promise<DataCollectionObservation | null> {
-    try {
-        const response =
-            await axiosClient.get<DataCollectionObservation>(
-                `${OBSERVATIONS_ENDPOINT}/lookup`,
-                {
-                    params: {
-                        dataCollectionId,
-                        questionnaireVariableId,
-                        referenceYear,
-                    },
-                },
-            );
-
-        return response.data;
-    } catch (error: unknown) {
-        if (
-            typeof error === "object" &&
-            error !== null &&
-            "response" in error &&
-            typeof error.response === "object" &&
-            error.response !== null &&
-            "status" in error.response &&
-            error.response.status === 404
-        ) {
-            return null;
-        }
-
-        throw error;
-    }
-}
+};

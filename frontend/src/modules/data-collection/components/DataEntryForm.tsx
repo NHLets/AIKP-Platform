@@ -1,4 +1,25 @@
 
+
+async function persistDraftToBackend(
+  variableId:string,
+  value:string
+){
+
+  await observationApi.createObservation({
+
+    dataCollectionId:"00000000-0000-0000-0000-000000000001",
+
+    organizationId:"00000000-0000-0000-0000-000000000001",
+
+    variableId,
+
+    value
+
+  });
+
+}
+
+
 function appendAudit(action: string) {
 
   const now = new Date().toLocaleTimeString([], {
