@@ -25,6 +25,8 @@ export default function CountryListPage() {
 
     const snackbar = useSnackbar();
 
+    const [search, setSearch] = useState("");
+
     const { data: countries = [], isLoading, error } = useCountries();
 
     const activateMutation = useActivateCountry();
@@ -151,6 +153,28 @@ export default function CountryListPage() {
 
     };
 
+    const filteredCountries = countries.filter(
+        (country) => {
+            const query = search.trim().toLowerCase();
+
+            if (!query) {
+                return true;
+            }
+
+            return [
+                country.iso2Code,
+                country.iso3Code,
+                country.numericCode,
+                country.name,
+                country.officialName,
+            ].some((value) =>
+                String(value ?? "")
+                    .toLowerCase()
+                    .includes(query),
+            );
+        },
+    );
+
     if (isLoading) {
 
         return <CircularProgress />;
@@ -186,12 +210,13 @@ export default function CountryListPage() {
             <EntityToolbar
                 searchPlaceholder="Search countries..."
                 createLabel="New Country"
+                onSearch={setSearch}
                 onCreate={handleCreate}
             />
 
             <CountryTable
 
-                countries={countries}
+                countries={filteredCountries}
 
                 onEdit={handleEdit}
 

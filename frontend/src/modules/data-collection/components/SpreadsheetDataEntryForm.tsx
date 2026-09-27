@@ -1,3 +1,29 @@
+
+function normalizeColumn(value: string) {
+  return value
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+}
+
+import * as XLSX from "xlsx";
+import {
+
+const [fileName, setFileName] = useState("");
+const [headers, setHeaders] = useState<string[]>([]);
+const [rows, setRows] = useState<any[][]>([]);
+const previewRows = rows.slice(0, 5);
+const [importSummary, setImportSummary] =
+  useState("");
+
+const [columnMapping, setColumnMapping] =
+  useState<Record<string, string>>({});
+ useSpreadsheetNavigation } from "@/modules/data-collection/hooks/useSpreadsheetNavigation";
+import { useValidationComments } from "@/modules/validation/hooks/useValidationComments";
+import CommentPreview from "@/modules/validation/components/CommentPreview";
+import { useCommentCounts } from "@/modules/validation/hooks/useCommentCounts";
+import CommentBadge from "@/modules/validation/components/CommentBadge";
+import { getCellStatusStyle } from "@/modules/data-collection/utils/cellStatusStyle";
+
 import {
     useEffect,
     useMemo,
@@ -52,6 +78,7 @@ interface SpreadsheetDataEntryFormProps {
     dataCollectionId: string;
     groups: QuestionnaireGroup[];
     variables: QuestionnaireVariable[];
+    status: string;
 }
 
 type CellKey = `${string}:${number}`;
@@ -211,11 +238,99 @@ function getDefaultUnit(
         : null;
 }
 
+
+
+function buildMapping(headers: string[]) {
+  const map: Record<string, string> = {};
+
+  headers.forEach((header) => {
+    map[header] = normalizeColumn(header);
+  });
+
+  setColumnMapping(map);
+}
+
+
+function handleFileUpload(
+  event: React.ChangeEvent<HTMLInputElement>
+) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  setFileName(file.name);
+
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+    const data = e.target?.result as ArrayBuffer;
+
+    const workbook = XLSX.read(data, { type: "array" });
+
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    const parsed = XLSX.utils.sheet_to_json(sheet, {
+      header: 1
+    }) as any[][];
+
+    if (parsed.length === 0) return;
+
+    setHeaders(parsed[0] as string[]);
+    buildMapping(parsed[0] as string[]);
+    setRows(parsed.slice(1));
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+
+async function importObservations() {
+
+  const observations = rows.map((row) => {
+
+    const object: Record<string, any> = {};
+
+    headers.forEach((header, index) => {
+      object[columnMapping[header]] = row[index];
+    });
+
+    return object;
+  });
+
+  console.log(observations);
+
+  setImportSummary(
+    `${observations.length} observations ready for import`
+  );
+}
+
+
 export default function SpreadsheetDataEntryForm({
     dataCollectionId,
     groups,
     variables,
+    status,
 }: SpreadsheetDataEntryFormProps) {
+
+    const { data: commentCounts = [] } =
+        useCommentCounts(dataCollection.id);
+
+    const commentCountMap = new Map(
+        commentCounts.map((item) => [
+            item.observationId,
+            item.count,
+        ]),
+    );
+
+
+    const navigate = useSpreadsheetNavigation(
+        variables.length,
+        REFERENCE_YEARS.length,
+        setActiveCell,
+    );
+
+    const { data: previewComments = [] } =
+        useValidationComments(previewObservationId);
+
     const [cells, setCells] = useState<
         Record<string, CellState>
     >({});
@@ -228,6 +343,11 @@ export default function SpreadsheetDataEntryForm({
         Record<string, string>
     >({});
 
+    const isReadOnly =
+        status === "SUBMITTED" ||
+        status === "VALIDATED";
+
+
     const [isLoading, setIsLoading] =
         useState(true);
 
@@ -239,6 +359,18 @@ export default function SpreadsheetDataEntryForm({
 
     const [successMessage, setSuccessMessage] =
         useState<string | null>(null);
+
+    const [previewAnchor, setPreviewAnchor] =
+        useState<HTMLElement | null>(null);
+
+    const [previewObservationId, setPreviewObservationId] =
+        useState<string>();
+
+    const [activeCell, setActiveCell] = useState({
+        row: 0,
+        col: 0,
+    });
+
 
     async function loadObservations() {
         try {
@@ -338,6 +470,9 @@ export default function SpreadsheetDataEntryForm({
         startVariable: QuestionnaireVariable,
         startYear: number,
     ) {
+        if (isReadOnly) {
+            return;
+        }
         const clipboardText =
             event.clipboardData.getData("text/plain");
 
@@ -920,18 +1055,20 @@ export default function SpreadsheetDataEntryForm({
                     </Typography>
                 </Box>
 
-                <Button
-                    variant="contained"
-                    onClick={() => void saveChanges()}
-                    disabled={
-                        isSaving ||
-                        !hasChanges
-                    }
-                >
-                    {isSaving
-                        ? "Saving..."
-                        : "Save changes"}
-                </Button>
+                {!isReadOnly && (
+                    <Button
+                        variant="contained"
+                        onClick={() => void saveChanges()}
+                        disabled={
+                            isSaving ||
+                            !hasChanges
+                        }
+                    >
+                        {isSaving
+                            ? "Saving..."
+                            : "Save changes"}
+                    </Button>
+                )}
             </Stack>
 
             {error && (
@@ -1205,6 +1342,11 @@ export default function SpreadsheetDataEntryForm({
                                                     year,
                                                 );
 
+                                                const cellStyle =
+                                                    getCellStatusStyle(
+                                                        cell.status,
+                                                    );
+
                                                 const choices =
                                                     PW_A_CHOICE_OPTIONS[
                                                         variable.seriesCode.toUpperCase()
@@ -1230,6 +1372,7 @@ export default function SpreadsheetDataEntryForm({
                                                                 </InputLabel>
 
                                                                 <Select
+                                                                    disabled={isReadOnly}
                                                                     label="Value"
                                                                     value={
                                                                         cell.value ===
@@ -1315,6 +1458,7 @@ export default function SpreadsheetDataEntryForm({
                                                                 </InputLabel>
 
                                                                 <Select
+                                                                    disabled={isReadOnly}
                                                                     label="Value"
                                                                     value={
                                                                         booleanSelectValue
@@ -1392,9 +1536,36 @@ export default function SpreadsheetDataEntryForm({
                                                             p: 0.5,
                                                         }}
                                                     >
+                                                        <Box sx={{ position: "relative" }}>
+                                                        <CommentBadge
+                                                            count={
+                                                                cell.observationId
+                                                                    ? commentCountMap.get(
+                                                                          cell.observationId,
+                                                                      ) ?? 0
+                                                                    : 0
+                                                            }
+                                                        />
                                                         <TextField
                                                             size="small"
                                                             fullWidth
+                                                            sx={{
+                                                                "& .MuiOutlinedInput-root": {
+                                                                    bgcolor: cellStyle.background,
+                                                                    color: cellStyle.text,
+                                                                    "& fieldset": {
+                                                                        borderColor: cellStyle.border,
+                                                                    },
+                                                                    "&:hover fieldset": {
+                                                                        borderColor: cellStyle.border,
+                                                                    },
+                                                                    "&.Mui-focused fieldset": {
+                                                                        borderColor: "#2563EB",
+                                                                        borderWidth: 2,
+                                                                    },
+                                                                },
+                                                            }}
+                                                            disabled={isReadOnly}
                                                             type={getInputType(
                                                                 variable,
                                                             )}
@@ -1403,6 +1574,39 @@ export default function SpreadsheetDataEntryForm({
                                                                 year,
                                                                 cell,
                                                             )}
+                                                            onFocus={() => {
+                                                                setActiveCell({
+                                                                    row: variableIndex,
+                                                                    col: yearIndex,
+                                                                });
+                                                            }}
+                                                            onKeyDown={(event) =>
+                                                                navigate(event, {
+                                                                    row: variableIndex,
+                                                                    col: yearIndex,
+                                                                })
+                                                            }
+                                                            onMouseEnter={(event) => {
+                                                                if (cell.observationId) {
+                                                                    setPreviewAnchor(event.currentTarget);
+                                                                    setPreviewObservationId(cell.observationId);
+                                                                }
+                                                            }}
+                                                            onMouseLeave={() => {
+                                                                setPreviewAnchor(null);
+                                                            }}
+                                                            onClick={() => {
+                                                                setSelectedCell(cell);
+
+                                                                if (
+                                                                    cell.observationId &&
+                                                                    onObservationSelect
+                                                                ) {
+                                                                    onObservationSelect(
+                                                                        cell.observationId,
+                                                                    );
+                                                                }
+                                                            }}
                                                             onChange={(
                                                                 event,
                                                             ) => {
@@ -1512,7 +1716,8 @@ export default function SpreadsheetDataEntryForm({
                                                                           },
                                                             }}
                                                         />
-                                                    </TableCell>
+                                                    </Box>
+                                                </TableCell>
                                                 );
                                             },
                                         )}
@@ -1526,3 +1731,124 @@ export default function SpreadsheetDataEntryForm({
         </Stack>
     );
 }
+
+
+      <div style={{ marginBottom: 24 }}>
+        <h3>Spreadsheet Import</h3>
+
+        <input
+          type="file"
+          accept=".xlsx,.xls"
+          onChange={handleFileUpload}
+        />
+
+        {fileName && (
+          <p>File: {fileName}</p>
+        )}
+      </div>
+
+      {headers.length > 0 && (
+        <div>
+          <h4>Detected Columns</h4>
+          <ul>
+            {headers.map((header) => (
+              <li key={header}>{header}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+
+      {rows.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <h4>Preview</h4>
+
+          <table width="100%" cellPadding={6}>
+            <thead>
+              <tr>
+                {headers.map((header) => (
+                  <th key={header}>{header}</th>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody>
+              {rows.slice(0, 5).map((row, index) => (
+                <tr key={index}>
+                  {row.map((cell, i) => (
+                    <td key={i}>{String(cell ?? "")}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+
+      {Object.keys(columnMapping).length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <h4>AIKP Mapping</h4>
+
+          <table width="100%" cellPadding={6}>
+            <thead>
+              <tr>
+                <th align="left">Excel Column</th>
+                <th align="left">AIKP Variable</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(columnMapping).map(([excel, aikp]) => (
+                <tr key={excel}>
+                  <td>{excel}</td>
+                  <td>{aikp}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+
+      {previewRows.length > 0 && (
+        <div style={{ marginTop: 32 }}>
+          <h3>AIKP Preview Grid</h3>
+
+          <table width="100%" cellPadding={6}>
+            <thead>
+              <tr>
+                {headers.map((header) => (
+                  <th key={header}>
+                    {columnMapping[header]}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody>
+              {previewRows.map((row, index) => (
+                <tr key={index}>
+                  {row.map((cell: any, i: number) => (
+                    <td key={i}>{String(cell ?? "")}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+
+      {rows.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <button onClick={importObservations}>
+            Import Observations
+          </button>
+        </div>
+      )}
+
+      {importSummary && (
+        <div style={{ marginTop: 16 }}>
+          <strong>{importSummary}</strong>
+        </div>
+      )}

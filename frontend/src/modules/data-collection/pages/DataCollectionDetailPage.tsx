@@ -1,11 +1,17 @@
-import { useEffect, useState } from "react";
+import {
+  Tabs,
+  Tab, useEffect, useState } from "react";
 
 import {
+  Tabs,
+  Tab,
     useNavigate,
     useParams,
 } from "react-router-dom";
 
 import {
+  Tabs,
+  Tab,
     Alert,
     Box,
     Button,
@@ -19,10 +25,14 @@ import {
     DialogContentText,
     DialogTitle,
     Stack,
-    Typography,
+    Typography,,
+  Grid
 } from "@mui/material";
+import ReviewPanel from "@/modules/validation/components/ReviewPanel";
 
 import {
+  Tabs,
+  Tab,
     cancelDataCollection,
     getDataCollectionById,
     rejectDataCollection,
@@ -32,6 +42,8 @@ import {
 } from "../api/dataCollectionApi";
 
 import {
+  Tabs,
+  Tab,
     getCampaigns,
     getCountries,
     getOrganizations,
@@ -39,9 +51,15 @@ import {
     getQuestionnaires,
 } from "../api/dataCollectionOptionsApi";
 
-import { getQuestionnaire } from "@/modules/questionnaire/api/questionnaireApi";
-import { getQuestionnaireGroups } from "@/modules/questionnaire/api/questionnaireGroupApi";
-import { getQuestionnaireVariables } from "@/modules/questionnaire/api/questionnaireVariableApi";
+import {
+  Tabs,
+  Tab, getQuestionnaire } from "@/modules/questionnaire/api/questionnaireApi";
+import {
+  Tabs,
+  Tab, getQuestionnaireGroups } from "@/modules/questionnaire/api/questionnaireGroupApi";
+import {
+  Tabs,
+  Tab, getQuestionnaireVariables } from "@/modules/questionnaire/api/questionnaireVariableApi";
 
 import type { QuestionnaireGroup } from "@/modules/questionnaire/types/questionnaireGroup.types";
 import type { QuestionnaireVariable } from "@/modules/questionnaire/types/questionnaireVariable.types";
@@ -58,10 +76,12 @@ import type {
 } from "../api/dataCollectionOptionsApi";
 
 import type {
+import ValidationDashboard from "@/modules/validation/components/ValidationDashboard";
     DataCollection,
 } from "../types/dataCollection.types";
 
 type PendingAction =
+    | "SUBMIT"
     | "VALIDATE"
     | "REJECT"
     | "CANCEL"
@@ -69,6 +89,8 @@ type PendingAction =
 
 export default function DataCollectionDetailPage() {
     const { id } = useParams();
+
+  const [tab, setTab] = useState(0);
     const navigate = useNavigate();
 
     const [dataCollection, setDataCollection] =
@@ -248,11 +270,25 @@ export default function DataCollectionDetailPage() {
 
     function getActionDetails(
         action: Exclude<PendingAction, null>,
-    ) {
+    ): {
+        title: string;
+        message: string;
+        confirmLabel: string;
+        handler: (id: string) => Promise<void>;
+    } {
         switch (action) {
+            case "SUBMIT":
+                return {
+                    title: "Submit data collection",
+                    message:
+                        "Are you sure you want to submit this data collection for validation? After submission, the questionnaire becomes read-only.",
+                    confirmLabel: "Submit",
+                    handler: submitDataCollection,
+                };
+
             case "VALIDATE":
                 return {
-                    title: "Validate Data Collection",
+                    title: "Validate data collection",
                     message:
                         "Are you sure you want to validate this data collection?",
                     confirmLabel: "Validate",
@@ -261,7 +297,7 @@ export default function DataCollectionDetailPage() {
 
             case "REJECT":
                 return {
-                    title: "Reject Data Collection",
+                    title: "Reject data collection",
                     message:
                         "Are you sure you want to reject this data collection?",
                     confirmLabel: "Reject",
@@ -270,13 +306,15 @@ export default function DataCollectionDetailPage() {
 
             case "CANCEL":
                 return {
-                    title: "Cancel Data Collection",
+                    title: "Cancel data collection",
                     message:
                         "Are you sure you want to cancel this data collection?",
-                    confirmLabel: "Cancel Collection",
+                    confirmLabel: "Cancel collection",
                     handler: cancelDataCollection,
                 };
         }
+
+        throw new Error("Unknown pending action");
     }
 
     async function handleConfirmAction() {
@@ -301,7 +339,12 @@ export default function DataCollectionDetailPage() {
                     py: 8,
                 }}
             >
-                <CircularProgress />
+                <CircularProgress 
+            onObservationSelect={(observationId) =>
+              setSelectedObservationId(observationId)
+            }
+          />
+      )}
             </Box>
         );
     }
@@ -315,6 +358,7 @@ export default function DataCollectionDetailPage() {
     }
 
     const item = dataCollection;
+  const [selectedObservationId, setSelectedObservationId] = useState<string>();
 
     const campaign =
         campaigns.find(
@@ -463,8 +507,10 @@ export default function DataCollectionDetailPage() {
                             </Button>
                         )}
 
-                        {item.status ===
-                            "IN_PROGRESS" && (
+                        {(item.status ===
+                            "IN_PROGRESS" ||
+                            item.status ===
+                            "REJECTED") && (
                             <Button
                                 variant="contained"
                                 disabled={
@@ -476,7 +522,7 @@ export default function DataCollectionDetailPage() {
                                     )
                                 }
                             >
-                                Submit
+                                SUBMIT FOR VALIDATION
                             </Button>
                         )}
 
@@ -649,18 +695,42 @@ export default function DataCollectionDetailPage() {
                 !questionnaireStructureError &&
                 dataCollection &&
                 questionnaireRenderType === "SPREADSHEET" && (
-                    <SpreadsheetDataEntryForm
+                    <Grid container spacing={2}>
+          <Grid size={{ xs: 12, lg: 8 }}>
+                  <ValidationDashboard
+        dataCollectionId={dataCollection.id}
+      />
+
+<SpreadsheetDataEntryForm
                         dataCollectionId={dataCollection.id}
                         groups={questionnaireGroups}
                         variables={questionnaireVariables}
+                        status={dataCollection.status}
                     />
+          </Grid>
+
+          <Grid size={{ xs: 12, lg: 4 }}>
+            <ReviewPanel observationId={selectedObservationId} />
+          </Grid>
+        </Grid>
                 )}
 
             {!isQuestionnaireStructureLoading &&
                 !questionnaireStructureError &&
                 dataCollection &&
                 questionnaireRenderType !== "SPREADSHEET" && (
-                    <DataEntryForm
+                    
+      <Tabs
+        value={tab}
+        onChange={(_, value) => setTab(value)}
+        sx={{ mb: 3 }}
+      >
+        <Tab label="Questionnaire" />
+        <Tab label="Spreadsheet" />
+      </Tabs>
+
+      {tab === 0 && (
+<DataEntryForm
                         dataCollectionId={dataCollection.id}
                         groups={questionnaireGroups}
                         variables={questionnaireVariables}

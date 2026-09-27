@@ -298,4 +298,18 @@ public class OrganizationController implements OrganizationApi {
 
         return ResponseEntity.noContent().build();
     }
+
+
+    @GetMapping("/country/{countryId}")
+    public List<OrganizationSummaryDto> getByCountry(
+            @PathVariable UUID countryId) {
+        return service.getByCountry(countryId);
+    }
+
+    @GetMapping("/type/{type}")
+    public List<OrganizationSummaryDto> getByType(
+            @PathVariable String type) {
+        return service.getByType(type);
+    }
+
 }

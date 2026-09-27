@@ -9,6 +9,7 @@ import org.afdb.aikp.modules.iam.domain.enums.UserStatus;
 import org.afdb.aikp.modules.iam.domain.exception.UserNotFoundException;
 import org.afdb.aikp.modules.iam.domain.model.User;
 import org.afdb.aikp.modules.iam.domain.repository.UserRepository;
+import org.afdb.aikp.modules.iam.role.domain.repository.RoleRepository;
 import org.afdb.aikp.modules.iam.domain.service.UserDomainService;
 import org.afdb.aikp.modules.iam.domain.valueobject.Email;
 import org.afdb.aikp.modules.iam.domain.valueobject.FullName;
@@ -26,6 +27,7 @@ import java.util.List;
 public class UserApplicationService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final UserDomainService userDomainService;
     private final PasswordEncoder passwordEncoder;
 
@@ -171,4 +173,18 @@ public class UserApplicationService {
                 .orElseThrow(() ->
                         UserNotFoundException.withId(id.getValue()));
     }
+
+
+    public void assignRole(UUID userId, UUID roleId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow();
+
+        var role = roleRepository.findById(roleId)
+                .orElseThrow();
+
+        user.setRole(role);
+
+        userRepository.save(user);
+    }
+
 }

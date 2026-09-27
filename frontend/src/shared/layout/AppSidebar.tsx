@@ -3,10 +3,12 @@ import { useMediaQuery, useTheme } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import CampaignOutlinedIcon from "@mui/icons-material/CampaignOutlined";
+import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import PublicOutlinedIcon from "@mui/icons-material/PublicOutlined";
+import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import BusinessOutlinedIcon from "@mui/icons-material/BusinessOutlined";
 import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
 import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
@@ -28,11 +30,13 @@ import {
 } from "@mui/material";
 
 import { NavLink } from "react-router-dom";
+import { useAuth } from "@/shared/context/AuthContext";
 
 interface AppSidebarProps {
     open: boolean;
     onClose: () => void;
     width?: number;
+    collapsed?: boolean;
 }
 
 const drawerWidth = 260;
@@ -44,6 +48,11 @@ interface NavigationItem {
 }
 
 const dataCollectionItems: NavigationItem[] = [
+    {
+        label: "Data Collections",
+        path: "/data-collections",
+        icon: <FolderOutlinedIcon />,
+    },
     {
         label: "Campaigns",
         path: "/campaigns",
@@ -64,6 +73,12 @@ const dataCollectionItems: NavigationItem[] = [
         path: "/validation",
         icon: <FactCheckOutlinedIcon />,
     },
+  {
+    label: "Analytics",
+    path: "/dashboard",
+    icon: <Analytics />,
+  },
+
 ];
 
 const referenceItems: NavigationItem[] = [
@@ -71,6 +86,11 @@ const referenceItems: NavigationItem[] = [
         label: "Countries",
         path: "/countries",
         icon: <PublicOutlinedIcon />,
+    },
+    {
+        label: "Sectors",
+        path: "/sectors",
+        icon: <CategoryOutlinedIcon />,
     },
     {
         label: "Organizations",
@@ -166,15 +186,45 @@ function NavigationSection({
                         />
                     </ListItemButton>
                 ))}
+      {canAdmin && (
+        <>
+          <ListItemButton component={Link} to="/users">
+            <ListItemText primary="Users" />
+          </ListItemButton>
+
+          <ListItemButton component={Link} to="/organizations">
+            <ListItemText primary="Organizations" />
+          </ListItemButton>
+
+          <ListItemButton component={Link} to="/persons">
+            <ListItemText primary="Persons" />
+          </ListItemButton>
+
+          <ListItemButton component={Link} to="/invitations">
+            <ListItemText primary="Invitations" />
+          </ListItemButton>
+        </>
+      )}
+
             </List>
         </>
     );
 }
 
 export default function AppSidebar({
+
+  const { user } = useAuth();
+
+  const role = user?.role ?? "";
+
+  const canAdmin = role === "ADMIN";
+  const canCoordinator = ["ADMIN","COORDINATOR"].includes(role);
+  const canValidation = ["ADMIN","COORDINATOR","VALIDATOR"].includes(role);
+  const canCollection = ["ADMIN","COORDINATOR","DATA_PROVIDER"].includes(role);
     open,
     onClose,
     width = drawerWidth,
+    collapsed = false,
 }: AppSidebarProps) {
     const theme = useTheme();
 
@@ -300,18 +350,21 @@ export default function AppSidebar({
     return (
         <Drawer
             variant={isDesktop ? "permanent" : "temporary"}
-            open={isDesktop || open}
+            open={isDesktop ? !collapsed : open}
             onClose={onClose}
             ModalProps={{
                 keepMounted: true,
             }}
             sx={{
-                width,
+                width: isDesktop && collapsed ? 0 : width,
                 flexShrink: 0,
+                transition: "width 180ms ease",
 
                 "& .MuiDrawer-paper": {
-                    width,
+                    width: isDesktop && collapsed ? 0 : width,
                     boxSizing: "border-box",
+                    overflowX: "hidden",
+                    transition: "width 180ms ease",
                     position: isDesktop
                         ? "relative"
                         : "fixed",

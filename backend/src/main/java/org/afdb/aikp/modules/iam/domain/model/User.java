@@ -1,5 +1,7 @@
 package org.afdb.aikp.modules.iam.domain.model;
 
+import org.afdb.aikp.modules.iam.role.domain.model.Role;
+
 import org.afdb.aikp.modules.iam.domain.enums.UserStatus;
 import org.afdb.aikp.modules.iam.domain.exception.UserAlreadyActiveException;
 import org.afdb.aikp.modules.iam.domain.exception.UserAlreadyLockedException;
@@ -26,7 +28,9 @@ public class User {
 
     private UserStatus status;
 
-    private Instant lastLogin;
+    
+    private Role role;
+private Instant lastLogin;
 
     private final Instant createdAt;
 
@@ -202,4 +206,9 @@ public class User {
     private void touch() {
     updatedAt = Instant.now();
     }
+
+    public Role getRole() {
+        return role;
+    }
+
 }

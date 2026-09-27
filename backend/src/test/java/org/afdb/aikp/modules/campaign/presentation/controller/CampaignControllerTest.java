@@ -352,4 +352,28 @@ void shouldReturn409ForInvalidLifecycleTransition()
                                                 request)))
                 .andExpect(status().isBadRequest());
     }
+
+
+    @Test
+    void shouldGetAllCampaigns() throws Exception {
+
+        when(service.getAllCampaigns()).thenReturn(List.of(
+                new CampaignSummaryDto(
+                        1L,
+                        "AIKP2026",
+                        "AIKP 2026 Pilot",
+                        2026,
+                        CampaignStatus.ACTIVE
+                )
+        ));
+
+        mockMvc.perform(get("/api/campaigns"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].code").value("AIKP2026"))
+                .andExpect(jsonPath("$[0].name").value("AIKP 2026 Pilot"))
+                .andExpect(jsonPath("$[0].referenceYear").value(2026))
+                .andExpect(jsonPath("$[0].status").value("ACTIVE"));
+    }
+
 }

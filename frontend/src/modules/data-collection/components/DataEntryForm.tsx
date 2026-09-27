@@ -1,3 +1,87 @@
+
+function renderField(variable: QuestionnaireVariable) {
+
+  switch (variable.variableType) {
+
+    case "BOOLEAN":
+      return (
+        <div key={variable.id}>
+          <label>
+            <input type="checkbox" />
+            {variable.label}
+          </label>
+        </div>
+      );
+
+    case "NUMBER":
+    case "INTEGER":
+      return (
+        <div key={variable.id}>
+          <label>{variable.label}</label>
+          <input
+            type="number"
+            placeholder={variable.code}
+          />
+        </div>
+      );
+
+    case "DATE":
+      return (
+        <div key={variable.id}>
+          <label>{variable.label}</label>
+          <input type="date" />
+        </div>
+      );
+
+    case "SELECT":
+      return (
+        <div key={variable.id}>
+          <label>{variable.label}</label>
+          <select>
+            <option>Select...</option>
+          </select>
+        </div>
+      );
+
+    case "FORMULA":
+      return (
+        <div key={variable.id}>
+          <label>{variable.label}</label>
+          <input
+            readOnly
+            placeholder="Calculated"
+          />
+        </div>
+      );
+
+    default:
+      return (
+        <div key={variable.id}>
+          <label>{variable.label}</label>
+          <input
+            value={formValues[variable.code] ?? ""}
+            onChange={(e) =>
+              setFormValues({
+                ...formValues,
+                [variable.code]: e.target.value
+              })
+            }
+            placeholder={variable.code}
+          />
+        </div>
+      );
+  }
+}
+
+
+interface QuestionnaireVariable {
+  id: string;
+  code: string;
+  label: string;
+  variableType: string;
+  required: boolean;
+}
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -114,6 +198,9 @@ export default function DataEntryForm({
     >(new Map());
 
     const [isLoading, setIsLoading] = useState(true);
+const [variables, setVariables] = useState<QuestionnaireVariable[]>([]);
+const [formValues, setFormValues] = useState<Record<string, string>>({});
+const draftKey = "AIKP_DRAFT";
     const [savingVariableId, setSavingVariableId] =
         useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -209,7 +296,15 @@ export default function DataEntryForm({
         referenceYear,
     ]);
 
-    useEffect(() => {
+    
+useEffect(() => {
+  const draft = localStorage.getItem(draftKey);
+  if (draft) {
+    setFormValues(JSON.parse(draft));
+  }
+}, []);
+
+useEffect(() => {
         void loadObservations();
     }, [loadObservations]);
 
@@ -912,3 +1007,21 @@ function CardLikeContainer({
         </Paper>
     );
 }
+
+
+{/* Dynamic Variables */}
+<div style={{ marginTop: 24 }}>
+  {variables.map((variable) => renderField(variable))}
+</div>
+
+
+useEffect(() => {
+  const timer = setTimeout(() => {
+    localStorage.setItem(
+      draftKey,
+      JSON.stringify(formValues)
+    );
+  }, 5000);
+
+  return () => clearTimeout(timer);
+}, [formValues]);

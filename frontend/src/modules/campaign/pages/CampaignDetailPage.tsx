@@ -43,6 +43,12 @@ import {
     planCampaign,
 } from "../api/campaignApi";
 
+import EditCampaignDialog
+    from "../components/EditCampaignDialog";
+
+import CampaignCountriesSection
+    from "../components/CampaignCountriesSection";
+
 import type {
     Campaign,
     CampaignStatus,
@@ -96,6 +102,9 @@ export default function CampaignDetailPage() {
     const [deleteDialogOpen, setDeleteDialogOpen] =
         useState(false);
 
+    const [editDialogOpen, setEditDialogOpen] =
+        useState(false);
+
 
     useEffect(() => {
         async function loadCampaign() {
@@ -131,6 +140,10 @@ export default function CampaignDetailPage() {
         void loadCampaign();
     }, [id]);
 
+
+    function handleEditCampaign() {
+        setEditDialogOpen(true);
+    }
 
     async function handlePlanCampaign() {
         if (!campaign) {
@@ -415,6 +428,7 @@ export default function CampaignDetailPage() {
                         <Button
                             variant="outlined"
                             startIcon={<Edit />}
+                            onClick={handleEditCampaign}
                             disabled={actionLoading}
                         >
                             Edit Campaign
@@ -694,10 +708,35 @@ export default function CampaignDetailPage() {
                         </Typography>
                     </Box>
                 </Paper>
+
+                <CampaignCountriesSection
+                    campaignId={campaign.id}
+                    campaignStatus={campaign.status}
+                />
             </Box>
 
 
             {/* DELETE CONFIRMATION */}
+
+            <EditCampaignDialog
+                open={editDialogOpen}
+                campaign={campaign}
+                onClose={() => {
+                    setEditDialogOpen(false);
+                }}
+                onUpdated={() => {
+                    if (id) {
+                        void getCampaignById(id)
+                            .then(setCampaign)
+                            .catch((err) => {
+                                console.error(
+                                    "Failed to reload campaign:",
+                                    err,
+                                );
+                            });
+                    }
+                }}
+            />
 
             <Dialog
                 open={deleteDialogOpen}

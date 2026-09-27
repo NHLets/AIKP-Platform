@@ -238,4 +238,12 @@ public class PersonController implements PersonApi {
 
         return ResponseEntity.noContent().build();
     }
+
+
+    @GetMapping("/organization/{organizationId}")
+    public List<PersonSummaryDto> getPersonsByOrganization(
+            @PathVariable UUID organizationId) {
+        return service.getPersonsByOrganization(organizationId);
+    }
+
 }

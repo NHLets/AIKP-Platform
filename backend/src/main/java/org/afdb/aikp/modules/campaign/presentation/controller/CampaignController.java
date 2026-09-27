@@ -1,6 +1,7 @@
 package org.afdb.aikp.modules.campaign.presentation.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,11 +27,13 @@ import org.afdb.aikp.modules.campaign.application.query.GetCampaignsQuery;
 import org.afdb.aikp.modules.campaign.application.response.CampaignSummary;
 
 import java.util.List;
+import org.afdb.aikp.modules.campaign.application.dto.CampaignSummaryDto;
 
 import java.net.URI;
 import java.util.UUID;
 
 @RestController
+@PreAuthorize(\"hasAnyRole('ADMIN','COORDINATOR')\")
 @RequestMapping("/api/v1/campaigns")
 @Tag(
         name = "Campaigns",
@@ -232,4 +235,12 @@ public class CampaignController {
 
         return ResponseEntity.noContent().build();
     }
+
+
+    @Operation(summary = "Get all campaigns")
+    @GetMapping
+    public List<CampaignSummaryDto> getAllCampaigns() {
+        return service.getAllCampaigns();
+    }
+
 }

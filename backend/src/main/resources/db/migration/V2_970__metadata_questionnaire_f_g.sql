@@ -19,7 +19,7 @@ INSERT INTO metadata.questionnaire
     version
 )
 VALUES
-('a4912808-3471-5204-9912-530955ac7f95', 'F_G', 'Fiscal Data Template G. Financial data of public operators', 'Fiscal Data Template G. Financial data of public operators', 1, 'en', 'ACTIVE', 'SPREADSHEET', TRUE, CURRENT_TIMESTAMP, 0);
+('a4912808-3471-5204-9912-530955ac7f95', 'F_G', 'Fiscal Data Template G. Financial data of public operators', 'Fiscal Data Template G. Financial data of public operators', 1, 'en', 'PUBLISHED', 'SPREADSHEET', TRUE, CURRENT_TIMESTAMP, 0);
 
 INSERT INTO metadata.questionnaire_group
 (

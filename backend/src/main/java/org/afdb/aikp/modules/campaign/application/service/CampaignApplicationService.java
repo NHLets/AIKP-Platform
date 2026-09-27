@@ -24,6 +24,7 @@ import org.afdb.aikp.modules.campaign.application.query.GetCampaignsQuery;
 import org.afdb.aikp.modules.campaign.application.response.CampaignSummary;
 
 import java.util.List;
+import org.afdb.aikp.modules.campaign.application.dto.CampaignSummaryDto;
 @Service
 @Transactional
 public class CampaignApplicationService {
@@ -177,4 +178,18 @@ public class CampaignApplicationService {
                         new CampaignNotFoundException(
         "Campaign not found with id: " + id));
     }
+
+    public List<CampaignSummaryDto> getAllCampaigns() {
+        return campaignRepository.findAll()
+                .stream()
+                .map(campaign -> new CampaignSummaryDto(
+                        campaign.getId().value(),
+                        campaign.getCode().value(),
+                        campaign.getName().value(),
+                        campaign.getReferenceYear(),
+                        campaign.getStatus()
+                ))
+                .toList();
+    }
+
 }

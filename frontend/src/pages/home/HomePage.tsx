@@ -1,19 +1,31 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import CampaignOutlinedIcon from "@mui/icons-material/CampaignOutlined";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import PublicOutlinedIcon from "@mui/icons-material/PublicOutlined";
 import TrendingUpOutlinedIcon from "@mui/icons-material/TrendingUpOutlined";
 
 import {
+    Alert,
     Box,
     Card,
     CardContent,
     Chip,
+    CircularProgress,
     Divider,
     Grid,
     LinearProgress,
     Stack,
     Typography,
 } from "@mui/material";
+
+import { useDashboard } from "@/modules/dashboard/hooks/useDashboard";
+import { getCampaigns } from "@/modules/campaign/api/campaignApi";
+
+import type {
+    CampaignSummary,
+} from "@/modules/campaign/types/campaign.types";
 
 interface DashboardCardProps {
     title: string;
@@ -91,6 +103,65 @@ function DashboardCard({
 }
 
 export default function HomePage() {
+    const navigate = useNavigate();
+
+    const {
+        data: dashboard,
+        isLoading,
+        error,
+    } = useDashboard();
+
+    const [activeCampaign, setActiveCampaign] =
+        useState<CampaignSummary | null>(null);
+
+    useEffect(() => {
+        async function loadActiveCampaign() {
+            try {
+                const campaigns =
+                    await getCampaigns();
+
+                const campaign =
+                    campaigns.find(
+                        (item) =>
+                            item.status === "ACTIVE",
+                    ) ?? null;
+
+                setActiveCampaign(campaign);
+            } catch (error) {
+                console.error(
+                    "Failed to load active campaign:",
+                    error,
+                );
+
+                setActiveCampaign(null);
+            }
+        }
+
+        void loadActiveCampaign();
+    }, []);
+
+    if (isLoading) {
+        return (
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    py: 8,
+                }}
+            >
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (error || !dashboard) {
+        return (
+            <Alert severity="error">
+                Unable to load dashboard data.
+            </Alert>
+        );
+    }
+
     return (
         <Box>
             <Box
@@ -128,12 +199,20 @@ export default function HomePage() {
                         lg: 3,
                     }}
                 >
-                    <DashboardCard
-                        title="Active Campaign"
-                        value="1"
-                        description="Current data collection campaign"
-                        icon={<CampaignOutlinedIcon />}
-                    />
+                    <Box
+                        onClick={() => navigate("/campaigns")}
+                        sx={{
+                            cursor: "pointer",
+                            height: "100%",
+                        }}
+                    >
+                        <DashboardCard
+                            title="Active Campaign"
+                            value={String(dashboard.activeCampaigns)}
+                            description="Current data collection campaign"
+                            icon={<CampaignOutlinedIcon />}
+                        />
+                    </Box>
                 </Grid>
 
                 <Grid
@@ -143,12 +222,20 @@ export default function HomePage() {
                         lg: 3,
                     }}
                 >
-                    <DashboardCard
-                        title="Countries"
-                        value="23"
-                        description="Countries participating in AIKP"
-                        icon={<PublicOutlinedIcon />}
-                    />
+                    <Box
+                        onClick={() => navigate("/countries")}
+                        sx={{
+                            cursor: "pointer",
+                            height: "100%",
+                        }}
+                    >
+                        <DashboardCard
+                            title="Countries"
+                            value={String(dashboard.totalCountries)}
+                            description="Countries participating in AIKP"
+                            icon={<PublicOutlinedIcon />}
+                        />
+                    </Box>
                 </Grid>
 
                 <Grid
@@ -158,12 +245,28 @@ export default function HomePage() {
                         lg: 3,
                     }}
                 >
-                    <DashboardCard
-                        title="Collection Progress"
-                        value="68%"
-                        description="Overall data collection progress"
-                        icon={<TrendingUpOutlinedIcon />}
-                    />
+                    <Box
+                        onClick={() => navigate("/submissions")}
+                        sx={{
+                            cursor: "pointer",
+                            height: "100%",
+                        }}
+                    >
+                        <DashboardCard
+                            title="Collection Progress"
+                            value={`${
+                                dashboard.totalDataCollections === 0
+                                    ? 0
+                                    : Math.round(
+                                        (dashboard.validatedDataCollections /
+                                            dashboard.totalDataCollections) *
+                                            100,
+                                    )
+                            }%`}
+                            description="Overall data collection progress"
+                            icon={<TrendingUpOutlinedIcon />}
+                        />
+                    </Box>
                 </Grid>
 
                 <Grid
@@ -173,12 +276,20 @@ export default function HomePage() {
                         lg: 3,
                     }}
                 >
-                    <DashboardCard
-                        title="Validated"
-                        value="12"
-                        description="Countries fully validated"
-                        icon={<TaskAltIcon />}
-                    />
+                    <Box
+                        onClick={() => navigate("/validation")}
+                        sx={{
+                            cursor: "pointer",
+                            height: "100%",
+                        }}
+                    >
+                        <DashboardCard
+                            title="Validated"
+                            value={String(dashboard.validatedDataCollections)}
+                            description="Countries fully validated"
+                            icon={<TaskAltIcon />}
+                        />
+                    </Box>
                 </Grid>
             </Grid>
 
@@ -223,15 +334,24 @@ export default function HomePage() {
                                     </Typography>
                                 </Box>
 
-                                <Chip
-                                    label="AIKP 2026"
-                                    color="primary"
-                                    variant="outlined"
-                                />
+                                {activeCampaign && (
+                                    <Chip
+                                        label={activeCampaign.code}
+                                        color="primary"
+                                        variant="outlined"
+                                    />
+                                )}
                             </Stack>
 
                             <Stack spacing={3}>
-                                <Box>
+                                <Box
+                                    onClick={() =>
+                                        navigate("/data-collections?status=DRAFT")
+                                    }
+                                    sx={{
+                                        cursor: "pointer",
+                                    }}
+                                >
                                     <Stack
                                         direction="row"
                                         sx={{
@@ -240,44 +360,42 @@ export default function HomePage() {
                                         }}
                                     >
                                         <Typography variant="body2">
-                                            Completed
+                                            Draft
                                         </Typography>
 
                                         <Typography variant="body2">
-                                            52%
+                                            {`${
+                                                dashboard.totalDataCollections === 0
+                                                    ? 0
+                                                    : Math.round(
+                                                        (dashboard.draftDataCollections /
+                                                            dashboard.totalDataCollections) *
+                                                            100,
+                                                    )
+                                            }%`}
                                         </Typography>
                                     </Stack>
 
                                     <LinearProgress
                                         variant="determinate"
-                                        value={52}
+                                        value={
+                                            dashboard.totalDataCollections === 0
+                                                ? 0
+                                                : (dashboard.draftDataCollections /
+                                                    dashboard.totalDataCollections) *
+                                                    100
+                                        }
                                     />
                                 </Box>
 
-                                <Box>
-                                    <Stack
-                                        direction="row"
-                                        sx={{
-                                            justifyContent: "space-between",
-                                            mb: 1,
-                                        }}
-                                    >
-                                        <Typography variant="body2">
-                                            Under Validation
-                                        </Typography>
-
-                                        <Typography variant="body2">
-                                            16%
-                                        </Typography>
-                                    </Stack>
-
-                                    <LinearProgress
-                                        variant="determinate"
-                                        value={16}
-                                    />
-                                </Box>
-
-                                <Box>
+                                <Box
+                                    onClick={() =>
+                                        navigate("/data-collections?status=IN_PROGRESS")
+                                    }
+                                    sx={{
+                                        cursor: "pointer",
+                                    }}
+                                >
                                     <Stack
                                         direction="row"
                                         sx={{
@@ -290,14 +408,203 @@ export default function HomePage() {
                                         </Typography>
 
                                         <Typography variant="body2">
-                                            32%
+                                            {`${
+                                                dashboard.totalDataCollections === 0
+                                                    ? 0
+                                                    : Math.round(
+                                                        (dashboard.inProgressDataCollections /
+                                                            dashboard.totalDataCollections) *
+                                                            100,
+                                                    )
+                                            }%`}
                                         </Typography>
                                     </Stack>
 
                                     <LinearProgress
                                         variant="determinate"
-                                        value={32}
+                                        value={
+                                            dashboard.totalDataCollections === 0
+                                                ? 0
+                                                : (dashboard.inProgressDataCollections /
+                                                    dashboard.totalDataCollections) *
+                                                    100
+                                        }
                                     />
+                                </Box>
+
+                                <Box
+                                    onClick={() =>
+                                        navigate("/submissions?status=SUBMITTED")
+                                    }
+                                    sx={{
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    <Stack
+                                        direction="row"
+                                        sx={{
+                                            justifyContent: "space-between",
+                                            mb: 1,
+                                        }}
+                                    >
+                                        <Typography variant="body2">
+                                            Under Validation
+                                        </Typography>
+
+                                        <Typography variant="body2">
+                                            {`${
+                                                dashboard.totalDataCollections === 0
+                                                    ? 0
+                                                    : Math.round(
+                                                        (dashboard.submittedDataCollections /
+                                                            dashboard.totalDataCollections) *
+                                                            100,
+                                                    )
+                                            }%`}
+                                        </Typography>
+                                    </Stack>
+
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={
+                                            dashboard.totalDataCollections === 0
+                                                ? 0
+                                                : (dashboard.submittedDataCollections /
+                                                    dashboard.totalDataCollections) *
+                                                    100
+                                        }
+                                    />
+                                </Box>
+
+                                <Box
+                                    onClick={() =>
+                                        navigate("/data-collections?status=VALIDATED")
+                                    }
+                                    sx={{
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    <Stack
+                                        direction="row"
+                                        sx={{
+                                            justifyContent: "space-between",
+                                            mb: 1,
+                                        }}
+                                    >
+                                        <Typography variant="body2">
+                                            Completed
+                                        </Typography>
+
+                                        <Typography variant="body2">
+                                            {`${
+                                                dashboard.totalDataCollections === 0
+                                                    ? 0
+                                                    : Math.round(
+                                                        (dashboard.validatedDataCollections /
+                                                            dashboard.totalDataCollections) *
+                                                            100,
+                                                    )
+                                            }%`}
+                                        </Typography>
+                                    </Stack>
+
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={
+                                            dashboard.totalDataCollections === 0
+                                                ? 0
+                                                : (dashboard.validatedDataCollections /
+                                                    dashboard.totalDataCollections) *
+                                                    100
+                                        }
+                                    />
+                                </Box>
+
+                                <Box
+                                    onClick={() =>
+                                        navigate("/data-collections?status=REJECTED")
+                                    }
+                                    sx={{
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    <Stack
+                                        direction="row"
+                                        sx={{
+                                            justifyContent: "space-between",
+                                            mb: 1,
+                                        }}
+                                    >
+                                        <Typography variant="body2">
+                                            Rejected
+                                        </Typography>
+
+                                        <Typography variant="body2">
+                                            {`${
+                                                dashboard.totalDataCollections === 0
+                                                    ? 0
+                                                    : Math.round(
+                                                        (dashboard.rejectedDataCollections /
+                                                            dashboard.totalDataCollections) *
+                                                            100,
+                                                    )
+                                            }%`}
+                                        </Typography>
+                                    </Stack>
+
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={
+                                            dashboard.totalDataCollections === 0
+                                                ? 0
+                                                : (dashboard.rejectedDataCollections /
+                                                    dashboard.totalDataCollections) *
+                                                    100
+                                        }
+                                    />
+                                <Box
+                                    onClick={() =>
+                                        navigate("/data-collections?status=CANCELLED")
+                                    }
+                                    sx={{
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    <Stack
+                                        direction="row"
+                                        sx={{
+                                            justifyContent: "space-between",
+                                            mb: 1,
+                                        }}
+                                    >
+                                        <Typography variant="body2">
+                                            Cancelled
+                                        </Typography>
+
+                                        <Typography variant="body2">
+                                            {`${
+                                                dashboard.totalDataCollections === 0
+                                                    ? 0
+                                                    : Math.round(
+                                                        (dashboard.cancelledDataCollections /
+                                                            dashboard.totalDataCollections) *
+                                                            100,
+                                                    )
+                                            }%`}
+                                        </Typography>
+                                    </Stack>
+
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={
+                                            dashboard.totalDataCollections === 0
+                                                ? 0
+                                                : (dashboard.cancelledDataCollections /
+                                                    dashboard.totalDataCollections) *
+                                                    100
+                                        }
+                                    />
+                                </Box>
                                 </Box>
                             </Stack>
                         </CardContent>
@@ -311,8 +618,18 @@ export default function HomePage() {
                     }}
                 >
                     <Card
+                        onClick={() => {
+                            if (activeCampaign) {
+                                navigate(
+                                    `/campaigns/${activeCampaign.id}`,
+                                );
+                            }
+                        }}
                         sx={{
                             height: "100%",
+                            cursor: activeCampaign
+                                ? "pointer"
+                                : "default",
                         }}
                     >
                         <CardContent>
@@ -347,7 +664,9 @@ export default function HomePage() {
                                     fontWeight: 600,
                                 }}
                             >
-                                AIKP Data Collection 2026
+                                {activeCampaign
+                                    ? activeCampaign.name
+                                    : "No active campaign"}
                             </Typography>
 
                             <Typography
@@ -357,21 +676,26 @@ export default function HomePage() {
                                     mt: 1,
                                 }}
                             >
-                                Infrastructure data collection across
-                                participating countries.
+                                {activeCampaign
+                                    ? `Campaign code: ${activeCampaign.code}`
+                                    : "There is currently no active data collection campaign."}
                             </Typography>
 
-                            <Box
-                                sx={{
-                                    mt: 3,
-                                }}
-                            >
-                                <Chip
-                                    label="ACTIVE"
-                                    color="success"
-                                    size="small"
-                                />
-                            </Box>
+                            {activeCampaign && (
+                                <Box
+                                    sx={{
+                                        mt: 3,
+                                    }}
+                                >
+                                    <Chip
+                                        label={
+                                            activeCampaign.status
+                                        }
+                                        color="success"
+                                        size="small"
+                                    />
+                                </Box>
+                            )}
                         </CardContent>
                     </Card>
                 </Grid>

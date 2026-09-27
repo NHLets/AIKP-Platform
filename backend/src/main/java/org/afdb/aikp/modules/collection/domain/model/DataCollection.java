@@ -229,11 +229,10 @@ public final class DataCollection
      * Submits the data collection for validation.
      */
     public void submit() {
-
-        if (status != DataCollectionStatus.IN_PROGRESS) {
+        if (status != DataCollectionStatus.IN_PROGRESS
+                && status != DataCollectionStatus.REJECTED) {
             throw new IllegalStateException(
-                    "Only an in-progress data collection "
-                            + "can be submitted.");
+                    "Only an in-progress or rejected data collection can be submitted.");
         }
 
         status = DataCollectionStatus.SUBMITTED;
