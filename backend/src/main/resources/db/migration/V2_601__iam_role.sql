@@ -5,7 +5,7 @@
 -- Aggregate : IAM / Role
 -- ============================================================================
 
-CREATE TABLE identity.roles
+CREATE TABLE IF NOT EXISTS identity.roles
 (
     id          UUID         NOT NULL,
     name        VARCHAR(100) NOT NULL,

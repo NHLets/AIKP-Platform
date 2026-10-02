@@ -18,12 +18,14 @@ public interface ValidationCommentJpaRepository
             UUID validatorId);
 
 
-    @Query("""
-        SELECT vc.observation.id, COUNT(vc)
-        FROM ValidationCommentEntity vc
-        WHERE vc.observation.dataCollection.id = :dataCollectionId
-        GROUP BY vc.observation.id
-        """)
+    @Query(value = """
+        SELECT vc.observation_id, COUNT(*)
+        FROM reference.validation_comment vc
+        JOIN reference.data_collection_observation o
+          ON o.id = vc.observation_id
+        WHERE o.data_collection_id = :dataCollectionId
+        GROUP BY vc.observation_id
+        """, nativeQuery = true)
     List<Object[]> countByDataCollection(
         @Param("dataCollectionId") UUID dataCollectionId
     );

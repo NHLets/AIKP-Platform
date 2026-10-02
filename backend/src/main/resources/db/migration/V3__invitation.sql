@@ -8,11 +8,11 @@ CREATE TABLE invitation (
     accepted_at TIMESTAMP,
     CONSTRAINT fk_invitation_user
         FOREIGN KEY (user_id)
-        REFERENCES iam_user(id)
+        REFERENCES identity.users(id)
 );
 
 CREATE INDEX idx_invitation_user
 ON invitation(user_id);
 
 CREATE INDEX idx_invitation_token
-ON invitation(token);\n
+ON invitation(token);

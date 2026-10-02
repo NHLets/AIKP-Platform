@@ -1,5 +1,5 @@
 import axiosClient from "../shared/api/axiosClient";
-import { LoginRequest, LoginResponse } from "../types/auth";
+import type { LoginRequest, LoginResponse } from "../types/auth";
 
 export const authApi = {
 

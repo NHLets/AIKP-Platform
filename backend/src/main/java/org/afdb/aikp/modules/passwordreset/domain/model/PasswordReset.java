@@ -46,4 +46,4 @@ public class PasswordReset {
     public void expire(){
         status = PasswordResetStatus.EXPIRED;
     }
-}\n
+}

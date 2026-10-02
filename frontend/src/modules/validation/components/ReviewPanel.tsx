@@ -1,5 +1,4 @@
 import {
-  Box,
   CircularProgress,
   Paper,
   Stack,
@@ -38,7 +37,7 @@ export default function ReviewPanel({ observationId }: Props) {
         )}
 
         {loading && (
-          <Stack alignItems="center">
+          <Stack sx={{ alignItems: "center" }}>
             <CircularProgress size={28} />
           </Stack>
         )}

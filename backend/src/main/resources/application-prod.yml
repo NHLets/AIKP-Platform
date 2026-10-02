@@ -1,32 +1,18 @@
 spring:
+  profiles:
+    active: prod
 
-  datasource:
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
 
-    url: ${DATABASE_URL}
+  endpoint:
+    health:
+      show-details: always
 
-    username: ${DATABASE_USERNAME}
-
-    password: ${DATABASE_PASSWORD}
-
-    driver-class-name: org.postgresql.Driver
-
-  jpa:
-
-    open-in-view: false
-
-    hibernate:
-      ddl-auto: validate
-
-  flyway:
-
-    enabled: true
-
-server:
-
-  port: ${SERVER_PORT:8080}
-
-logging:
-
-  level:
-
-    root: INFO
+info:
+  app:
+    name: AIKP Platform
+    version: 1.0.0

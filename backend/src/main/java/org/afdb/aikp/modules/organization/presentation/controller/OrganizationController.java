@@ -15,7 +15,10 @@ import org.afdb.aikp.modules.organization.application.query.GetOrganizationQuery
 import org.afdb.aikp.modules.organization.application.query.GetOrganizationsByCountryQuery;
 import org.afdb.aikp.modules.organization.application.query.GetOrganizationsByTypeQuery;
 import org.afdb.aikp.modules.organization.application.query.GetOrganizationsQuery;
+import org.afdb.aikp.modules.organization.application.query.GetOrganizationsByCountryQuery;
+import org.afdb.aikp.modules.organization.application.query.GetOrganizationsByTypeQuery;
 import org.afdb.aikp.modules.organization.application.response.OrganizationResponse;
+import org.afdb.aikp.modules.organization.application.response.OrganizationSummary;
 import org.afdb.aikp.modules.organization.application.response.OrganizationSummary;
 import org.afdb.aikp.modules.organization.application.service.OrganizationApplicationService;
 import org.afdb.aikp.modules.organization.presentation.contract.OrganizationApi;
@@ -298,18 +301,4 @@ public class OrganizationController implements OrganizationApi {
 
         return ResponseEntity.noContent().build();
     }
-
-
-    @GetMapping("/country/{countryId}")
-    public List<OrganizationSummaryDto> getByCountry(
-            @PathVariable UUID countryId) {
-        return service.getByCountry(countryId);
-    }
-
-    @GetMapping("/type/{type}")
-    public List<OrganizationSummaryDto> getByType(
-            @PathVariable String type) {
-        return service.getByType(type);
-    }
-
 }

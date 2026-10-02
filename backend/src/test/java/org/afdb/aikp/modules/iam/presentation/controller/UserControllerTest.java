@@ -3,7 +3,10 @@ package org.afdb.aikp.modules.iam.presentation.controller;
 import org.afdb.aikp.modules.iam.application.service.UserApplicationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.afdb.aikp.shared.security.AikpUserDetailsService;
+import org.afdb.aikp.shared.security.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -13,7 +16,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class UserControllerTest {
+
+    @MockBean
+    private JwtService jwtService;
+
+    @MockBean
+    private AikpUserDetailsService userDetailsService;
+
 
     @Autowired
     MockMvc mockMvc;
@@ -39,22 +50,35 @@ class UserControllerTest {
     void shouldCreateUser() throws Exception {
         mockMvc.perform(post("/api/v1/users")
                 .contentType("application/json")
-                .content("{}"))
-                .andExpect(status().isOk());
+                .content("""
+                        {
+                          "username": "testuser",
+                          "email": "testuser@aikp.org",
+                          "fullName": "Test User",
+                          "password": "TestPassword123",
+                          "roleId": "00000000-0000-0000-0000-000000000001"
+                        }
+                        """))
+                .andExpect(status().isCreated());
     }
 
     @Test
     void shouldUpdateUser() throws Exception {
         mockMvc.perform(put("/api/v1/users/" + id)
                 .contentType("application/json")
-                .content("{}"))
+                .content("""
+                        {
+                          "email": "updated@aikp.org",
+                          "fullName": "Updated Test User"
+                        }
+                        """))
                 .andExpect(status().isOk());
     }
 
     @Test
     void shouldDeleteUser() throws Exception {
         mockMvc.perform(delete("/api/v1/users/" + id))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
     }
 
     @Test

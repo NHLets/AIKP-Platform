@@ -1,5 +1,7 @@
 package org.afdb.aikp.modules.campaign.application.dto;
 
+import java.util.UUID;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.afdb.aikp.modules.campaign.domain.enums.CampaignStatus;
 
@@ -7,7 +9,7 @@ import org.afdb.aikp.modules.campaign.domain.enums.CampaignStatus;
 public record CampaignSummaryDto(
 
     @Schema(description = "Campaign identifier")
-    Long id,
+    UUID id,
 
     @Schema(description = "Campaign code")
     String code,

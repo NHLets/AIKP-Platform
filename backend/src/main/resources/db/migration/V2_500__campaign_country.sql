@@ -1,4 +1,4 @@
-CREATE TABLE campaign.campaign_country (
+CREATE TABLE IF NOT EXISTS campaign.campaign_country (
     id UUID NOT NULL,
     campaign_id UUID NOT NULL,
     country_id UUID NOT NULL,
@@ -28,8 +28,8 @@ CREATE TABLE campaign.campaign_country (
         ON DELETE RESTRICT
 );
 
-CREATE INDEX idx_campaign_country_campaign_id
+CREATE INDEX IF NOT EXISTS idx_campaign_country_campaign_id
     ON campaign.campaign_country (campaign_id);
 
-CREATE INDEX idx_campaign_country_country_id
+CREATE INDEX IF NOT EXISTS idx_campaign_country_country_id
     ON campaign.campaign_country (country_id);

@@ -5,7 +5,7 @@
 -- Aggregate : Metadata / Questionnaire
 -- ============================================================================
 
-CREATE TABLE metadata.questionnaire
+CREATE TABLE IF NOT EXISTS metadata.questionnaire
 (
     id                   UUID          NOT NULL,
     code                 VARCHAR(50)   NOT NULL,
@@ -31,8 +31,8 @@ CREATE TABLE metadata.questionnaire
         UNIQUE (code)
 );
 
-CREATE INDEX idx_questionnaire_active
+CREATE INDEX IF NOT EXISTS idx_questionnaire_active
     ON metadata.questionnaire(active);
 
-CREATE INDEX idx_questionnaire_status
+CREATE INDEX IF NOT EXISTS idx_questionnaire_status
     ON metadata.questionnaire(status);

@@ -97,7 +97,7 @@ export default function ValidationHeatmapPanel({
           </TableBody>
         </Table>
 
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Typography variant="caption">
             Low
           </Typography>

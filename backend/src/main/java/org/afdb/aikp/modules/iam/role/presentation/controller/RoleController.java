@@ -42,7 +42,7 @@ import java.util.UUID;
  * REST controller for IAM Role operations.
  */
 @RestController
-@PreAuthorize(\"hasRole('ADMIN')\")
+@PreAuthorize("hasRole('ADMIN')")
 @RequestMapping("/api/v1/roles")
 @Tag(
         name = "Role",

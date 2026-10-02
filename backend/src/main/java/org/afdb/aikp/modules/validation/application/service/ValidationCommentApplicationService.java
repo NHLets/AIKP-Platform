@@ -70,13 +70,15 @@ public class ValidationCommentApplicationService {
     public List<ObservationCommentCountDto> getCounts(
         UUID dataCollectionId
     ) {
-        return repository.countByDataCollection(dataCollectionId)
-            .stream()
-            .map(row -> new ObservationCommentCountDto(
-                (UUID) row[0],
-                ((Number) row[1]).longValue()
-            ))
-            .toList();
+
+        long total = repository.countByDataCollection(dataCollectionId);
+
+        return List.of(
+            new ObservationCommentCountDto(
+                dataCollectionId,
+                total
+            )
+        );
     }
 
 }

@@ -7,4 +7,4 @@ public record InvitationId(UUID value) {
     public static InvitationId generate() {
         return new InvitationId(UUID.randomUUID());
     }
-}\n
+}

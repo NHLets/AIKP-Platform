@@ -11,7 +11,7 @@ CREATE SCHEMA IF NOT EXISTS campaign;
 COMMENT ON SCHEMA campaign
 IS 'Campaign management and data collection lifecycle';
 
-CREATE TABLE campaign.campaign
+CREATE TABLE IF NOT EXISTS campaign.campaign
 (
     id             UUID          NOT NULL,
     code           VARCHAR(50)   NOT NULL,
@@ -40,5 +40,5 @@ CREATE TABLE campaign.campaign
         CHECK (end_date >= start_date)
 );
 
-CREATE INDEX idx_campaign_status
+CREATE INDEX IF NOT EXISTS idx_campaign_status
     ON campaign.campaign(status);

@@ -9,7 +9,7 @@ import {
   TableRow
 } from '@mui/material';
 
-import { ValidationHeatmap } from '../../types/dashboard';
+import type { ValidationHeatmap } from "../../types/dashboard";
 
 interface Props {
   data: ValidationHeatmap[];

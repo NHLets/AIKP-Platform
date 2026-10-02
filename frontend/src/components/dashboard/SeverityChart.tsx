@@ -13,7 +13,7 @@ import {
   Legend
 } from 'recharts';
 
-import { SeverityDistribution } from '../../types/dashboard';
+import type { SeverityDistribution } from "../../types/dashboard";
 
 interface Props {
   data: SeverityDistribution[];

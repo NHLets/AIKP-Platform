@@ -1,6 +1,5 @@
 package org.afdb.aikp.modules.dataCollection.infrastructure.persistence.adapter;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import org.afdb.aikp.modules.dataCollection.domain.model.*;
@@ -8,16 +7,24 @@ import org.afdb.aikp.modules.dataCollection.domain.repository.ObservationReposit
 import org.afdb.aikp.modules.dataCollection.infrastructure.persistence.entity.ObservationEntity;
 import org.afdb.aikp.modules.dataCollection.infrastructure.persistence.mapper.ObservationPersistenceMapper;
 import org.afdb.aikp.modules.dataCollection.infrastructure.persistence.repository.SpringDataObservationRepository;
+import org.afdb.aikp.modules.dataCollection.infrastructure.persistence.repository.SpringDataObservationRepository;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
-@RequiredArgsConstructor
 public class ObservationRepositoryAdapter implements ObservationRepository {
 
     private final SpringDataObservationRepository repository;
     private final ObservationPersistenceMapper mapper;
+
+
+    public ObservationRepositoryAdapter(
+            SpringDataObservationRepository repository,
+            ObservationPersistenceMapper mapper) {
+        this.repository = repository;
+        this.mapper = mapper;
+    }
 
     @Override
     public Observation save(Observation observation) {

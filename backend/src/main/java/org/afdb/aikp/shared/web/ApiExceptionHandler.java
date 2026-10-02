@@ -9,6 +9,7 @@ import org.afdb.aikp.shared.exception.NotFoundException;
 import org.afdb.aikp.shared.exception.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -115,6 +116,22 @@ public class ApiExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 exception,
                 request);
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ProblemDetail handleAuthorizationDenied(
+            AuthorizationDeniedException exception,
+            HttpServletRequest request) {
+
+        ProblemDetail problem =
+                ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
+
+        problem.setTitle(HttpStatus.FORBIDDEN.getReasonPhrase());
+        problem.setDetail("Access Denied");
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("timestamp", OffsetDateTime.now());
+
+        return problem;
     }
 
     @ExceptionHandler(Exception.class)

@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -15,7 +15,11 @@ export default function RoleGuard({ roles, children }: RoleGuardProps) {
   }
 
   if (!roles.includes(user.role)) {
-    return <Navigate to="/403" replace />;
+    return (
+      <div role="alert" style={{ padding: "2rem" }}>
+        Access denied.
+      </div>
+    );
   }
 
   return <>{children}</>;

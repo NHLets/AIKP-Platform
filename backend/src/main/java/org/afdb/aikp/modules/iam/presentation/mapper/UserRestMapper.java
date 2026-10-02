@@ -13,12 +13,12 @@ public final class UserRestMapper {
     }
 
     public static CreateUserCommand toCommand(CreateUserRequest request) {
-
         return new CreateUserCommand(
                 request.username(),
                 request.email(),
                 request.fullName(),
-                request.password()
+                request.password(),
+                request.roleId()
         );
     }
 

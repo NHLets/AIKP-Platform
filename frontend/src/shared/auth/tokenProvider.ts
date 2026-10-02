@@ -1,19 +1,22 @@
 const TOKEN_KEY = "access_token";
 
-export const TokenProvider = {
+export function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
 
-  getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
-  },
+export function setToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token);
+}
 
-  setToken(token: string): void {
-    localStorage.setItem(TOKEN_KEY, token);
-  },
+export function removeToken(): void {
+  localStorage.removeItem(TOKEN_KEY);
+}
 
-  removeToken(): void {
-    localStorage.removeItem(TOKEN_KEY);
-  }
-
+// Compatibilité avec l'ancien code
+const TokenProvider = {
+  getToken,
+  setToken,
+  removeToken,
 };
 
 export default TokenProvider;

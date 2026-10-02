@@ -18,4 +18,8 @@ public interface ValidationCommentRepository {
 
     boolean existsById(UUID id);
 
+
+
+    long countByDataCollection(java.util.UUID dataCollectionId);
+
 }

@@ -38,8 +38,8 @@ public interface DataCollectionObservationJpaRepository
     @Query("""
         SELECT COUNT(o)
         FROM DataCollectionObservationEntity o
-        WHERE o.dataCollection.id = :dataCollectionId
-          AND o.observationStatus = :status
+        WHERE o.dataCollectionId = :dataCollectionId
+          AND o.status = :status
         """)
     long countByDataCollectionAndObservationStatus(
         @Param("dataCollectionId") UUID dataCollectionId,
@@ -49,7 +49,7 @@ public interface DataCollectionObservationJpaRepository
     @Query("""
         SELECT COUNT(o)
         FROM DataCollectionObservationEntity o
-        WHERE o.dataCollection.id = :dataCollectionId
+        WHERE o.dataCollectionId = :dataCollectionId
         """)
     long countByDataCollection(
         @Param("dataCollectionId") UUID dataCollectionId
@@ -139,5 +139,37 @@ public interface DataCollectionObservationJpaRepository
     java.util.List<Object[]> findRejectedObservations(
         @Param("dataCollectionId") UUID dataCollectionId
     );
+
+
+    @Query(value = """
+        SELECT
+            vc.severity,
+            COUNT(*) AS total
+        FROM validation_comment vc
+        JOIN data_collection_observation o
+             ON vc.observation_id = o.id
+        WHERE o.data_collection_id = :collectionId
+        GROUP BY vc.severity
+        ORDER BY vc.severity
+        """, nativeQuery = true)
+    java.util.List<Object[]> findSeverityDistribution(
+            @Param("collectionId") java.util.UUID collectionId);
+
+
+    @Query(value = """
+        SELECT
+            vc.severity,
+            COUNT(*) AS total,
+            ROUND(COUNT(*) * 100.0 /
+                NULLIF(SUM(COUNT(*)) OVER (),0),2) AS percentage
+        FROM validation_comment vc
+        JOIN data_collection_observation o
+             ON vc.observation_id = o.id
+        WHERE o.data_collection_id = :collectionId
+        GROUP BY vc.severity
+        ORDER BY vc.severity
+        """, nativeQuery = true)
+    java.util.List<Object[]> findSeverityStatistics(
+            @Param("collectionId") java.util.UUID collectionId);
 
 }

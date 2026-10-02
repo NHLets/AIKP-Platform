@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { DashboardOverview } from '../types/dashboard';
+import type { DashboardOverview } from "../types/dashboard";
 
 const api = axios.create({
   baseURL: '/api',

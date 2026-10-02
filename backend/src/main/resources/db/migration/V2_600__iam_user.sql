@@ -5,7 +5,7 @@
 -- Aggregate : IAM / User
 -- ============================================================================
 
-CREATE TABLE public.users
+CREATE TABLE IF NOT EXISTS public.users
 (
     id            UUID         NOT NULL,
     username      VARCHAR(50)  NOT NULL,

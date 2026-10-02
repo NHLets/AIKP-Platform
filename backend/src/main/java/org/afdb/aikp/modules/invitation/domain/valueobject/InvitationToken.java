@@ -7,4 +7,4 @@ public record InvitationToken(String value) {
     public static InvitationToken generate() {
         return new InvitationToken(UUID.randomUUID().toString());
     }
-}\n
+}

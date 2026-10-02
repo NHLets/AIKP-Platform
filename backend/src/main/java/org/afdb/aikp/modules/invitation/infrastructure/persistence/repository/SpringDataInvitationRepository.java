@@ -10,4 +10,4 @@ public interface SpringDataInvitationRepository
         extends JpaRepository<InvitationEntity, UUID> {
 
     Optional<InvitationEntity> findByToken(String token);
-}\n
+}

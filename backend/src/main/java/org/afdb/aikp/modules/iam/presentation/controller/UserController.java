@@ -17,7 +17,7 @@ import java.util.UUID;
 import org.afdb.aikp.modules.iam.application.dto.AssignRoleRequestDto;
 
 @RestController
-@PreAuthorize(\"hasRole('ADMIN')\")
+@PreAuthorize("hasRole('ADMIN')")
 @RequestMapping("/api/v1/users")
 public class UserController {
 
@@ -45,7 +45,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public UserResponse findById(
-            @PathVariable UUID id) {
+            @PathVariable("id") UUID id) {
 
         return applicationService.findById(
         UserId.of(id)
@@ -54,7 +54,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     public UserResponse update(
-            @PathVariable UUID id,
+            @PathVariable("id") UUID id,
             @Valid @RequestBody UpdateUserRequest request) {
 
         return applicationService.update(
@@ -65,7 +65,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
-            @PathVariable UUID id) {
+            @PathVariable("id") UUID id) {
 
         applicationService.delete(
         UserId.of(id)
@@ -74,28 +74,28 @@ public class UserController {
 
 
     @PostMapping("/{id}/activate")
-    public void activate(@PathVariable UUID id) {
-        service.activate(id);
+    public void activate(@PathVariable("id") UUID id) {
+        applicationService.activate(UserId.of(id));
     }
 
     @PostMapping("/{id}/deactivate")
-    public void deactivate(@PathVariable UUID id) {
-        service.deactivate(id);
+    public void deactivate(@PathVariable("id") UUID id) {
+        applicationService.deactivate(UserId.of(id));
     }
 
     @PostMapping("/{id}/lock")
-    public void lock(@PathVariable UUID id) {
-        service.lock(id);
+    public void lock(@PathVariable("id") UUID id) {
+        applicationService.lock(UserId.of(id));
     }
 
     @PostMapping("/{id}/unlock")
-    public void unlock(@PathVariable UUID id) {
-        service.unlock(id);
+    public void unlock(@PathVariable("id") UUID id) {
+        applicationService.unlock(UserId.of(id));
     }
 
     @PostMapping("/{id}/suspend")
-    public void suspend(@PathVariable UUID id) {
-        service.suspend(id);
+    public void suspend(@PathVariable("id") UUID id) {
+        applicationService.suspend(UserId.of(id));
     }
 
 
@@ -103,10 +103,10 @@ public class UserController {
     @PutMapping("/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
     public void assignRole(
-            @PathVariable UUID id,
+            @PathVariable("id") UUID id,
             @Valid @RequestBody AssignRoleRequestDto request) {
 
-        service.assignRole(id, request.roleId());
+        applicationService.assignRole(id, request.roleId());
     }
 
 }

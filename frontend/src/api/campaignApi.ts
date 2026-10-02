@@ -1,13 +1,15 @@
 import axiosClient from "../shared/api/axiosClient";
-import { CampaignSummary } from "../types/campaign";
+import type { CampaignSummary } from "../types/campaign";
+
+interface PageResponse<T> {
+  content: T[];
+}
 
 export const campaignApi = {
-
   getAll: async (): Promise<CampaignSummary[]> => {
-    const response = await axiosClient.get("/campaigns");
-    return response.data as CampaignSummary[];
-  }
-
+    const response = await axiosClient.get<PageResponse<CampaignSummary>>("/v1/campaigns");
+    return response.data.content ?? [];
+  },
 };
 
 export default campaignApi;

@@ -1,11 +1,95 @@
-import { Grid, LinearProgress, Stack, Typography } from "@mui/material";\nimport CheckCircleIcon from "@mui/icons-material/CheckCircle";\nimport PendingIcon from "@mui/icons-material/Pending";\nimport CancelIcon from "@mui/icons-material/Cancel";\nimport InsightsIcon from "@mui/icons-material/Insights";\n\nimport KpiCard from "./KpiCard";\nimport { useValidationStatistics } from "../hooks/useValidationStatistics";\nimport QuestionnaireProgressPanel from "./QuestionnaireProgressPanel";\nimport ValidationHeatmap from "./ValidationHeatmap";\nimport ValidationAnalyticsPanel from "./ValidationAnalyticsPanel";\nimport SeverityDistributionCard from "./SeverityDistributionCard";\nimport RejectedObservationsTable from "./RejectedObservationsTable";\n\ninterface Props {\n  dataCollectionId: string;\n}\n\nexport default function ValidationDashboard({\n  dataCollectionId,\n}: Props) {\n\n  const { data } =\n    useValidationStatistics(dataCollectionId);\n\n  if (!data) return null;\n\n  return (\n    <Stack spacing={2}>\n      <Grid container spacing={2}>\n        <Grid item xs={6} md={3}>\n          <KpiCard\n            title="Validated"\n            value={data.validated}\n            color="#16A34A"\n            icon={<CheckCircleIcon color="success"/>}\n          />\n        </Grid>\n\n        <Grid item xs={6} md={3}>\n          <KpiCard\n            title="Pending"\n            value={data.pending}\n            color="#D97706"\n            icon={<PendingIcon sx={{color:"#D97706"}}/>}\n          />\n        </Grid>\n\n        <Grid item xs={6} md={3}>\n          <KpiCard\n            title="Rejected"\n            value={data.rejected}\n            color="#DC2626"\n            icon={<CancelIcon color="error"/>}\n          />\n        </Grid>\n\n        <Grid item xs={6} md={3}>\n          <KpiCard\n            title="Completion"\n            value={`${data.completionRate}%`}\n            color="#2563EB"\n            icon={<InsightsIcon color="primary"/>}\n          />\n        </Grid>\n      </Grid>\n\n      <Stack spacing={0.5}>\n        <Typography variant="body2">\n          Overall completion\n        </Typography>\n\n        <LinearProgress\n          variant="determinate"\n          value={data.completionRate}\n          sx={{height:8,borderRadius:4}}\n        />\n\n        <Typography\n          variant="caption"\n          color="text.secondary"\n        >\n          {`${data.validated} validated • ${data.pending} pending • ${data.rejected} rejected`}\n        </Typography>\n      </Stack>\n\n      <RejectedObservationsTable
-import SeverityDistributionPanel from "./SeverityDistributionPanel";
+import { Grid, LinearProgress, Stack, Typography } from "@mui/material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import PendingIcon from "@mui/icons-material/Pending";
+import CancelIcon from "@mui/icons-material/Cancel";
+import InsightsIcon from "@mui/icons-material/Insights";
+
+import KpiCard from "./KpiCard";
+import { useValidationStatistics } from "../hooks/useValidationStatistics";
+import QuestionnaireProgressPanel from "./QuestionnaireProgressPanel";
 import ValidationHeatmapPanel from "./ValidationHeatmapPanel";
-        dataCollectionId={dataCollectionId}
-      />
+import ValidationAnalyticsPanel from "./ValidationAnalyticsPanel";
+import SeverityDistributionPanel from "./SeverityDistributionPanel";
+import RejectedObservationsTable from "./RejectedObservationsTable";
 
-      <ValidationHeatmapPanel
-        dataCollectionId={dataCollectionId}
-      />
+interface Props {
+  dataCollectionId: string;
+}
 
-      <QuestionnaireProgressPanel\n        dataCollectionId={dataCollectionId}\n      />\n\n      <SeverityDistributionCard\n        dataCollectionId={dataCollectionId}\n      />\n\n      <ValidationHeatmap\n        dataCollectionId={dataCollectionId}\n      />\n\n    \n      <ValidationAnalyticsPanel\n        dataCollectionId={dataCollectionId}\n      />\n\n    </Stack>\n  );\n}
+export default function ValidationDashboard({ dataCollectionId }: Props) {
+  const { data } = useValidationStatistics(dataCollectionId);
+
+  if (!data) return null;
+
+  return (
+    <Stack spacing={3}>
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 6, md: 3 }}>
+          <KpiCard
+            title="Validated"
+            value={data.validated}
+            color="#16A34A"
+            icon={<CheckCircleIcon color="success" />}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 6, md: 3 }}>
+          <KpiCard
+            title="Pending"
+            value={data.pending}
+            color="#D97706"
+            icon={<PendingIcon sx={{ color: "#D97706" }} />}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 6, md: 3 }}>
+          <KpiCard
+            title="Rejected"
+            value={data.rejected}
+            color="#DC2626"
+            icon={<CancelIcon color="error" />}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 6, md: 3 }}>
+          <KpiCard
+            title="Completion"
+            value={`${data.completionRate}%`}
+            color="#2563EB"
+            icon={<InsightsIcon color="primary" />}
+          />
+        </Grid>
+      </Grid>
+
+      <Stack spacing={1}>
+        <Typography variant="body2">Overall completion</Typography>
+
+        <LinearProgress
+          variant="determinate"
+          value={data.completionRate}
+          sx={{ height: 8, borderRadius: 4 }}
+        />
+
+        <Typography variant="caption" color="text.secondary">
+          {`${data.validated} validated • ${data.pending} pending • ${data.rejected} rejected`}
+        </Typography>
+      </Stack>
+
+      <QuestionnaireProgressPanel dataCollectionId={dataCollectionId} />
+
+      <ValidationHeatmapPanel dataCollectionId={dataCollectionId} />
+
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <SeverityDistributionPanel dataCollectionId={dataCollectionId} />
+        </Grid>
+
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <ValidationAnalyticsPanel dataCollectionId={dataCollectionId} />
+        </Grid>
+      </Grid>
+
+      <RejectedObservationsTable dataCollectionId={dataCollectionId} />
+    </Stack>
+  );
+}

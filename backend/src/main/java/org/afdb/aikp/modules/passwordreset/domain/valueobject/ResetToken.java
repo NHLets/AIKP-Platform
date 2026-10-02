@@ -7,4 +7,4 @@ public record ResetToken(String value){
     public static ResetToken generate(){
         return new ResetToken(UUID.randomUUID().toString());
     }
-}\n
+}

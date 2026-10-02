@@ -15,4 +15,4 @@ public interface PasswordResetRepository {
     Optional<PasswordReset> findByToken(ResetToken token);
 
     void delete(UUID id);
-}\n
+}

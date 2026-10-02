@@ -30,13 +30,17 @@ public class ValidationReportGenerator {
 
                 );
 
+        ValidationSeverity severity =
+                issues.stream()
+                        .map(ValidationIssue::severity)
+                        .max(Enum::compareTo)
+                        .orElse(ValidationSeverity.LOW);
+
         return new ValidationReport(
-
                 questionnaire,
-
                 issues,
-
-                severity);
+                severity
+        );
 
     }
 

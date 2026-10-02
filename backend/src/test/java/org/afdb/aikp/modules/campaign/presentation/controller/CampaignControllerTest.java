@@ -2,6 +2,7 @@ package org.afdb.aikp.modules.campaign.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.afdb.aikp.modules.campaign.application.response.CampaignResponse;
+import org.afdb.aikp.modules.campaign.application.dto.CampaignSummaryDto;
 import org.afdb.aikp.modules.campaign.application.service.CampaignApplicationService;
 import org.afdb.aikp.modules.campaign.domain.enums.CampaignStatus;
 import org.afdb.aikp.modules.campaign.domain.exception.CampaignCodeAlreadyExistsException;
@@ -13,11 +14,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.afdb.aikp.shared.security.AikpUserDetailsService;
+import org.afdb.aikp.shared.security.JwtService;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.UUID;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -42,6 +46,12 @@ class CampaignControllerTest {
 
     @MockBean
     private CampaignApplicationService service;
+
+    @MockBean
+    private JwtService jwtService;
+
+    @MockBean
+    private AikpUserDetailsService userDetailsService;
 
     private static final UUID CAMPAIGN_ID =
             UUID.fromString("11111111-1111-1111-1111-111111111111");
@@ -357,9 +367,12 @@ void shouldReturn409ForInvalidLifecycleTransition()
     @Test
     void shouldGetAllCampaigns() throws Exception {
 
+        UUID campaignId =
+                UUID.fromString("11111111-1111-1111-1111-111111111111");
+
         when(service.getAllCampaigns()).thenReturn(List.of(
                 new CampaignSummaryDto(
-                        1L,
+                        campaignId,
                         "AIKP2026",
                         "AIKP 2026 Pilot",
                         2026,
@@ -367,9 +380,9 @@ void shouldReturn409ForInvalidLifecycleTransition()
                 )
         ));
 
-        mockMvc.perform(get("/api/campaigns"))
+        mockMvc.perform(get("/api/v1/campaigns"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].id").value(campaignId.toString()))
                 .andExpect(jsonPath("$[0].code").value("AIKP2026"))
                 .andExpect(jsonPath("$[0].name").value("AIKP 2026 Pilot"))
                 .andExpect(jsonPath("$[0].referenceYear").value(2026))

@@ -1,15 +1,19 @@
 package org.afdb.aikp.modules.invitation.infrastructure.mail;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class MailService {
 
     private final JavaMailSender mailSender;
+
+    public MailService(
+            JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
+
 
     public void sendInvitation(String to, String token) {
 
@@ -23,7 +27,8 @@ public class MailService {
                 "Welcome to AIKP Platform\n\n"
                 + "Activate your account:\n"
                 + link
-                + "\n\nThis link expires in 72 hours."
+                + "\n\n"
+                + "This link expires in 72 hours."
         );
 
         mailSender.send(mail);

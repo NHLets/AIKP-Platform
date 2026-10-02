@@ -24,6 +24,7 @@ import org.afdb.aikp.modules.campaign.application.query.GetCampaignsQuery;
 import org.afdb.aikp.modules.campaign.application.response.CampaignSummary;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import org.afdb.aikp.modules.campaign.application.dto.CampaignSummaryDto;
 @Service
 @Transactional
@@ -82,22 +83,20 @@ public class CampaignApplicationService {
 
     @Transactional(readOnly = true)
     public List<CampaignSummary> getAll(
-        GetCampaignsQuery query) {
+            GetCampaignsQuery query) {
 
-    return repository
-            .findAll()
-            .stream()
-            .map(campaign -> new CampaignSummary(
-                    campaign.getId().getValue(),
-                    campaign.getCode().getValue(),
-                    campaign.getName().getValue(),
-                    campaign.getStartDate(),
-                    campaign.getEndDate(),
-                    campaign.getStatus(),
-                    campaign.isActive()
-            ))
-            .toList();
-        }
+        return repository.findAll().stream()
+                .map(campaign -> new CampaignSummary(
+                        campaign.getId().getValue(),
+                        campaign.getCode().getValue(),
+                        campaign.getName().getValue(),
+                        campaign.getStartDate(),
+                        campaign.getEndDate(),
+                        campaign.getStatus(),
+                        campaign.isActive()
+                ))
+                .toList();
+    }
     public CampaignResponse update(
             UpdateCampaignCommand command) {
 
@@ -180,14 +179,13 @@ public class CampaignApplicationService {
     }
 
     public List<CampaignSummaryDto> getAllCampaigns() {
-        return campaignRepository.findAll()
-                .stream()
-                .map(campaign -> new CampaignSummaryDto(
-                        campaign.getId().value(),
-                        campaign.getCode().value(),
-                        campaign.getName().value(),
-                        campaign.getReferenceYear(),
-                        campaign.getStatus()
+        return repository.findAll().stream()
+                .map(c -> new CampaignSummaryDto(
+                        c.getId().getValue(),
+                        c.getCode().getValue(),
+                        c.getName().getValue(),
+                        c.getStartDate().getYear(),
+                        c.getStatus()
                 ))
                 .toList();
     }

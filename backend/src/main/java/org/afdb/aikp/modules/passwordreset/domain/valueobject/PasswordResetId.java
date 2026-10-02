@@ -7,4 +7,4 @@ public record PasswordResetId(UUID value){
     public static PasswordResetId generate(){
         return new PasswordResetId(UUID.randomUUID());
     }
-}\n
+}

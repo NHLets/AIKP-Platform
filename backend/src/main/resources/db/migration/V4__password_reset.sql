@@ -8,11 +8,11 @@ CREATE TABLE password_reset (
     completed_at TIMESTAMP,
     CONSTRAINT fk_password_reset_user
         FOREIGN KEY (user_id)
-        REFERENCES iam_user(id)
+        REFERENCES identity.users(id)
 );
 
 CREATE INDEX idx_password_reset_user
 ON password_reset(user_id);
 
 CREATE INDEX idx_password_reset_token
-ON password_reset(token);\n
+ON password_reset(token);

@@ -2,7 +2,10 @@ package org.afdb.aikp.modules.iam.presentation.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import java.util.UUID;
 
 public record CreateUserRequest(
 
@@ -20,6 +23,9 @@ public record CreateUserRequest(
 
         @NotBlank
         @Size(min = 8, max = 128)
-        String password
+        String password,
+
+        @NotNull
+        UUID roleId
 ) {
 }

@@ -19,7 +19,8 @@ INSERT INTO metadata.questionnaire
     version
 )
 VALUES
-('a4912808-3471-5204-9912-530955ac7f95', 'F_G', 'Fiscal Data Template G. Financial data of public operators', 'Fiscal Data Template G. Financial data of public operators', 1, 'en', 'PUBLISHED', 'SPREADSHEET', TRUE, CURRENT_TIMESTAMP, 0);
+('a4912808-3471-5204-9912-530955ac7f95', 'F_G', 'Fiscal Data Template G. Financial data of public operators', 'Fiscal Data Template G. Financial data of public operators', 1, 'en', 'PUBLISHED', 'SPREADSHEET', TRUE, CURRENT_TIMESTAMP, 0)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_group
 (
@@ -38,7 +39,8 @@ INSERT INTO metadata.questionnaire_group
 VALUES
 ('5d55281a-f1b7-5c42-aaa4-d6ba7e7d31f9', 'a4912808-3471-5204-9912-530955ac7f95', NULL, 'INCOME_STATEMENT', 'Income Statement', NULL, 'SECTION', 1, TRUE, CURRENT_TIMESTAMP, 0),
 ('aee0b43e-145b-53b8-b1b2-41e59b467ed9', 'a4912808-3471-5204-9912-530955ac7f95', NULL, 'CASH_FLOW', 'Statement of Cash Flows', NULL, 'SECTION', 2, TRUE, CURRENT_TIMESTAMP, 0),
-('958556e4-e694-5072-acd8-6b8d4510dcc5', 'a4912808-3471-5204-9912-530955ac7f95', NULL, 'BALANCE_SHEET', 'Balance Sheet', NULL, 'SECTION', 3, TRUE, CURRENT_TIMESTAMP, 0);
+('958556e4-e694-5072-acd8-6b8d4510dcc5', 'a4912808-3471-5204-9912-530955ac7f95', NULL, 'BALANCE_SHEET', 'Balance Sheet', NULL, 'SECTION', 3, TRUE, CURRENT_TIMESTAMP, 0)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -109,4 +111,5 @@ VALUES
 ('51c2fa30-6c26-598f-ade6-cfdb5d5c802a', 'a4912808-3471-5204-9912-530955ac7f95', '958556e4-e694-5072-acd8-6b8d4510dcc5', 'F179', '(of which foreign)', 'The portion of the long-term debt which is foreign debt.', 'NUMBER', 'LCU per year', TRUE, 50, TRUE, CURRENT_TIMESTAMP, 0),
 ('3202304f-5c76-5f8c-9d58-aa661070ae5a', 'a4912808-3471-5204-9912-530955ac7f95', '958556e4-e694-5072-acd8-6b8d4510dcc5', 'F180', 'Equity and Reserves', 'The public corporation''s equity and reserves.', 'NUMBER', 'LCU per year', TRUE, 51, TRUE, CURRENT_TIMESTAMP, 0),
 ('8bbb26ba-b0da-5d07-a2f0-2e202941cd29', 'a4912808-3471-5204-9912-530955ac7f95', '958556e4-e694-5072-acd8-6b8d4510dcc5', 'F181', 'Retained earnings (retained deficit) for the period', 'Cumulative earnings retained in the company.', 'NUMBER', 'LCU per year', TRUE, 52, TRUE, CURRENT_TIMESTAMP, 0),
-('ec09bdfd-3dd7-55e4-9d3c-1589ecdd8872', 'a4912808-3471-5204-9912-530955ac7f95', '958556e4-e694-5072-acd8-6b8d4510dcc5', 'F182', 'Total liabilities & Equity', 'Sum of Liabilities and Equity', 'NUMBER', 'LCU per year', TRUE, 53, TRUE, CURRENT_TIMESTAMP, 0);
+('ec09bdfd-3dd7-55e4-9d3c-1589ecdd8872', 'a4912808-3471-5204-9912-530955ac7f95', '958556e4-e694-5072-acd8-6b8d4510dcc5', 'F182', 'Total liabilities & Equity', 'Sum of Liabilities and Equity', 'NUMBER', 'LCU per year', TRUE, 53, TRUE, CURRENT_TIMESTAMP, 0)
+ON CONFLICT (id) DO NOTHING;

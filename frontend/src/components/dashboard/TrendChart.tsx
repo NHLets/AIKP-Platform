@@ -14,7 +14,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-import { ValidationTrend } from '../../types/dashboard';
+import type { ValidationTrend } from "../../types/dashboard";
 
 interface Props {
   data: ValidationTrend[];

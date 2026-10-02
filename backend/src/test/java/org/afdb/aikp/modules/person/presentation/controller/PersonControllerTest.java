@@ -34,11 +34,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.afdb.aikp.shared.security.AikpUserDetailsService;
+import org.afdb.aikp.shared.security.JwtService;
 
 @WebMvcTest(PersonController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @Import(ApiExceptionHandler.class)
 class PersonControllerTest {
+
+    @MockBean
+    private JwtService jwtService;
+
+    @MockBean
+    private AikpUserDetailsService userDetailsService;
 
     private static final String BASE_URL =
             "/api/v1/persons";

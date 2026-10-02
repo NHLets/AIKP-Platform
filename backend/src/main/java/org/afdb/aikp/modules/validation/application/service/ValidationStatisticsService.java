@@ -103,9 +103,10 @@ public class ValidationStatisticsService {
              (UUID) row[0],
              (String) row[1],
              (String) row[2],
-             ((Number) row[3]).intValue(),
-             row[4] == null ? "INFO" : (String) row[4],
-             row[5] == null ? "" : (String) row[5]
+             (String) row[3],
+             ((Number) row[4]).intValue(),
+             row[5] == null ? "INFO" : (String) row[5],
+             row[6] == null ? "" : (String) row[6]
          ))
          .toList();
     }

@@ -2,30 +2,31 @@ import {
   FormControl,
   InputLabel,
   MenuItem,
-  Select
+  Select,
 } from "@mui/material";
 
 import { useCampaign } from "../context/CampaignContext";
 import { useCampaigns } from "../../hooks/useCampaigns";
 
-
 export default function CampaignSelector() {
+  const { campaignId, setCampaignId } = useCampaign();
+  const { data } = useCampaigns();
 
-  const {
-    campaignId,
-    setCampaignId
-  } = useCampaign();
-
-  const { data: campaigns = [] } = useCampaigns();
+  const campaigns = Array.isArray(data) ? data : [];
 
   return (
     <FormControl size="small" sx={{ minWidth: 240 }}>
       <InputLabel>Campaign</InputLabel>
 
       <Select
-        value={campaignId}
+        value={
+          campaigns.some((campaign) => String(campaign.id) === campaignId)
+            ? campaignId
+            : ""
+        }
+        displayEmpty
         label="Campaign"
-        onChange={(e) => setCampaignId(Number(e.target.value))}
+        onChange={(event) => setCampaignId(event.target.value)}
       >
         {campaigns.map((campaign) => (
           <MenuItem key={campaign.id} value={campaign.id}>

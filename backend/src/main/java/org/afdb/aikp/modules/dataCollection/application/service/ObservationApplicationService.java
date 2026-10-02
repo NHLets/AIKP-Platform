@@ -1,6 +1,5 @@
 package org.afdb.aikp.modules.dataCollection.application.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -11,10 +10,14 @@ import org.afdb.aikp.modules.dataCollection.domain.repository.ObservationReposit
 import org.afdb.aikp.modules.dataCollection.application.dto.*;
 
 @Service
-@RequiredArgsConstructor
 public class ObservationApplicationService {
 
     private final ObservationRepository repository;
+
+    public ObservationApplicationService(
+            ObservationRepository repository) {
+        this.repository = repository;
+    }
 
     public ObservationResponseDto create(CreateObservationRequestDto dto){
 

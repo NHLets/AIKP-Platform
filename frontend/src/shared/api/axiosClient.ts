@@ -1,8 +1,7 @@
 import axios from "axios";
 import TokenProvider from "../auth/tokenProvider";
-import { API_BASE_URL } from "../config/env";
 
-export export const axiosClient = axios.create({
+export const axiosClient = axios.create({
   baseURL: "/api",
   timeout: 10000,
   headers: {
@@ -30,7 +29,11 @@ axiosClient.interceptors.response.use(
 
     if (error.response?.status === 401) {
       TokenProvider.removeToken();
-      window.location.href = "/login";
+      localStorage.removeItem("AIKP_AUTH_USER");
+
+      if (window.location.pathname !== "/login") {
+        window.location.replace("/login");
+      }
     }
 
     return Promise.reject(error);

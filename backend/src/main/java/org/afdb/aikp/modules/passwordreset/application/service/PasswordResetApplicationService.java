@@ -1,7 +1,9 @@
 package org.afdb.aikp.modules.passwordreset.application.service;
 
-import lombok.RequiredArgsConstructor;
 import org.afdb.aikp.modules.iam.domain.repository.UserRepository;
+import org.afdb.aikp.modules.iam.domain.valueobject.Email;
+import org.afdb.aikp.modules.iam.domain.valueobject.UserId;
+import org.afdb.aikp.modules.iam.domain.valueobject.PasswordHash;
 import org.afdb.aikp.modules.passwordreset.domain.model.PasswordReset;
 import org.afdb.aikp.modules.passwordreset.domain.repository.PasswordResetRepository;
 import org.afdb.aikp.modules.passwordreset.domain.valueobject.PasswordResetId;
@@ -13,8 +15,18 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 @Service
-@RequiredArgsConstructor
 public class PasswordResetApplicationService {
+
+
+    public PasswordResetApplicationService(
+            PasswordResetRepository repository,
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
+        this.repository = repository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
 
     private final PasswordResetRepository repository;
     private final UserRepository userRepository;
@@ -22,12 +34,12 @@ public class PasswordResetApplicationService {
 
     public ResetToken forgotPassword(String email) {
 
-        var user = userRepository.findByEmail(email)
+        var user = userRepository.findByEmail(Email.of(email))
                 .orElseThrow();
 
         PasswordReset reset = new PasswordReset(
                 PasswordResetId.generate(),
-                user.getId().value(),
+                user.getId().getValue(),
                 ResetToken.generate(),
                 Instant.now().plus(30, ChronoUnit.MINUTES),
                 Instant.now()
@@ -57,14 +69,14 @@ public class PasswordResetApplicationService {
             throw new IllegalStateException("Token expired");
         }
 
-        var user = userRepository.findById(reset.getUserId())
+        var user = userRepository.findById(UserId.of(reset.getUserId()))
                 .orElseThrow();
 
-        user.changePassword(passwordEncoder.encode(newPassword));
+        user.changePassword(PasswordHash.of(passwordEncoder.encode(newPassword)));
 
-        repository.save(user);
+        userRepository.save(user);
 
         reset.complete();
         repository.save(reset);
     }
-}\n
+}

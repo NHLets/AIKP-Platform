@@ -22,7 +22,7 @@ export default function KpiCard({
           {title}
         </Typography>
 
-        <Typography variant="h4" fontWeight={700}>
+        <Typography variant="h4" sx={{ fontWeight: 700 }}>
           {value}
         </Typography>
       </CardContent>

@@ -47,4 +47,4 @@ public class Invitation {
     public void expire() {
         status = InvitationStatus.EXPIRED;
     }
-}\n
+}

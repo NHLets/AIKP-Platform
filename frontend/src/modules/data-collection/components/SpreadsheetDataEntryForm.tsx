@@ -1,29 +1,3 @@
-
-function normalizeColumn(value: string) {
-  return value
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "");
-}
-
-import * as XLSX from "xlsx";
-import {
-
-const [fileName, setFileName] = useState("");
-const [headers, setHeaders] = useState<string[]>([]);
-const [rows, setRows] = useState<any[][]>([]);
-const previewRows = rows.slice(0, 5);
-const [importSummary, setImportSummary] =
-  useState("");
-
-const [columnMapping, setColumnMapping] =
-  useState<Record<string, string>>({});
- useSpreadsheetNavigation } from "@/modules/data-collection/hooks/useSpreadsheetNavigation";
-import { useValidationComments } from "@/modules/validation/hooks/useValidationComments";
-import CommentPreview from "@/modules/validation/components/CommentPreview";
-import { useCommentCounts } from "@/modules/validation/hooks/useCommentCounts";
-import CommentBadge from "@/modules/validation/components/CommentBadge";
-import { getCellStatusStyle } from "@/modules/data-collection/utils/cellStatusStyle";
-
 import {
     useEffect,
     useMemo,
@@ -64,21 +38,24 @@ import type {
     ObservationStatus,
 } from "../types/observation.types";
 
+import type { DataCollectionStatus } from "../types/dataCollection.types";
+
 import type { QuestionnaireGroup } from
     "@/modules/questionnaire/types/questionnaireGroup.types";
 
 import type { QuestionnaireVariable } from
     "@/modules/questionnaire/types/questionnaireVariable.types";
 
-import { PW_A_CHOICE_OPTIONS } from "../config/pwATemplate";
-
-import { REFERENCE_YEARS } from "../config/spreadsheetConfig";
+import {
+    PW_A_CHOICE_OPTIONS,
+    PW_A_REFERENCE_YEARS,
+} from "../config/pwATemplate";
 
 interface SpreadsheetDataEntryFormProps {
     dataCollectionId: string;
     groups: QuestionnaireGroup[];
     variables: QuestionnaireVariable[];
-    status: string;
+    status: DataCollectionStatus;
 }
 
 type CellKey = `${string}:${number}`;
@@ -93,7 +70,6 @@ interface CellState {
     value: CellValue;
     status: ObservationStatus | null;
     observationId: string | null;
-    selectedUnit: string | null;
 }
 
 function makeCellKey(
@@ -136,7 +112,7 @@ function createInitialCells(
     const cells: Record<string, CellState> = {};
 
     for (const variable of variables) {
-        for (const year of REFERENCE_YEARS) {
+        for (const year of PW_A_REFERENCE_YEARS) {
             const key = makeCellKey(
                 variable.id,
                 year,
@@ -146,7 +122,6 @@ function createInitialCells(
                 value: null,
                 status: null,
                 observationId: null,
-                selectedUnit: null,
             };
         }
     }
@@ -165,7 +140,6 @@ function createInitialCells(
             value: getObservationValue(observation),
             status: observation.status,
             observationId: observation.id,
-            selectedUnit: observation.selectedUnit ?? null,
         };
     }
 
@@ -180,7 +154,7 @@ function getInputType(
         case "INTEGER":
         case "DECIMAL":
         case "PERCENTAGE":
-            return "text";
+            return "number";
 
         default:
             return "text";
@@ -215,122 +189,12 @@ function normalizeValue(
     }
 }
 
-function getUnitOptions(
-    variable: QuestionnaireVariable,
-): string[] {
-    if (!variable.unit) {
-        return [];
-    }
-
-    return variable.unit
-        .split(",")
-        .map((unit) => unit.trim())
-        .filter(Boolean);
-}
-
-function getDefaultUnit(
-    variable: QuestionnaireVariable,
-): string | null {
-    const options = getUnitOptions(variable);
-
-    return options.length === 1
-        ? options[0]
-        : null;
-}
-
-
-
-function buildMapping(headers: string[]) {
-  const map: Record<string, string> = {};
-
-  headers.forEach((header) => {
-    map[header] = normalizeColumn(header);
-  });
-
-  setColumnMapping(map);
-}
-
-
-function handleFileUpload(
-  event: React.ChangeEvent<HTMLInputElement>
-) {
-  const file = event.target.files?.[0];
-  if (!file) return;
-
-  setFileName(file.name);
-
-  const reader = new FileReader();
-
-  reader.onload = (e) => {
-    const data = e.target?.result as ArrayBuffer;
-
-    const workbook = XLSX.read(data, { type: "array" });
-
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
-    const parsed = XLSX.utils.sheet_to_json(sheet, {
-      header: 1
-    }) as any[][];
-
-    if (parsed.length === 0) return;
-
-    setHeaders(parsed[0] as string[]);
-    buildMapping(parsed[0] as string[]);
-    setRows(parsed.slice(1));
-  };
-
-  reader.readAsArrayBuffer(file);
-}
-
-
-async function importObservations() {
-
-  const observations = rows.map((row) => {
-
-    const object: Record<string, any> = {};
-
-    headers.forEach((header, index) => {
-      object[columnMapping[header]] = row[index];
-    });
-
-    return object;
-  });
-
-  console.log(observations);
-
-  setImportSummary(
-    `${observations.length} observations ready for import`
-  );
-}
-
-
 export default function SpreadsheetDataEntryForm({
     dataCollectionId,
     groups,
     variables,
     status,
 }: SpreadsheetDataEntryFormProps) {
-
-    const { data: commentCounts = [] } =
-        useCommentCounts(dataCollection.id);
-
-    const commentCountMap = new Map(
-        commentCounts.map((item) => [
-            item.observationId,
-            item.count,
-        ]),
-    );
-
-
-    const navigate = useSpreadsheetNavigation(
-        variables.length,
-        REFERENCE_YEARS.length,
-        setActiveCell,
-    );
-
-    const { data: previewComments = [] } =
-        useValidationComments(previewObservationId);
-
     const [cells, setCells] = useState<
         Record<string, CellState>
     >({});
@@ -339,14 +203,9 @@ export default function SpreadsheetDataEntryForm({
         Record<string, CellState>
     >({});
 
-    const [inputValues, setInputValues] = useState<
-        Record<string, string>
-    >({});
-
     const isReadOnly =
         status === "SUBMITTED" ||
         status === "VALIDATED";
-
 
     const [isLoading, setIsLoading] =
         useState(true);
@@ -359,18 +218,6 @@ export default function SpreadsheetDataEntryForm({
 
     const [successMessage, setSuccessMessage] =
         useState<string | null>(null);
-
-    const [previewAnchor, setPreviewAnchor] =
-        useState<HTMLElement | null>(null);
-
-    const [previewObservationId, setPreviewObservationId] =
-        useState<string>();
-
-    const [activeCell, setActiveCell] = useState({
-        row: 0,
-        col: 0,
-    });
-
 
     async function loadObservations() {
         try {
@@ -455,8 +302,7 @@ export default function SpreadsheetDataEntryForm({
 
             if (
                 current.value !== saved.value ||
-                current.status !== saved.status ||
-                current.selectedUnit !== saved.selectedUnit
+                current.status !== saved.status
             ) {
                 return true;
             }
@@ -470,17 +316,12 @@ export default function SpreadsheetDataEntryForm({
         startVariable: QuestionnaireVariable,
         startYear: number,
     ) {
-        if (isReadOnly) {
-            return;
-        }
         const clipboardText =
             event.clipboardData.getData("text/plain");
 
-        /*
-         * Let the browser handle an ordinary single-cell paste.
-         * This handler is only responsible for rectangular clipboard
-         * content containing tabs or multiple rows.
-         */
+        // Laisser le navigateur gérer le collage d'une seule cellule.
+        // Ce handler traite uniquement les matrices Excel
+        // contenant plusieurs lignes et/ou colonnes.
         if (
             !clipboardText ||
             (
@@ -507,7 +348,7 @@ export default function SpreadsheetDataEntryForm({
             );
 
         const startYearIndex =
-            REFERENCE_YEARS.findIndex(
+            PW_A_REFERENCE_YEARS.findIndex(
                 (year) => year === startYear,
             );
 
@@ -518,11 +359,6 @@ export default function SpreadsheetDataEntryForm({
             return;
         }
 
-        /*
-         * Build the entire paste matrix before touching React state.
-         * This prevents asynchronous setState behaviour from affecting
-         * the mapping of rows and columns.
-         */
         const pastedCells: Array<{
             key: string;
             variable: QuestionnaireVariable;
@@ -530,77 +366,57 @@ export default function SpreadsheetDataEntryForm({
             rawValue: string;
         }> = [];
 
-        rows.forEach(
-            (row, rowOffset) => {
-                const variableIndex =
-                    startVariableIndex +
-                    rowOffset;
+        rows.forEach((row, rowOffset) => {
+            const variableIndex =
+                startVariableIndex + rowOffset;
+
+            if (
+                variableIndex < 0 ||
+                variableIndex >= variables.length
+            ) {
+                return;
+            }
+
+            const variable =
+                variables[variableIndex];
+
+            row.forEach((rawValue, columnOffset) => {
+                const yearIndex =
+                    startYearIndex + columnOffset;
 
                 if (
-                    variableIndex < 0 ||
-                    variableIndex >=
-                        variables.length
+                    yearIndex < 0 ||
+                    yearIndex >=
+                        PW_A_REFERENCE_YEARS.length
                 ) {
                     return;
                 }
 
-                const variable =
-                    variables[variableIndex];
+                // Les cellules vides du presse-papiers
+                // ne doivent pas écraser les données existantes.
+                if (rawValue.trim() === "") {
+                    return;
+                }
 
-                row.forEach(
-                    (
-                        rawValue,
-                        columnOffset,
-                    ) => {
-                        const yearIndex =
-                            startYearIndex +
-                            columnOffset;
+                const year =
+                    PW_A_REFERENCE_YEARS[yearIndex];
 
-                        if (
-                            yearIndex < 0 ||
-                            yearIndex >=
-                                REFERENCE_YEARS.length
-                        ) {
-                            return;
-                        }
-
-                        /*
-                         * Do not overwrite existing observations
-                         * with empty Excel cells.
-                         */
-                        if (
-                            rawValue.trim() === ""
-                        ) {
-                            return;
-                        }
-
-                        const year =
-                            REFERENCE_YEARS[
-                                yearIndex
-                            ];
-
-                        pastedCells.push({
-                            key: makeCellKey(
-                                variable.id,
-                                year,
-                            ),
-                            variable,
-                            year,
-                            rawValue:
-                                rawValue.trim(),
-                        });
-                    },
-                );
-            },
-        );
+                pastedCells.push({
+                    key: makeCellKey(
+                        variable.id,
+                        year,
+                    ),
+                    variable,
+                    year,
+                    rawValue: rawValue.trim(),
+                });
+            });
+        });
 
         if (pastedCells.length === 0) {
             return;
         }
 
-        /*
-         * Apply the complete matrix in one React state update.
-         */
         setCells((current) => {
             const next = { ...current };
 
@@ -610,55 +426,30 @@ export default function SpreadsheetDataEntryForm({
                     variable,
                     rawValue,
                 }) => {
-                    const existing =
-                        current[key];
+                    const existing = current[key];
 
                     const normalizedText =
                         rawValue
                             .trim()
                             .toUpperCase();
 
-                    /*
-                     * NA = NOT_AVAILABLE
-                     */
-                    if (
-                        normalizedText ===
-                        "NA"
-                    ) {
+                    // NA = NOT_AVAILABLE
+                    if (normalizedText === "NA") {
                         next[key] = {
                             ...existing,
                             value: null,
-                            status:
-                                "NOT_AVAILABLE",
-                            selectedUnit:
-                                existing?.selectedUnit ??
-                                getDefaultUnit(
-                                    variable,
-                                ),
+                            status: "NOT_AVAILABLE",
                         };
-
                         return;
                     }
 
-                    /*
-                     * N/A = NOT_APPLICABLE
-                     */
-                    if (
-                        normalizedText ===
-                        "N/A"
-                    ) {
+                    // N/A = NOT_APPLICABLE
+                    if (normalizedText === "N/A") {
                         next[key] = {
                             ...existing,
                             value: null,
-                            status:
-                                "NOT_APPLICABLE",
-                            selectedUnit:
-                                existing?.selectedUnit ??
-                                getDefaultUnit(
-                                    variable,
-                                ),
+                            status: "NOT_APPLICABLE",
                         };
-
                         return;
                     }
 
@@ -668,13 +459,9 @@ export default function SpreadsheetDataEntryForm({
                             rawValue,
                         );
 
-                    /*
-                     * Invalid numeric values do not overwrite
-                     * an existing valid observation.
-                     */
-                    if (
-                        normalized === null
-                    ) {
+                    // Une valeur invalide ne doit pas
+                    // écraser une valeur existante.
+                    if (normalized === null) {
                         return;
                     }
 
@@ -682,28 +469,7 @@ export default function SpreadsheetDataEntryForm({
                         ...existing,
                         value: normalized,
                         status: "PROVIDED",
-                        selectedUnit:
-                            existing?.selectedUnit ??
-                            getDefaultUnit(
-                                variable,
-                            ),
                     };
-                },
-            );
-
-            return next;
-        });
-
-        /*
-         * Clear any controlled-input text belonging to cells
-         * affected by the rectangular paste.
-         */
-        setInputValues((current) => {
-            const next = { ...current };
-
-            pastedCells.forEach(
-                ({ key }) => {
-                    delete next[key];
                 },
             );
 
@@ -712,43 +478,9 @@ export default function SpreadsheetDataEntryForm({
 
         setSuccessMessage(
             `${pastedCells.length} cell${
-                pastedCells.length === 1
-                    ? ""
-                    : "s"
+                pastedCells.length === 1 ? "" : "s"
             } pasted from Excel.`,
         );
-    }
-
-    function getInputValue(
-        variable: QuestionnaireVariable,
-        year: number,
-        cell: CellState,
-    ): string {
-        const key = makeCellKey(
-            variable.id,
-            year,
-        );
-
-        if (
-            Object.prototype.hasOwnProperty.call(
-                inputValues,
-                key,
-            )
-        ) {
-            return inputValues[key];
-        }
-
-        if (cell.status === "NOT_AVAILABLE") {
-            return "NA";
-        }
-
-        if (cell.status === "NOT_APPLICABLE") {
-            return "N/A";
-        }
-
-        return cell.value === null
-            ? ""
-            : String(cell.value);
     }
 
     function updateCell(
@@ -756,7 +488,6 @@ export default function SpreadsheetDataEntryForm({
         year: number,
         value: CellValue,
         status: ObservationStatus | null = "PROVIDED",
-        selectedUnit?: string | null,
     ) {
         const key = makeCellKey(
             variable.id,
@@ -773,10 +504,6 @@ export default function SpreadsheetDataEntryForm({
                     status === "PROVIDED"
                         ? null
                         : status,
-                selectedUnit:
-                    selectedUnit ??
-                    current[key]?.selectedUnit ??
-                    getDefaultUnit(variable),
             },
         }));
 
@@ -797,7 +524,6 @@ export default function SpreadsheetDataEntryForm({
                 value: null,
                 status: null,
                 observationId: null,
-                selectedUnit: null,
             }
         );
     }
@@ -831,8 +557,7 @@ export default function SpreadsheetDataEntryForm({
                     ? cell.value
                     : null,
             selectedUnit:
-                cell.selectedUnit ??
-                getDefaultUnit(variable),
+                variable.unit ?? null,
             comment: null,
         };
 
@@ -938,7 +663,7 @@ export default function SpreadsheetDataEntryForm({
                 for (const variable of group.variables) {
                     for (
                         const year of
-                        REFERENCE_YEARS
+                        PW_A_REFERENCE_YEARS
                     ) {
                         const key =
                             makeCellKey(
@@ -961,9 +686,7 @@ export default function SpreadsheetDataEntryForm({
                             current.value !==
                                 saved.value ||
                             current.status !==
-                                saved.status ||
-                            current.selectedUnit !==
-                                saved.selectedUnit
+                                saved.status
                         ) {
                             changedEntries.push({
                                 variable,
@@ -1098,8 +821,8 @@ export default function SpreadsheetDataEntryForm({
                         minWidth:
                             70 +
                             280 +
-                            120 +
-                            REFERENCE_YEARS.length * 82,
+                            60 +
+                            PW_A_REFERENCE_YEARS.length * 82,
                         tableLayout: "fixed",
                     }}
                 >
@@ -1135,8 +858,8 @@ export default function SpreadsheetDataEntryForm({
 
                             <TableCell
                                 sx={{
-                                    width: 120,
-                                    minWidth: 120,
+                                    width: 60,
+                                    minWidth: 60,
                                     position: "sticky",
                                     left: 350,
                                     zIndex: 4,
@@ -1147,7 +870,7 @@ export default function SpreadsheetDataEntryForm({
                                 Unit
                             </TableCell>
 
-                            {REFERENCE_YEARS.map((year) => (
+                            {PW_A_REFERENCE_YEARS.map((year) => (
                                 <TableCell
                                     key={year}
                                     align="center"
@@ -1171,7 +894,7 @@ export default function SpreadsheetDataEntryForm({
                                     <TableCell
                                         colSpan={
                                             3 +
-                                            REFERENCE_YEARS.length
+                                            PW_A_REFERENCE_YEARS.length
                                         }
                                         sx={{
                                             fontWeight: 700,
@@ -1257,95 +980,24 @@ export default function SpreadsheetDataEntryForm({
 
                                         <TableCell
                                             sx={{
-                                                width: 120,
-                                                minWidth: 120,
+                                                width: 60,
+                                                minWidth: 60,
                                                 position: "sticky",
                                                 left: 350,
                                                 zIndex: 2,
                                                 backgroundColor:
                                                     "background.paper",
-                                                p: 0.5,
                                             }}
                                         >
-                                            {getUnitOptions(variable).length > 1 ? (
-                                                <FormControl
-                                                    size="small"
-                                                    fullWidth
-                                                >
-                                                    <Select
-                                                        value={
-                                                            getCell(
-                                                                variable.id,
-                                                                2025,
-                                                            ).selectedUnit ??
-                                                            ""
-                                                        }
-                                                        displayEmpty
-                                                        onChange={(event) => {
-                                                            const selectedUnit =
-                                                                event.target.value;
-
-                                                            setCells((current) => {
-                                                                const updated = {
-                                                                    ...current,
-                                                                };
-
-                                                                for (
-                                                                    const year of
-                                                                        REFERENCE_YEARS
-                                                                ) {
-                                                                    const key =
-                                                                        makeCellKey(
-                                                                            variable.id,
-                                                                            year,
-                                                                        );
-
-                                                                    if (updated[key]) {
-                                                                        updated[key] = {
-                                                                            ...updated[key],
-                                                                            selectedUnit,
-                                                                        };
-                                                                    }
-                                                                }
-
-                                                                return updated;
-                                                            });
-
-                                                            setSuccessMessage(null);
-                                                        }}
-                                                    >
-                                                        <MenuItem value="">
-                                                            Select unit
-                                                        </MenuItem>
-
-                                                        {getUnitOptions(
-                                                            variable,
-                                                        ).map((unit) => (
-                                                            <MenuItem
-                                                                key={unit}
-                                                                value={unit}
-                                                            >
-                                                                {unit}
-                                                            </MenuItem>
-                                                        ))}
-                                                    </Select>
-                                                </FormControl>
-                                            ) : (
-                                                variable.unit ?? "—"
-                                            )}
+                                            {variable.unit ?? "—"}
                                         </TableCell>
 
-                                        {REFERENCE_YEARS.map(
+                                        {PW_A_REFERENCE_YEARS.map(
                                             (year) => {
                                                 const cell = getCell(
                                                     variable.id,
                                                     year,
                                                 );
-
-                                                const cellStyle =
-                                                    getCellStatusStyle(
-                                                        cell.status,
-                                                    );
 
                                                 const choices =
                                                     PW_A_CHOICE_OPTIONS[
@@ -1536,167 +1188,31 @@ export default function SpreadsheetDataEntryForm({
                                                             p: 0.5,
                                                         }}
                                                     >
-                                                        <Box sx={{ position: "relative" }}>
-                                                        <CommentBadge
-                                                            count={
-                                                                cell.observationId
-                                                                    ? commentCountMap.get(
-                                                                          cell.observationId,
-                                                                      ) ?? 0
-                                                                    : 0
-                                                            }
-                                                        />
                                                         <TextField
                                                             size="small"
                                                             fullWidth
-                                                            sx={{
-                                                                "& .MuiOutlinedInput-root": {
-                                                                    bgcolor: cellStyle.background,
-                                                                    color: cellStyle.text,
-                                                                    "& fieldset": {
-                                                                        borderColor: cellStyle.border,
-                                                                    },
-                                                                    "&:hover fieldset": {
-                                                                        borderColor: cellStyle.border,
-                                                                    },
-                                                                    "&.Mui-focused fieldset": {
-                                                                        borderColor: "#2563EB",
-                                                                        borderWidth: 2,
-                                                                    },
-                                                                },
-                                                            }}
                                                             disabled={isReadOnly}
                                                             type={getInputType(
                                                                 variable,
                                                             )}
-                                                            value={getInputValue(
-                                                                variable,
-                                                                year,
-                                                                cell,
-                                                            )}
-                                                            onFocus={() => {
-                                                                setActiveCell({
-                                                                    row: variableIndex,
-                                                                    col: yearIndex,
-                                                                });
-                                                            }}
-                                                            onKeyDown={(event) =>
-                                                                navigate(event, {
-                                                                    row: variableIndex,
-                                                                    col: yearIndex,
-                                                                })
+                                                            value={
+                                                                cell.value ??
+                                                                ""
                                                             }
-                                                            onMouseEnter={(event) => {
-                                                                if (cell.observationId) {
-                                                                    setPreviewAnchor(event.currentTarget);
-                                                                    setPreviewObservationId(cell.observationId);
-                                                                }
-                                                            }}
-                                                            onMouseLeave={() => {
-                                                                setPreviewAnchor(null);
-                                                            }}
-                                                            onClick={() => {
-                                                                setSelectedCell(cell);
-
-                                                                if (
-                                                                    cell.observationId &&
-                                                                    onObservationSelect
-                                                                ) {
-                                                                    onObservationSelect(
-                                                                        cell.observationId,
-                                                                    );
-                                                                }
-                                                            }}
                                                             onChange={(
                                                                 event,
-                                                            ) => {
-                                                                const rawValue =
-                                                                    event.target.value;
-
-                                                                const normalizedText =
-                                                                    rawValue
-                                                                        .trim()
-                                                                        .toUpperCase();
-
-                                                                const key =
-                                                                    makeCellKey(
-                                                                        variable.id,
-                                                                        year,
-                                                                    );
-
-                                                                setInputValues(
-                                                                    (current) => ({
-                                                                        ...current,
-                                                                        [key]:
-                                                                            rawValue,
-                                                                    }),
-                                                                );
-
-                                                                if (
-                                                                    normalizedText ===
-                                                                    "NA"
-                                                                ) {
-                                                                    updateCell(
-                                                                        variable,
-                                                                        year,
-                                                                        null,
-                                                                        "NOT_AVAILABLE",
-                                                                        cell.selectedUnit ??
-                                                                            getDefaultUnit(
-                                                                                variable,
-                                                                            ),
-                                                                    );
-                                                                    return;
-                                                                }
-
-                                                                if (
-                                                                    normalizedText ===
-                                                                    "N/A"
-                                                                ) {
-                                                                    updateCell(
-                                                                        variable,
-                                                                        year,
-                                                                        null,
-                                                                        "NOT_APPLICABLE",
-                                                                        cell.selectedUnit ??
-                                                                            getDefaultUnit(
-                                                                                variable,
-                                                                            ),
-                                                                    );
-                                                                    return;
-                                                                }
-
-                                                                const normalized =
-                                                                    normalizeValue(
-                                                                        variable,
-                                                                        rawValue,
-                                                                    );
-
-                                                                /*
-                                                                 * Keep intermediate text such as
-                                                                 * "N" or "N/" visible without
-                                                                 * changing the business cell yet.
-                                                                 */
-                                                                if (
-                                                                    normalized ===
-                                                                        null &&
-                                                                    rawValue !==
-                                                                        ""
-                                                                ) {
-                                                                    return;
-                                                                }
-
+                                                            ) =>
                                                                 updateCell(
                                                                     variable,
                                                                     year,
-                                                                    normalized,
-                                                                    "PROVIDED",
-                                                                    cell.selectedUnit ??
-                                                                        getDefaultUnit(
-                                                                            variable,
-                                                                        ),
-                                                                );
-                                                            }}
+                                                                    normalizeValue(
+                                                                        variable,
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                    ),
+                                                                )
+                                                            }
                                                             onPaste={(event) =>
                                                                 handleSpreadsheetPaste(
                                                                     event,
@@ -1716,8 +1232,7 @@ export default function SpreadsheetDataEntryForm({
                                                                           },
                                                             }}
                                                         />
-                                                    </Box>
-                                                </TableCell>
+                                                    </TableCell>
                                                 );
                                             },
                                         )}
@@ -1731,124 +1246,3 @@ export default function SpreadsheetDataEntryForm({
         </Stack>
     );
 }
-
-
-      <div style={{ marginBottom: 24 }}>
-        <h3>Spreadsheet Import</h3>
-
-        <input
-          type="file"
-          accept=".xlsx,.xls"
-          onChange={handleFileUpload}
-        />
-
-        {fileName && (
-          <p>File: {fileName}</p>
-        )}
-      </div>
-
-      {headers.length > 0 && (
-        <div>
-          <h4>Detected Columns</h4>
-          <ul>
-            {headers.map((header) => (
-              <li key={header}>{header}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-
-      {rows.length > 0 && (
-        <div style={{ marginTop: 24 }}>
-          <h4>Preview</h4>
-
-          <table width="100%" cellPadding={6}>
-            <thead>
-              <tr>
-                {headers.map((header) => (
-                  <th key={header}>{header}</th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {rows.slice(0, 5).map((row, index) => (
-                <tr key={index}>
-                  {row.map((cell, i) => (
-                    <td key={i}>{String(cell ?? "")}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-
-      {Object.keys(columnMapping).length > 0 && (
-        <div style={{ marginTop: 24 }}>
-          <h4>AIKP Mapping</h4>
-
-          <table width="100%" cellPadding={6}>
-            <thead>
-              <tr>
-                <th align="left">Excel Column</th>
-                <th align="left">AIKP Variable</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(columnMapping).map(([excel, aikp]) => (
-                <tr key={excel}>
-                  <td>{excel}</td>
-                  <td>{aikp}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-
-      {previewRows.length > 0 && (
-        <div style={{ marginTop: 32 }}>
-          <h3>AIKP Preview Grid</h3>
-
-          <table width="100%" cellPadding={6}>
-            <thead>
-              <tr>
-                {headers.map((header) => (
-                  <th key={header}>
-                    {columnMapping[header]}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {previewRows.map((row, index) => (
-                <tr key={index}>
-                  {row.map((cell: any, i: number) => (
-                    <td key={i}>{String(cell ?? "")}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-
-      {rows.length > 0 && (
-        <div style={{ marginTop: 24 }}>
-          <button onClick={importObservations}>
-            Import Observations
-          </button>
-        </div>
-      )}
-
-      {importSummary && (
-        <div style={{ marginTop: 16 }}>
-          <strong>{importSummary}</strong>
-        </div>
-      )}

@@ -23,7 +23,7 @@ export default function ValidationDashboardPage() {
     pending:5
   });
 
-  const [stats, setStats] = useState<DashboardStats>({
+  const [stats] = useState<DashboardStats>({
     pending: 18,
     validated: 5,
     rejected: 43,
@@ -53,31 +53,27 @@ export default function ValidationDashboardPage() {
         }}
       >
         <KpiCard
-          title="Pending Reviews"
+          color="#1976D2"title="Pending Reviews"
           value={stats.pending}
-          subtitle="Submitted questionnaires"
         />
 
         <KpiCard
-          title="Validated"
+          color="#2E7D32"title="Validated"
           value={stats.validated}
-          subtitle="Countries completed"
         />
 
         <KpiCard
-          title="Rejected"
+          color="#ED6C02"title="Rejected"
           value={stats.rejected}
-          subtitle="Observations requiring correction"
         />
 
         <KpiCard
-          title="Average Completeness"
+          color="#7B1FA2"title="Average Completeness"
           value={`${stats.completeness}%`}
-          subtitle="Across all submitted utilities"
         />
       </div>
 
-      <ValidationAnalyticsPanel />
+      <ValidationAnalyticsPanel dataCollectionId="dashboard" />
 
 
       <div

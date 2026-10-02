@@ -16,7 +16,7 @@ interface CampaignDashboard{
 
 export default function CampaignDashboardPage(){
 
-  const [dashboard,setDashboard] = useState<CampaignDashboard>({
+  const [dashboard] = useState<CampaignDashboard>({
     campaign:"AIKP 2026",
     referenceYear:2025,
     countries:23,

@@ -1,4 +1,4 @@
-CREATE TABLE metadata.questionnaire_group (
+CREATE TABLE IF NOT EXISTS metadata.questionnaire_group (
     id UUID NOT NULL,
 
     questionnaire_id UUID NOT NULL,
@@ -41,11 +41,11 @@ CREATE TABLE metadata.questionnaire_group (
 );
 
 
-CREATE UNIQUE INDEX uk_questionnaire_group_root_code
+CREATE UNIQUE INDEX IF NOT EXISTS uk_questionnaire_group_root_code
     ON metadata.questionnaire_group(questionnaire_id, code)
     WHERE parent_group_id IS NULL;
 
-CREATE UNIQUE INDEX uk_questionnaire_group_child_code
+CREATE UNIQUE INDEX IF NOT EXISTS uk_questionnaire_group_child_code
     ON metadata.questionnaire_group(
         questionnaire_id,
         parent_group_id,
@@ -54,20 +54,20 @@ CREATE UNIQUE INDEX uk_questionnaire_group_child_code
     WHERE parent_group_id IS NOT NULL;
 
 
-CREATE INDEX idx_questionnaire_group_questionnaire
+CREATE INDEX IF NOT EXISTS idx_questionnaire_group_questionnaire
     ON metadata.questionnaire_group(questionnaire_id);
 
-CREATE INDEX idx_questionnaire_group_parent
+CREATE INDEX IF NOT EXISTS idx_questionnaire_group_parent
     ON metadata.questionnaire_group(parent_group_id);
 
-CREATE INDEX idx_questionnaire_group_type
+CREATE INDEX IF NOT EXISTS idx_questionnaire_group_type
     ON metadata.questionnaire_group(group_type);
 
-CREATE INDEX idx_questionnaire_group_active
+CREATE INDEX IF NOT EXISTS idx_questionnaire_group_active
     ON metadata.questionnaire_group(active);
 
 
-CREATE TABLE metadata.questionnaire_variable (
+CREATE TABLE IF NOT EXISTS metadata.questionnaire_variable (
     id UUID NOT NULL,
 
     questionnaire_id UUID NOT NULL,
@@ -114,14 +114,14 @@ CREATE TABLE metadata.questionnaire_variable (
 );
 
 
-CREATE INDEX idx_questionnaire_variable_questionnaire
+CREATE INDEX IF NOT EXISTS idx_questionnaire_variable_questionnaire
     ON metadata.questionnaire_variable(questionnaire_id);
 
-CREATE INDEX idx_questionnaire_variable_group
+CREATE INDEX IF NOT EXISTS idx_questionnaire_variable_group
     ON metadata.questionnaire_variable(questionnaire_group_id);
 
-CREATE INDEX idx_questionnaire_variable_data_type
+CREATE INDEX IF NOT EXISTS idx_questionnaire_variable_data_type
     ON metadata.questionnaire_variable(data_type);
 
-CREATE INDEX idx_questionnaire_variable_active
+CREATE INDEX IF NOT EXISTS idx_questionnaire_variable_active
     ON metadata.questionnaire_variable(active);

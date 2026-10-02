@@ -35,7 +35,7 @@ export default function SeverityDistributionCard({
           <Stack key={item.severity} spacing={0.5}>
             <Stack
               direction="row"
-              justifyContent="space-between"
+              sx={{ justifyContent: "space-between" }}
             >
               <Typography variant="body2">
                 {item.severity}

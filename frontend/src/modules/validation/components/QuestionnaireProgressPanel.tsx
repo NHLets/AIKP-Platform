@@ -31,7 +31,7 @@ export default function QuestionnaireProgressPanel({
           >
             <Stack
               direction="row"
-              justifyContent="space-between"
+              sx={{ justifyContent: "space-between" }}
             >
               <Typography variant="body2">
                 {q.questionnaireCode}

@@ -10,4 +10,4 @@ public interface SpringDataPasswordResetRepository
         extends JpaRepository<PasswordResetEntity, UUID> {
 
     Optional<PasswordResetEntity> findByToken(String token);
-}\n
+}

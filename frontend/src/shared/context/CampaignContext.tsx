@@ -1,15 +1,15 @@
 import {
-  createContext,
+createContext,
   useContext,
   useState,
   useEffect,
-  ReactNode
 } from "react";
+import type { ReactNode } from "react";
 
 interface CampaignContextType {
-  campaignId: number;
+  campaignId: string;
   referenceYear: number;
-  setCampaignId: (id: number) => void;
+  setCampaignId: (id: string) => void;
   setReferenceYear: (year: number) => void;
 }
 

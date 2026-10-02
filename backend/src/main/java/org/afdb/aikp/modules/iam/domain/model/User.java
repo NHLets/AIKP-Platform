@@ -211,4 +211,9 @@ private Instant lastLogin;
         return role;
     }
 
+    public void assignRole(Role role) {
+        this.role = Objects.requireNonNull(role, "Role cannot be null");
+        touch();
+    }
+
 }

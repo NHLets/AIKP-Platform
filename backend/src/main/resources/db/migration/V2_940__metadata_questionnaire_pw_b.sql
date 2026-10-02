@@ -46,7 +46,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_group
 (
@@ -81,7 +82,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -120,7 +122,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -159,7 +162,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -198,7 +202,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -237,7 +242,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -276,7 +282,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -315,7 +322,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -354,7 +362,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -393,7 +402,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -432,7 +442,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -471,7 +482,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -510,7 +522,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -549,7 +562,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -588,7 +602,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -627,7 +642,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -666,7 +682,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -705,7 +722,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -744,7 +762,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -783,7 +802,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -822,7 +842,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -861,7 +882,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -900,7 +922,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -939,7 +962,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -978,7 +1002,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -1017,7 +1042,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -1056,7 +1082,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -1095,7 +1122,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -1134,7 +1162,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -1173,7 +1202,8 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO metadata.questionnaire_variable
 (
@@ -1212,5 +1242,6 @@ VALUES
     'system',
     NULL,
     0
-);
+)
+ON CONFLICT (id) DO NOTHING;
 

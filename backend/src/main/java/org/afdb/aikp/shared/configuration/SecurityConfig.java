@@ -37,8 +37,14 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                .requestMatchers("/api/auth/**")
-                .permitAll()
+                .requestMatchers(
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**",
+                        "/v3/api-docs",
+                        "/actuator/health",
+                        "/actuator/info"
+                ).permitAll()
 
                 .requestMatchers("/api/auth/**")
                 .permitAll()
@@ -46,7 +52,10 @@ public class SecurityConfig {
                 .anyRequest()
                 .authenticated())
 
-            .httpBasic(Customizer.withDefaults());
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(
+                (request, response, authException) -> {
+                    response.sendError(401);
+                }));
 
         return http.addFilterBefore(
                         jwtFilter,

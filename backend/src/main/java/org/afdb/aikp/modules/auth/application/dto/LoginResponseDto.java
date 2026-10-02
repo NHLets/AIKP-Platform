@@ -11,8 +11,8 @@ public record LoginResponseDto(
     @Schema(description = "Token type")
     String tokenType,
 
-    @Schema(description = "User identifier")
-    Long userId,
+    @Schema(description = "User identifier (UUID)")
+    String userId,
 
     @Schema(description = "User email")
     String email,

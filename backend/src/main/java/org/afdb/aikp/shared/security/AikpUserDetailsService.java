@@ -1,8 +1,8 @@
 package org.afdb.aikp.shared.security;
 
-import lombok.RequiredArgsConstructor;
 import org.afdb.aikp.modules.iam.domain.model.User;
 import org.afdb.aikp.modules.iam.domain.repository.UserRepository;
+import org.afdb.aikp.modules.iam.domain.valueobject.Email;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -12,8 +12,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class AikpUserDetailsService implements UserDetailsService {
+
+    public AikpUserDetailsService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
 
     private final UserRepository userRepository;
 
@@ -21,7 +25,7 @@ public class AikpUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email)
             throws UsernameNotFoundException {
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(Email.of(email))
                 .orElseThrow(() ->
                         new UsernameNotFoundException(email));
 

@@ -65,4 +65,10 @@ public class ValidationCommentRepositoryAdapter
 
         return repository.existsById(id);
     }
+
+    @Override
+    public long countByDataCollection(java.util.UUID dataCollectionId) {
+        return repository.countByDataCollection(dataCollectionId).size();
+    }
+
 }

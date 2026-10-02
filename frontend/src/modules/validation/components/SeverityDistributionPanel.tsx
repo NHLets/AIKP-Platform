@@ -46,15 +46,14 @@ export default function SeverityDistributionPanel({
             >
               <Stack
                 direction="row"
-                justifyContent="space-between"
-                alignItems="center"
+                sx={{ justifyContent: "space-between", alignItems: "center" }}
               >
                 <Chip
                   label={item.severity}
                   size="small"
                   sx={{
                     backgroundColor:
-                      COLORS[item.severity],
+                      COLORS[item.severity as keyof typeof COLORS],
                     color: "white",
                   }}
                 />
@@ -72,7 +71,7 @@ export default function SeverityDistributionPanel({
                   borderRadius: 4,
                   "& .MuiLinearProgress-bar": {
                     backgroundColor:
-                      COLORS[item.severity],
+                      COLORS[item.severity as keyof typeof COLORS],
                   },
                 }}
               />

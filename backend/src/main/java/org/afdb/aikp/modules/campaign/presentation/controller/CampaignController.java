@@ -33,7 +33,7 @@ import java.net.URI;
 import java.util.UUID;
 
 @RestController
-@PreAuthorize(\"hasAnyRole('ADMIN','COORDINATOR')\")
+@PreAuthorize("hasAnyRole('ADMIN','COORDINATOR')")
 @RequestMapping("/api/v1/campaigns")
 @Tag(
         name = "Campaigns",
@@ -83,7 +83,7 @@ public class CampaignController {
                 .body(response);
     }
 
-    @GetMapping
+    @GetMapping("/legacy")
     @Operation(
         summary = "Get all campaigns",
         description = "Retrieves all AIKP data collection campaigns."

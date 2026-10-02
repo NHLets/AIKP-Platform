@@ -17,6 +17,7 @@ import org.afdb.aikp.modules.person.application.query.GetPersonsByOrganizationQu
 import org.afdb.aikp.modules.person.application.query.GetPersonsQuery;
 import org.afdb.aikp.modules.person.application.response.PersonResponse;
 import org.afdb.aikp.modules.person.application.response.PersonSummary;
+import org.afdb.aikp.modules.person.application.response.PersonSummary;
 import org.afdb.aikp.modules.person.application.service.PersonApplicationService;
 import org.afdb.aikp.modules.person.presentation.contract.PersonApi;
 import org.afdb.aikp.modules.person.presentation.mapper.PersonRestMapper;
@@ -241,9 +242,11 @@ public class PersonController implements PersonApi {
 
 
     @GetMapping("/organization/{organizationId}")
-    public List<PersonSummaryDto> getPersonsByOrganization(
+    public ResponseEntity<List<PersonSummary>> getPersonsByOrganization(
             @PathVariable UUID organizationId) {
-        return service.getPersonsByOrganization(organizationId);
+        return ResponseEntity.ok(
+                applicationService.getPersonsByOrganization(
+                        new GetPersonsByOrganizationQuery(organizationId)));
     }
 
 }

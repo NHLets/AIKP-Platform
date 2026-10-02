@@ -7,7 +7,10 @@ import org.afdb.aikp.modules.auth.application.service.AuthApplicationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.afdb.aikp.shared.security.AikpUserDetailsService;
+import org.afdb.aikp.shared.security.JwtService;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -16,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
 
     @Autowired
@@ -26,6 +30,12 @@ class AuthControllerTest {
 
     @MockBean
     AuthApplicationService service;
+
+    @MockBean
+    JwtService jwtService;
+
+    @MockBean
+    AikpUserDetailsService userDetailsService;
 
     @Test
     void shouldLoginSuccessfully() throws Exception {
@@ -39,7 +49,7 @@ class AuthControllerTest {
                 new LoginResponseDto(
                         "jwt-token",
                         "Bearer",
-                        1L,
+                        "00000000-0000-0000-0000-000000000001",
                         "admin@aikp.org",
                         "ADMIN"
                 )

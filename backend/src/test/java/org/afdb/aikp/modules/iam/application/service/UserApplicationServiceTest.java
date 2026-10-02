@@ -8,6 +8,8 @@ import org.afdb.aikp.modules.iam.domain.enums.UserStatus;
 import org.afdb.aikp.modules.iam.domain.exception.UserNotFoundException;
 import org.afdb.aikp.modules.iam.domain.model.User;
 import org.afdb.aikp.modules.iam.domain.repository.UserRepository;
+import org.afdb.aikp.modules.iam.role.domain.repository.RoleRepository;
+import org.afdb.aikp.modules.iam.role.domain.model.Role;
 import org.afdb.aikp.modules.iam.domain.service.UserDomainService;
 import org.afdb.aikp.modules.iam.domain.valueobject.Email;
 import org.afdb.aikp.modules.iam.domain.valueobject.FullName;
@@ -16,6 +18,7 @@ import org.afdb.aikp.modules.iam.domain.valueobject.UserId;
 import org.afdb.aikp.modules.iam.domain.valueobject.Username;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -35,6 +38,9 @@ class UserApplicationServiceTest {
 
     private UserRepository userRepository;
 
+    @Mock
+    private RoleRepository roleRepository;
+
     private UserDomainService userDomainService;
 
     private PasswordEncoder passwordEncoder;
@@ -45,6 +51,7 @@ class UserApplicationServiceTest {
     void setUp() {
 
         userRepository = mock(UserRepository.class);
+        roleRepository = mock(RoleRepository.class);
 
         userDomainService =
                 new UserDomainService(userRepository);
@@ -52,14 +59,16 @@ class UserApplicationServiceTest {
         passwordEncoder =
                 mock(PasswordEncoder.class);
 
-        service = new UserApplicationService(
-                userRepository,
-                userDomainService,
-                passwordEncoder);
+        service = new UserApplicationService(userRepository, roleRepository, userDomainService, passwordEncoder);
     }
 
     @Test
     void shouldCreateUser() {
+
+        Role role = mock(Role.class);
+
+        when(roleRepository.findById(any()))
+                .thenReturn(Optional.of(role));
 
         String encodedPassword =
                 validPasswordHash();
@@ -85,7 +94,9 @@ class UserApplicationServiceTest {
                                 "john.doe",
                                 "john.doe@example.com",
                                 "John Doe",
-                                "password123"));
+                                "password123",
+                                UUID.fromString("00000000-0000-0000-0000-000000000001")
+));
 
         assertThat(response.id())
                 .isNotNull();

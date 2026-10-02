@@ -7,4 +7,4 @@
 -- ============================================================================
 
 ALTER TABLE metadata.questionnaire
-    ADD COLUMN previously_submitted_for_review BOOLEAN NOT NULL DEFAULT FALSE;
+    ADD COLUMN IF NOT EXISTS previously_submitted_for_review BOOLEAN NOT NULL DEFAULT FALSE;

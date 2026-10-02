@@ -12,6 +12,7 @@ import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import BusinessOutlinedIcon from "@mui/icons-material/BusinessOutlined";
 import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
 import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
+import AnalyticsOutlinedIcon from "@mui/icons-material/AnalyticsOutlined";
 import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import type { ReactNode } from "react";
@@ -76,7 +77,7 @@ const dataCollectionItems: NavigationItem[] = [
   {
     label: "Analytics",
     path: "/dashboard",
-    icon: <Analytics />,
+    icon: <AnalyticsOutlinedIcon />,
   },
 
 ];
@@ -186,25 +187,6 @@ function NavigationSection({
                         />
                     </ListItemButton>
                 ))}
-      {canAdmin && (
-        <>
-          <ListItemButton component={Link} to="/users">
-            <ListItemText primary="Users" />
-          </ListItemButton>
-
-          <ListItemButton component={Link} to="/organizations">
-            <ListItemText primary="Organizations" />
-          </ListItemButton>
-
-          <ListItemButton component={Link} to="/persons">
-            <ListItemText primary="Persons" />
-          </ListItemButton>
-
-          <ListItemButton component={Link} to="/invitations">
-            <ListItemText primary="Invitations" />
-          </ListItemButton>
-        </>
-      )}
 
             </List>
         </>
@@ -212,20 +194,14 @@ function NavigationSection({
 }
 
 export default function AppSidebar({
-
-  const { user } = useAuth();
-
-  const role = user?.role ?? "";
-
-  const canAdmin = role === "ADMIN";
-  const canCoordinator = ["ADMIN","COORDINATOR"].includes(role);
-  const canValidation = ["ADMIN","COORDINATOR","VALIDATOR"].includes(role);
-  const canCollection = ["ADMIN","COORDINATOR","DATA_PROVIDER"].includes(role);
     open,
     onClose,
     width = drawerWidth,
     collapsed = false,
 }: AppSidebarProps) {
+    useAuth();
+
+
     const theme = useTheme();
 
     const isDesktop = useMediaQuery(

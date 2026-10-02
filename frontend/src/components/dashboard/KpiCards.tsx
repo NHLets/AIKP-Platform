@@ -13,7 +13,7 @@ import {
   Description
 } from '@mui/icons-material';
 
-import { KpiSummary } from '../../types/dashboard';
+import type { KpiSummary } from "../../types/dashboard";
 
 interface Props {
   data: KpiSummary;
@@ -46,17 +46,17 @@ export default function KpiCards({ data }: Props) {
   return (
     <Grid container spacing={3}>
       {cards.map(card => (
-        <Grid item xs={12} sm={6} md={3} key={card.title}>
+        <Grid key={card.title} size={{ xs: 12, sm: 6, md: 3 }}>
           <Card elevation={3}>
             <CardContent>
-              <Box display="flex" alignItems="center" gap={1}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 {card.icon}
                 <Typography variant="body2" color="text.secondary">
                   {card.title}
                 </Typography>
               </Box>
 
-              <Typography variant="h4" fontWeight="bold" mt={2}>
+              <Typography variant="h4" sx={{ fontWeight: "bold", mt: 2 }}>
                 {card.value.toLocaleString()}
               </Typography>
             </CardContent>

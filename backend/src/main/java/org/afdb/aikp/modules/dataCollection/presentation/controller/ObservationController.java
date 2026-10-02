@@ -1,6 +1,5 @@
 package org.afdb.aikp.modules.dataCollection.presentation.controller;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.annotation.Validated;
 
@@ -13,10 +12,14 @@ import org.afdb.aikp.modules.dataCollection.domain.model.Observation;
 
 @RestController
 @RequestMapping("/api/v1/observations")
-@RequiredArgsConstructor
 public class ObservationController {
 
     private final ObservationApplicationService service;
+
+
+    public ObservationController(ObservationApplicationService service) {
+        this.service = service;
+    }
 
     @PostMapping
     public ObservationResponseDto create(

@@ -4,4 +4,4 @@ public enum PasswordResetStatus {
     PENDING,
     COMPLETED,
     EXPIRED
-}\n
+}

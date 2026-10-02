@@ -1,4 +1,4 @@
-package org.afdb.aikp.modules.dashboard.dto;
+package org.afdb.aikp.modules.validation.application.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -6,12 +6,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record ValidationHeatmapDto(
 
     @Schema(description = "Questionnaire code", example = "POWER-G")
-    String questionnaire,
+    String questionnaireCode,
 
     @Schema(description = "Variable code", example = "GEN_001")
-    String variable,
+    String variableCode,
 
-    @Schema(description = "Number of validation comments", example = "17")
+    @Schema(description = "Validation status")
+    Integer validationStatus,
+
+    @Schema(description = "Number of observations", example = "17")
     Long count
 
 ) {}

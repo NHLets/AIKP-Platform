@@ -1,15 +1,18 @@
 package org.afdb.aikp.modules.passwordreset.presentation.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.afdb.aikp.modules.passwordreset.application.dto.*;
 import org.afdb.aikp.modules.passwordreset.application.service.PasswordResetApplicationService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
-@RequiredArgsConstructor
 public class PasswordResetController {
+
+    public PasswordResetController(PasswordResetApplicationService service) {
+        this.service = service;
+    }
+
 
     private final PasswordResetApplicationService service;
 
@@ -19,7 +22,7 @@ public class PasswordResetController {
     }
 
     @GetMapping("/reset-password/validate")
-    public boolean validate(@RequestParam String token){
+    public boolean validate(@RequestParam("token") String token){
         return service.validateToken(token);
     }
 

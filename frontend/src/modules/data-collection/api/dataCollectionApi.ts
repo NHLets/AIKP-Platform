@@ -88,3 +88,10 @@ export async function cancelDataCollection(
         `${DATA_COLLECTIONS_ENDPOINT}/${id}/cancel`,
     );
 }
+
+
+/* ============================================================
+   Legacy compatibility (M16–M18)
+   ============================================================ */
+
+export const approveDataCollection = validateDataCollection;

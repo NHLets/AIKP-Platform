@@ -15,7 +15,7 @@ import org.afdb.aikp.modules.validation.application.dto.SeverityDistributionDto;
 import org.afdb.aikp.modules.validation.application.dto.ValidationSeverityDto;
 
 @RestController
-@PreAuthorize(\"hasAnyRole('ADMIN','COORDINATOR','VALIDATOR')\")
+@PreAuthorize("hasAnyRole('ADMIN','COORDINATOR','VALIDATOR')")
 @RequestMapping("/api/validation/statistics")
 public class ValidationStatisticsController {
 
@@ -68,7 +68,7 @@ public class ValidationStatisticsController {
 
 
 
-    @GetMapping("/{dataCollectionId}/severity")
+@GetMapping("/{dataCollectionId}/severity")
     public List<SeverityDistributionDto> getSeverityDistribution(
         @PathVariable("dataCollectionId") UUID dataCollectionId
     ) {
@@ -77,7 +77,7 @@ public class ValidationStatisticsController {
 
 
 
-    @GetMapping("/{dataCollectionId}/severity")
+@GetMapping("/{dataCollectionId}/severity/legacy")
     public List<ValidationSeverityDto> getSeverityStatistics(
         @PathVariable("dataCollectionId") UUID dataCollectionId
     ) {

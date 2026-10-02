@@ -1,39 +1,15 @@
-# =========================
-# Maven / Gradle
-# =========================
-target/
-**/target/
-.gradle/
-build/
-
-# =========================
-# Node / React
-# =========================
-node_modules/
-**/node_modules/
-dist/
-**/dist/
-
-# =========================
-# PostgreSQL
-# =========================
-infrastructure/postgres/data/
-**/pgdata/
-
-# =========================
-# IDE
-# =========================
-.idea/
-.vscode/
-*.iml
-
-# =========================
-# Logs
-# =========================
-*.log
-
-# =========================
+.env
+.env.local
+.env.production
 # OS
-# =========================
 .DS_Store
-Thumbs.db
+# Java / Maven
+backend/target/
+*.log
+# Node / Vite
+node_modules/
+frontend/node_modules/
+frontend/dist/
+# Temporary / backup files
+*.bak
+*~

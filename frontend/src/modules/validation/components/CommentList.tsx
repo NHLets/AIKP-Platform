@@ -19,7 +19,7 @@ export default function CommentList({ comments }: Props) {
     <Stack spacing={2}>
       {comments.map((comment) => (
         <Stack key={comment.id} spacing={1}>
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
             <SeverityBadge severity={comment.severity} />
             <Typography variant="caption" color="text.secondary">
               {new Date(comment.createdAt).toLocaleString()}

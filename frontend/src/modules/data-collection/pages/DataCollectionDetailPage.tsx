@@ -1,809 +1,343 @@
-import {
-  Tabs,
-  Tab, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import {
-  Tabs,
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Grid,
+  Stack,
   Tab,
-    useNavigate,
-    useParams,
-} from "react-router-dom";
-
-import {
   Tabs,
-  Tab,
-    Alert,
-    Box,
-    Button,
-    Card,
-    CardContent,
-    Chip,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Stack,
-    Typography,,
-  Grid
+  Typography,
 } from "@mui/material";
+
+import ValidationDashboard from "@/modules/validation/components/ValidationDashboard";
 import ReviewPanel from "@/modules/validation/components/ReviewPanel";
-
-import {
-  Tabs,
-  Tab,
-    cancelDataCollection,
-    getDataCollectionById,
-    rejectDataCollection,
-    startDataCollection,
-    submitDataCollection,
-    validateDataCollection,
-} from "../api/dataCollectionApi";
-
-import {
-  Tabs,
-  Tab,
-    getCampaigns,
-    getCountries,
-    getOrganizations,
-    getPersons,
-    getQuestionnaires,
-} from "../api/dataCollectionOptionsApi";
-
-import {
-  Tabs,
-  Tab, getQuestionnaire } from "@/modules/questionnaire/api/questionnaireApi";
-import {
-  Tabs,
-  Tab, getQuestionnaireGroups } from "@/modules/questionnaire/api/questionnaireGroupApi";
-import {
-  Tabs,
-  Tab, getQuestionnaireVariables } from "@/modules/questionnaire/api/questionnaireVariableApi";
-
-import type { QuestionnaireGroup } from "@/modules/questionnaire/types/questionnaireGroup.types";
-import type { QuestionnaireVariable } from "@/modules/questionnaire/types/questionnaireVariable.types";
 
 import DataEntryForm from "../components/DataEntryForm";
 import SpreadsheetDataEntryForm from "../components/SpreadsheetDataEntryForm";
 
-import type {
-    CampaignOption,
-    CountryOption,
-    OrganizationOption,
-    PersonOption,
-    QuestionnaireOption,
-} from "../api/dataCollectionOptionsApi";
+import {
+  getDataCollectionById,
+  submitDataCollection,
+  validateDataCollection,
+  rejectDataCollection,
+} from "../api/dataCollectionApi";
 
-import type {
-import ValidationDashboard from "@/modules/validation/components/ValidationDashboard";
-    DataCollection,
-} from "../types/dataCollection.types";
+import { getQuestionnaire } from "@/modules/questionnaire/api/questionnaireApi";
+import { getQuestionnaireGroups } from "@/modules/questionnaire/api/questionnaireGroupApi";
+import { getQuestionnaireVariables } from "@/modules/questionnaire/api/questionnaireVariableApi";
 
-type PendingAction =
-    | "SUBMIT"
-    | "VALIDATE"
-    | "REJECT"
-    | "CANCEL"
-    | null;
+import type { DataCollection } from "../types/dataCollection.types";
+import type { QuestionnaireGroup } from "@/modules/questionnaire/types/questionnaireGroup.types";
+import type { QuestionnaireVariable } from "@/modules/questionnaire/types/questionnaireVariable.types";
+
+type PendingAction = "SUBMIT" | "APPROVE" | "REJECT" | null;
 
 export default function DataCollectionDetailPage() {
-    const { id } = useParams();
+  const { id } = useParams();
+  const navigate = useNavigate();
 
   const [tab, setTab] = useState(0);
-    const navigate = useNavigate();
 
-    const [dataCollection, setDataCollection] =
-        useState<DataCollection | null>(null);
+  const [dataCollection, setDataCollection] =
+    useState<DataCollection | null>(null);
 
-    const [campaigns, setCampaigns] =
-        useState<CampaignOption[]>([]);
+  const [groups, setGroups] = useState<QuestionnaireGroup[]>([]);
+  const [variables, setVariables] = useState<QuestionnaireVariable[]>([]);
 
-    const [countries, setCountries] =
-        useState<CountryOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [structureLoading, setStructureLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    const [questionnaires, setQuestionnaires] =
-        useState<QuestionnaireOption[]>([]);
+  const [pendingAction, setPendingAction] =
+    useState<PendingAction>(null);
 
-    const [organizations, setOrganizations] =
-        useState<OrganizationOption[]>([]);
+  const [selectedObservationId] = useState<string>();
 
-    const [persons, setPersons] =
-        useState<PersonOption[]>([]);
+  useEffect(() => {
+    async function load() {
+      if (!id) return;
 
-    const [questionnaireGroups, setQuestionnaireGroups] =
-        useState<QuestionnaireGroup[]>([]);
+      try {
+        setLoading(true);
 
-    const [questionnaireVariables, setQuestionnaireVariables] =
-        useState<QuestionnaireVariable[]>([]);
+        const dc = await getDataCollectionById(id);
+        setDataCollection(dc);
 
-    const [questionnaireRenderType, setQuestionnaireRenderType] =
-        useState<"FORM" | "SPREADSHEET" | "HYBRID" | null>(null);
+        setStructureLoading(true);
 
-    const [isQuestionnaireStructureLoading, setIsQuestionnaireStructureLoading] =
-        useState(false);
+        await getQuestionnaire(dc.questionnaireId);
 
-    const [questionnaireStructureError, setQuestionnaireStructureError] =
-        useState<string | null>(null);
+        const [g, v] = await Promise.all([
+          getQuestionnaireGroups(dc.questionnaireId),
+          getQuestionnaireVariables(dc.questionnaireId),
+        ]);
 
-    const [isLoading, setIsLoading] =
-        useState(true);
-
-    const [isActionLoading, setIsActionLoading] =
-        useState(false);
-
-    const [pendingAction, setPendingAction] =
-        useState<PendingAction>(null);
-
-    const [error, setError] =
-        useState<string | null>(null);
-
-    async function loadDataCollection() {
-        if (!id) {
-            setError("Data Collection ID is missing.");
-            setIsLoading(false);
-            return;
-        }
-
-        try {
-            setIsLoading(true);
-            setError(null);
-
-            const [
-                data,
-                campaignData,
-                countryData,
-                questionnaireData,
-                organizationData,
-                personData,
-            ] = await Promise.all([
-                getDataCollectionById(id),
-                getCampaigns(),
-                getCountries(),
-                getQuestionnaires(),
-                getOrganizations(),
-                getPersons(),
-            ]);
-
-            setDataCollection(data);
-            setCampaigns(campaignData);
-            setCountries(countryData);
-            setQuestionnaires(questionnaireData);
-            setOrganizations(organizationData);
-            setPersons(personData);
-        } catch (error) {
-            console.error(
-                "Failed to load data collection:",
-                error,
-            );
-
-            setError(
-                "Unable to load data collection.",
-            );
-        } finally {
-            setIsLoading(false);
-        }
+        setGroups(g);
+        setVariables(v);
+      } catch {
+        setError("Unable to load Data Collection.");
+      } finally {
+        setStructureLoading(false);
+        setLoading(false);
+      }
     }
 
-    useEffect(() => {
-        void loadDataCollection();
-    }, [id]);
+    void load();
+  }, [id]);
 
-    useEffect(() => {
-        async function loadQuestionnaireStructure() {
-            if (!dataCollection?.questionnaireId) {
-                setQuestionnaireGroups([]);
-                setQuestionnaireVariables([]);
-                setQuestionnaireRenderType(null);
-                setQuestionnaireStructureError(null);
-                return;
-            }
+  const statusColor = useMemo(() => {
+    switch (dataCollection?.status) {
+      case "VALIDATED":
+        return "success";
+      case "REJECTED":
+        return "error";
+      case "SUBMITTED":
+        return "warning";
+      default:
+        return "default";
+    }
+  }, [dataCollection]);
 
-            try {
-                setIsQuestionnaireStructureLoading(true);
-                setQuestionnaireStructureError(null);
+  async function handleConfirm() {
+    if (!dataCollection || !pendingAction) return;
 
-                const [questionnaire, groups, variables] =
-                    await Promise.all([
-                        getQuestionnaire(
-                            dataCollection.questionnaireId,
-                        ),
-                        getQuestionnaireGroups(
-                            dataCollection.questionnaireId,
-                        ),
-                        getQuestionnaireVariables(
-                            dataCollection.questionnaireId,
-                        ),
-                    ]);
+    switch (pendingAction) {
+      case "SUBMIT":
+        await submitDataCollection(dataCollection.id);
+        break;
 
-                setQuestionnaireRenderType(
-                    questionnaire.renderType,
-                );
-                setQuestionnaireGroups(groups);
-                setQuestionnaireVariables(variables);
-            } catch (error) {
-                console.error(
-                    "Failed to load questionnaire structure:",
-                    error,
-                );
+      case "APPROVE":
+        await validateDataCollection(dataCollection.id);
+        break;
 
-                setQuestionnaireStructureError(
-                    "Unable to load questionnaire groups and variables.",
-                );
-            } finally {
-                setIsQuestionnaireStructureLoading(false);
-            }
-        }
-
-        void loadQuestionnaireStructure();
-    }, [dataCollection?.questionnaireId]);
-
-    async function handleAction(
-        action: (
-            dataCollectionId: string,
-        ) => Promise<void>,
-    ) {
-        if (!id) {
-            return;
-        }
-
-        try {
-            setIsActionLoading(true);
-            setError(null);
-
-            await action(id);
-
-            await loadDataCollection();
-        } catch (error) {
-            console.error(
-                "Failed to update data collection:",
-                error,
-            );
-
-            setError(
-                "Unable to update data collection.",
-            );
-        } finally {
-            setIsActionLoading(false);
-        }
+      case "REJECT":
+        await rejectDataCollection(dataCollection.id);
+        break;
     }
 
-    function getActionDetails(
-        action: Exclude<PendingAction, null>,
-    ): {
-        title: string;
-        message: string;
-        confirmLabel: string;
-        handler: (id: string) => Promise<void>;
-    } {
-        switch (action) {
-            case "SUBMIT":
-                return {
-                    title: "Submit data collection",
-                    message:
-                        "Are you sure you want to submit this data collection for validation? After submission, the questionnaire becomes read-only.",
-                    confirmLabel: "Submit",
-                    handler: submitDataCollection,
-                };
+    const refreshed =
+      await getDataCollectionById(dataCollection.id);
 
-            case "VALIDATE":
-                return {
-                    title: "Validate data collection",
-                    message:
-                        "Are you sure you want to validate this data collection?",
-                    confirmLabel: "Validate",
-                    handler: validateDataCollection,
-                };
+    setDataCollection(refreshed);
+    setPendingAction(null);
+  }
 
-            case "REJECT":
-                return {
-                    title: "Reject data collection",
-                    message:
-                        "Are you sure you want to reject this data collection?",
-                    confirmLabel: "Reject",
-                    handler: rejectDataCollection,
-                };
-
-            case "CANCEL":
-                return {
-                    title: "Cancel data collection",
-                    message:
-                        "Are you sure you want to cancel this data collection?",
-                    confirmLabel: "Cancel collection",
-                    handler: cancelDataCollection,
-                };
-        }
-
-        throw new Error("Unknown pending action");
-    }
-
-    async function handleConfirmAction() {
-        if (!pendingAction) {
-            return;
-        }
-
-        const { handler } =
-            getActionDetails(pendingAction);
-
-        await handleAction(handler);
-
-        setPendingAction(null);
-    }
-
-    if (isLoading) {
-        return (
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    py: 8,
-                }}
-            >
-                <CircularProgress 
-            onObservationSelect={(observationId) =>
-              setSelectedObservationId(observationId)
-            }
-          />
-      )}
-            </Box>
-        );
-    }
-
-    if (error || !dataCollection) {
-        return (
-            <Alert severity="error">
-                {error ?? "Data Collection not found."}
-            </Alert>
-        );
-    }
-
-    const item = dataCollection;
-  const [selectedObservationId, setSelectedObservationId] = useState<string>();
-
-    const campaign =
-        campaigns.find(
-            (entry) =>
-                entry.id === item.campaignId,
-        );
-
-    const country =
-        countries.find(
-            (entry) =>
-                entry.id === item.countryId,
-        );
-
-    const questionnaire =
-        questionnaires.find(
-            (entry) =>
-                entry.id === item.questionnaireId,
-        );
-
-    const organization =
-        organizations.find(
-            (entry) =>
-                entry.id ===
-                item.responsibleOrganizationId,
-        );
-
-    const operatorOrganization =
-        organizations.find(
-            (entry) =>
-                entry.id ===
-                item.operatorOrganizationId,
-        );
-
-    const person =
-        persons.find(
-            (entry) =>
-                entry.id === item.dataCollectorId,
-        );
-
+  if (loading) {
     return (
-        <Box>
-            <Button
-                onClick={() => navigate(-1)}
-                sx={{
-                    mb: 3,
-                }}
-            >
-                Back
-            </Button>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          py: 8,
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-            <Typography
-                variant="h4"
-                sx={{
-                    fontWeight: 700,
-                    mb: 1,
-                    textAlign: "left",
-                }}
-            >
-                Data Collection Details
-            </Typography>
+  if (error || !dataCollection) {
+    return (
+      <Alert severity="error">
+        {error ?? "Data Collection not found."}
+      </Alert>
+    );
+  }
 
-            <Typography
-                color="text.secondary"
-                sx={{
-                    mb: 4,
-                    textAlign: "left",
-                }}
-            >
-                Detailed information and workflow actions.
-            </Typography>
 
-            <Card>
-                <CardContent sx={{ textAlign: "left" }}>
-                    <Stack spacing={3}>
-                        <Stack
-                            direction="row"
-                            sx={{
-                                justifyContent:
-                                    "space-between",
-                                alignItems:
-                                    "center",
-                            }}
-                        >
-                            <Typography
-                                variant="h6"
-                                sx={{
-                                    fontWeight: 600,
-                                }}
-                            >
-                                Status
-                            </Typography>
+  return (
+    <>
+      <Box>
+        <Button
+          onClick={() => navigate(-1)}
+          sx={{ mb: 3 }}
+        >
+          Back
+        </Button>
 
-                            <Chip
-                                label={item.status}
-                                color={
-                                    item.status ===
-                                    "VALIDATED"
-                                        ? "success"
-                                        : item.status ===
-                                          "REJECTED"
-                                        ? "error"
-                                        : item.status ===
-                                          "SUBMITTED"
-                                        ? "primary"
-                                        : item.status ===
-                                          "IN_PROGRESS"
-                                        ? "warning"
-                                        : "default"
-                                }
-                            />
-                        </Stack>
+        <Typography
+          variant="h4"
+          sx={{ fontWeight: 700 }}
+        >
+          Data Collection Details
+        </Typography>
 
-                        {[
-                            "DRAFT",
-                            "IN_PROGRESS",
-                            "SUBMITTED",
-                            "REJECTED",
-                        ].includes(item.status) && (
-                            <Button
-                                variant="outlined"
-                                color="error"
-                                disabled={isActionLoading}
-                                onClick={() =>
-                                    setPendingAction(
-                                        "CANCEL",
-                                    )
-                                }
-                            >
-                                Cancel
-                            </Button>
-                        )}
+        <Typography
+          color="text.secondary"
+          sx={{ mb: 3 }}
+        >
+          {dataCollection.questionnaireId}
+        </Typography>
 
-                        {item.status === "DRAFT" && (
-                            <Button
-                                variant="contained"
-                                disabled={
-                                    isActionLoading
-                                }
-                                onClick={() =>
-                                    void handleAction(
-                                        startDataCollection,
-                                    )
-                                }
-                            >
-                                Start
-                            </Button>
-                        )}
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Stack spacing={2}>
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography variant="caption">
+                    Campaign
+                  </Typography>
+                  <Typography>
+                    {dataCollection.campaignId}
+                  </Typography>
+                </Grid>
 
-                        {(item.status ===
-                            "IN_PROGRESS" ||
-                            item.status ===
-                            "REJECTED") && (
-                            <Button
-                                variant="contained"
-                                disabled={
-                                    isActionLoading
-                                }
-                                onClick={() =>
-                                    void handleAction(
-                                        submitDataCollection,
-                                    )
-                                }
-                            >
-                                SUBMIT FOR VALIDATION
-                            </Button>
-                        )}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography variant="caption">
+                    Country
+                  </Typography>
+                  <Typography>
+                    {dataCollection.countryId}
+                  </Typography>
+                </Grid>
 
-                        {item.status ===
-                            "SUBMITTED" && (
-                            <Stack
-                                direction="row"
-                                spacing={2}
-                            >
-                                <Button
-                                    variant="contained"
-                                    disabled={
-                                        isActionLoading
-                                    }
-                                    onClick={() =>
-                                        setPendingAction(
-                                            "VALIDATE",
-                                        )
-                                    }
-                                >
-                                    Validate
-                                </Button>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography variant="caption">
+                    Questionnaire
+                  </Typography>
+                  <Typography>
+                    {dataCollection.questionnaireId}
+                  </Typography>
+                </Grid>
 
-                                <Button
-                                    variant="outlined"
-                                    color="error"
-                                    disabled={
-                                        isActionLoading
-                                    }
-                                    onClick={() =>
-                                        setPendingAction(
-                                            "REJECT",
-                                        )
-                                    }
-                                >
-                                    Reject
-                                </Button>
-                            </Stack>
-                        )}
-
-                        <Box>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
-                                Campaign
-                            </Typography>
-
-                            <Typography>
-                                {campaign
-                                    ? `${campaign.code} — ${campaign.name}`
-                                    : item.campaignId}
-                            </Typography>
-                        </Box>
-
-                        <Box>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
-                                Country
-                            </Typography>
-
-                            <Typography>
-                                {country
-                                    ? `${country.iso3Code} — ${country.name}`
-                                    : item.countryId}
-                            </Typography>
-                        </Box>
-
-                        <Box>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
-                                Questionnaire
-                            </Typography>
-
-                            <Typography>
-                                {questionnaire
-                                    ? `${questionnaire.code} — ${questionnaire.name}`
-                                    : item.questionnaireId}
-                            </Typography>
-                        </Box>
-
-                        <Box>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
-                                Responsible Organization
-                            </Typography>
-
-                            <Typography>
-                                {organization
-                                    ? `${organization.code} — ${organization.name}`
-                                    : item.responsibleOrganizationId}
-                            </Typography>
-                        </Box>
-
-                        <Box>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
-                                Operator Organization
-                            </Typography>
-
-                            <Typography>
-                                {operatorOrganization
-                                    ? `${operatorOrganization.code} — ${operatorOrganization.name}`
-                                    : item.operatorOrganizationId}
-                            </Typography>
-                        </Box>
-
-                        <Box>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
-                                Data Collector
-                            </Typography>
-
-                            <Typography>
-                                {person
-                                    ? person.fullName
-                                    : item.dataCollectorId}
-                            </Typography>
-                        </Box>
-
-                        <Box>
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                            >
-                                Data Collection ID
-                            </Typography>
-
-                            <Typography>
-                                {item.id}
-                            </Typography>
-                        </Box>
-                    </Stack>
-                </CardContent>
-            </Card>
-
-            {isQuestionnaireStructureLoading && (
-                <Card>
-                    <CardContent>
-                        <Box
-                            sx={{
-                                display: "flex",
-                                justifyContent: "center",
-                                py: 4,
-                            }}
-                        >
-                            <CircularProgress />
-                        </Box>
-                    </CardContent>
-                </Card>
-            )}
-
-            {questionnaireStructureError && (
-                <Alert severity="error">
-                    {questionnaireStructureError}
-                </Alert>
-            )}
-
-            {!isQuestionnaireStructureLoading &&
-                !questionnaireStructureError &&
-                dataCollection &&
-                questionnaireRenderType === "SPREADSHEET" && (
-                    <Grid container spacing={2}>
-          <Grid size={{ xs: 12, lg: 8 }}>
-                  <ValidationDashboard
-        dataCollectionId={dataCollection.id}
-      />
-
-<SpreadsheetDataEntryForm
-                        dataCollectionId={dataCollection.id}
-                        groups={questionnaireGroups}
-                        variables={questionnaireVariables}
-                        status={dataCollection.status}
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography variant="caption">
+                    Status
+                  </Typography>
+                  <Box sx={{ mt: 0.5 }}>
+                    <Chip
+                      label={dataCollection.status}
+                      color={statusColor}
                     />
+                  </Box>
+                </Grid>
+              </Grid>
+
+              <Stack
+                direction="row"
+                spacing={1}
+              >
+                <Button
+                  variant="contained"
+                  onClick={() =>
+                    setPendingAction("SUBMIT")
+                  }
+                >
+                  Submit
+                </Button>
+
+                <Button
+                  color="success"
+                  variant="contained"
+                  onClick={() =>
+                    setPendingAction("APPROVE")
+                  }
+                >
+                  Validate
+                </Button>
+
+                <Button
+                  color="error"
+                  variant="contained"
+                  onClick={() =>
+                    setPendingAction("REJECT")
+                  }
+                >
+                  Reject
+                </Button>
+              </Stack>
+            </Stack>
+          </CardContent>
+        </Card>
+
+        <ValidationDashboard
+          dataCollectionId={dataCollection.id}
+        />
+
+        <Grid
+          container
+          spacing={3}
+          sx={{ mt: 2 }}
+        >
+          <Grid size={{ xs: 12, lg: 8 }}>
+            <Tabs
+              value={tab}
+              onChange={(_, value) => setTab(value)}
+              sx={{ mb: 2 }}
+            >
+              <Tab label="Questionnaire" />
+              <Tab label="Spreadsheet" />
+            </Tabs>
+
+            {structureLoading ? (
+              <CircularProgress />
+            ) : tab === 0 ? (
+              <DataEntryForm
+                dataCollectionId={dataCollection.id}
+                groups={groups}
+                variables={variables}
+              />
+            ) : (
+              <SpreadsheetDataEntryForm
+                dataCollectionId={dataCollection.id}
+                groups={groups}
+                variables={variables}
+                status={dataCollection.status}
+              />
+            )}
           </Grid>
 
           <Grid size={{ xs: 12, lg: 4 }}>
-            <ReviewPanel observationId={selectedObservationId} />
+            <ReviewPanel
+              observationId={selectedObservationId}
+            />
           </Grid>
         </Grid>
-                )}
+      </Box>
 
-            {!isQuestionnaireStructureLoading &&
-                !questionnaireStructureError &&
-                dataCollection &&
-                questionnaireRenderType !== "SPREADSHEET" && (
-                    
-      <Tabs
-        value={tab}
-        onChange={(_, value) => setTab(value)}
-        sx={{ mb: 3 }}
+      <Dialog
+        open={pendingAction !== null}
+        onClose={() => setPendingAction(null)}
       >
-        <Tab label="Questionnaire" />
-        <Tab label="Spreadsheet" />
-      </Tabs>
+        <DialogTitle>
+          Confirm action
+        </DialogTitle>
 
-      {tab === 0 && (
-<DataEntryForm
-                        dataCollectionId={dataCollection.id}
-                        groups={questionnaireGroups}
-                        variables={questionnaireVariables}
-                    />
-                )}
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to continue?
+          </DialogContentText>
+        </DialogContent>
 
-            <Dialog
-                open={pendingAction !== null}
-                onClose={() => {
-                    if (!isActionLoading) {
-                        setPendingAction(null);
-                    }
-                }}
-            >
-                {pendingAction && (
-                    <>
-                        <DialogTitle>
-                            {
-                                getActionDetails(
-                                    pendingAction,
-                                ).title
-                            }
-                        </DialogTitle>
+        <DialogActions>
+          <Button
+            onClick={() =>
+              setPendingAction(null)
+            }
+          >
+            Cancel
+          </Button>
 
-                        <DialogContent>
-                            <DialogContentText>
-                                {
-                                    getActionDetails(
-                                        pendingAction,
-                                    ).message
-                                }
-                            </DialogContentText>
-                        </DialogContent>
-
-                        <DialogActions>
-                            <Button
-                                disabled={
-                                    isActionLoading
-                                }
-                                onClick={() =>
-                                    setPendingAction(
-                                        null,
-                                    )
-                                }
-                            >
-                                Back
-                            </Button>
-
-                            <Button
-                                variant="contained"
-                                color={
-                                    pendingAction ===
-                                    "VALIDATE"
-                                        ? "primary"
-                                        : "error"
-                                }
-                                disabled={
-                                    isActionLoading
-                                }
-                                onClick={() =>
-                                    void handleConfirmAction()
-                                }
-                            >
-                                {
-                                    getActionDetails(
-                                        pendingAction,
-                                    ).confirmLabel
-                                }
-                            </Button>
-                        </DialogActions>
-                    </>
-                )}
-            </Dialog>
-        </Box>
-    );
+          <Button
+            variant="contained"
+            onClick={() => void handleConfirm()}
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
 }

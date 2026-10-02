@@ -9,6 +9,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class JwtService {
@@ -22,11 +23,11 @@ public class JwtService {
     private final SecretKey key =
             Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
-    public String generateToken(Long userId, String email, List<String> roles) {
+    public String generateToken(UUID userId, String email, List<String> roles) {
 
         return Jwts.builder()
                 .subject(email)
-                .claim("uid", userId)
+                .claim("uid", userId.toString())
                 .claim("roles", roles)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION))

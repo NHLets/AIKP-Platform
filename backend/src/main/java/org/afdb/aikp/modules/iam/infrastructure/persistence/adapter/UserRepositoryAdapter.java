@@ -9,6 +9,7 @@ import org.afdb.aikp.modules.iam.domain.valueobject.Username;
 import org.afdb.aikp.modules.iam.infrastructure.persistence.entity.UserEntity;
 import org.afdb.aikp.modules.iam.infrastructure.persistence.mapper.UserPersistenceMapper;
 import org.afdb.aikp.modules.iam.infrastructure.persistence.repository.SpringDataUserRepository;
+import org.afdb.aikp.modules.iam.role.infrastructure.persistence.repository.SpringDataRoleRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,9 +19,13 @@ import java.util.Optional;
 public class UserRepositoryAdapter implements UserRepository {
 
     private final SpringDataUserRepository repository;
+    private final SpringDataRoleRepository roleRepository;
 
-    public UserRepositoryAdapter(SpringDataUserRepository repository) {
+    public UserRepositoryAdapter(
+            SpringDataUserRepository repository,
+            SpringDataRoleRepository roleRepository) {
         this.repository = repository;
+        this.roleRepository = roleRepository;
     }
 
     @Override
@@ -28,6 +33,14 @@ public class UserRepositoryAdapter implements UserRepository {
 
         UserEntity entity =
                 UserPersistenceMapper.toEntity(user);
+
+        if (user.getRole() != null) {
+            entity.setRole(
+                    roleRepository.getReferenceById(
+                            user.getRole().getId().getValue()
+                    )
+            );
+        }
 
         UserEntity saved =
                 repository.save(entity);
