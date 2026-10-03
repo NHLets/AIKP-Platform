@@ -12,6 +12,8 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -65,6 +67,38 @@ public class ApiExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 exception,
                 request);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ProblemDetail handleMissingRequestParameter(
+            MissingServletRequestParameterException exception,
+            HttpServletRequest request) {
+
+        ProblemDetail problem =
+                ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+
+        problem.setTitle("Bad Request");
+        problem.setDetail(exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("timestamp", OffsetDateTime.now());
+
+        return problem;
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ProblemDetail handleMethodArgumentTypeMismatch(
+            MethodArgumentTypeMismatchException exception,
+            HttpServletRequest request) {
+
+        ProblemDetail problem =
+                ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+
+        problem.setTitle("Bad Request");
+        problem.setDetail(exception.getMessage());
+        problem.setInstance(URI.create(request.getRequestURI()));
+        problem.setProperty("timestamp", OffsetDateTime.now());
+
+        return problem;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
