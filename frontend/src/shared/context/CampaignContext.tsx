@@ -17,9 +17,21 @@ const CampaignContext = createContext<CampaignContextType | undefined>(undefined
 
 export function CampaignProvider({ children }: { children: ReactNode }) {
 
-  const [campaignId, setCampaignId] = useState(() => {
+  const [campaignId, setCampaignId] = useState<string>(() => {
     const saved = localStorage.getItem("campaign_context");
-    return saved ? JSON.parse(saved).campaignId : 1;
+
+    if (!saved) {
+      return "";
+    }
+
+    try {
+      const parsed = JSON.parse(saved);
+      return typeof parsed.campaignId === "string"
+        ? parsed.campaignId
+        : "";
+    } catch {
+      return "";
+    }
   });
   const [referenceYear, setReferenceYear] = useState(() => {
     const saved = localStorage.getItem("campaign_context");

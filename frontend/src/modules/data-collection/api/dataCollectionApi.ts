@@ -6,7 +6,7 @@ import type {
 } from "../types/dataCollection.types";
 
 const DATA_COLLECTIONS_ENDPOINT =
-    "http://localhost:8080/api/data-collections";
+    "/data-collections";
 
 
 export interface CreateDataCollectionRequest {

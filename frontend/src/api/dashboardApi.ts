@@ -1,16 +1,12 @@
-import axios from 'axios';
+import axiosClient from "../shared/api/axiosClient";
 import type { DashboardOverview } from "../types/dashboard";
 
-const api = axios.create({
-  baseURL: '/api',
-});
-
 export async function getDashboardOverview(
-  campaignId: number,
+  campaignId: string,
   referenceYear: number
 ): Promise<DashboardOverview> {
 
-  const { data } = await api.get(
+  const { data } = await axiosClient.get(
     '/dashboard/analytics/overview',
     {
       params: {

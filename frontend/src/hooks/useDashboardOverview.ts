@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getDashboardOverview } from '../api/dashboardApi';
 
 export function useDashboardOverview(
-  campaignId: number,
+  campaignId: string,
   referenceYear: number
 ) {
   return useQuery({

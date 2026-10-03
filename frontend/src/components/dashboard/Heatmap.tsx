@@ -33,7 +33,14 @@ export default function Heatmap({ data }: Props) {
 
         <Table size="small">
           <TableHead>
-            <TableRow>
+            <TableRow
+              sx={{
+                '& th': {
+                  fontWeight: 'bold',
+                  backgroundColor: '#F5F7FA'
+                }
+              }}
+            >
               <TableCell>Questionnaire</TableCell>
               <TableCell>Variable</TableCell>
               <TableCell align="center">Comments</TableCell>
@@ -41,22 +48,37 @@ export default function Heatmap({ data }: Props) {
           </TableHead>
 
           <TableBody>
-            {data.map((row, index) => (
-              <TableRow key={index}>
-                <TableCell>{row.questionnaire}</TableCell>
-                <TableCell>{row.variable}</TableCell>
+            {data.length === 0 ? (
+              <TableRow>
                 <TableCell
+                  colSpan={3}
                   align="center"
-                  sx={{
-                    bgcolor: color(row.count),
-                    color: row.count > max * 0.5 ? '#fff' : '#000',
-                    fontWeight: 'bold'
-                  }}
+                  sx={{ py: 4, color: 'text.secondary' }}
                 >
-                  {row.count}
+                  No validation comments found.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              data.map((row, index) => (
+                <TableRow
+                  key={index}
+                  hover
+                >
+                  <TableCell>{row.questionnaire}</TableCell>
+                  <TableCell>{row.variable}</TableCell>
+                  <TableCell
+                    align="center"
+                    sx={{
+                      bgcolor: color(row.count),
+                      color: row.count > max * 0.5 ? '#fff' : '#000',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {row.count}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </CardContent>

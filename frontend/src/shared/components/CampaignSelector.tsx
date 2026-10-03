@@ -20,7 +20,7 @@ export default function CampaignSelector() {
 
       <Select
         value={
-          campaigns.some((campaign) => String(campaign.id) === campaignId)
+          campaigns.some((campaign) => campaign.id === campaignId)
             ? campaignId
             : ""
         }

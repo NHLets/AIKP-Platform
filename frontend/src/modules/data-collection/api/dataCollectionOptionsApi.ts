@@ -52,7 +52,7 @@ export async function getCampaigns(): Promise<
 > {
     const response = await axiosClient.get<
         CampaignOption[]
-    >("/campaigns");
+    >("/v1/campaigns");
 
     return response.data;
 }
@@ -62,7 +62,7 @@ export async function getCountries(): Promise<
 > {
     const response = await axiosClient.get<
         CountryOption[]
-    >("/countries");
+    >("/v1/countries");
 
     return response.data;
 }
@@ -72,7 +72,7 @@ export async function getQuestionnaires(): Promise<
 > {
     const response = await axiosClient.get<
         QuestionnaireOption[]
-    >("/questionnaires");
+    >("/v1/questionnaires");
 
     return response.data;
 }
@@ -82,7 +82,7 @@ export async function getOrganizations(): Promise<
 > {
     const response = await axiosClient.get<
         OrganizationOption[]
-    >("/organizations");
+    >("/v1/organizations");
 
     return response.data;
 }
@@ -92,7 +92,7 @@ export async function getPersons(): Promise<
 > {
     const response = await axiosClient.get<
         PersonOption[]
-    >("/persons");
+    >("/v1/persons");
 
     return response.data;
 }
@@ -103,7 +103,7 @@ export async function getCountriesByCampaign(
     const response = await axiosClient.get<
         CampaignCountryOption[]
     >(
-        `/campaigns/${campaignId}/countries`,
+        `/v1/campaigns/${campaignId}/countries`,
     );
 
     return response.data;

@@ -37,8 +37,13 @@ export default function LoginPage() {
 
       login(response);
 
-    } catch {
-      setError("Invalid email or password");
+    } catch (error) {
+      console.error("LOGIN ERROR:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Login failed"
+      );
     }
   };
 

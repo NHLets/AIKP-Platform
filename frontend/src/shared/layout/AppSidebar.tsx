@@ -76,7 +76,7 @@ const dataCollectionItems: NavigationItem[] = [
     },
   {
     label: "Analytics",
-    path: "/dashboard",
+    path: "/analytics",
     icon: <AnalyticsOutlinedIcon />,
   },
 

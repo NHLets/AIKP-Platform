@@ -11,9 +11,9 @@ export interface SeverityDistribution {
 }
 
 export interface ValidationTrend {
-  month: number;
-  monthName: string;
-  count: number;
+  period: string;
+  validated: number;
+  rejected: number;
 }
 
 export interface ValidationHeatmap {

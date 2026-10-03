@@ -21,10 +21,9 @@ interface Props {
 
 const COLORS = {
   CRITICAL: '#D32F2F',
-  ERROR: '#F57C00',
-  WARNING: '#FBC02D',
-  INFO: '#1976D2'
-};
+  HIGH: '#F57C00',
+  MEDIUM: '#FBC02D'
+} as const;
 
 export default function SeverityChart({ data }: Props) {
   return (
@@ -53,7 +52,11 @@ export default function SeverityChart({ data }: Props) {
             </Pie>
 
             <Tooltip />
-            <Legend />
+            <Legend
+              verticalAlign="bottom"
+              height={36}
+              wrapperStyle={{ paddingTop: 8 }}
+            />
           </PieChart>
         </ResponsiveContainer>
       </CardContent>

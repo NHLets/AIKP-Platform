@@ -1,6 +1,6 @@
 -- ============================================================
 -- AIKP Platform
--- V2.604__iam_roles_realign.sql
+-- V8__iam_roles_realign.sql
 -- Align legacy/reference IAM roles with identity.roles
 -- ============================================================
 

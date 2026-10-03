@@ -10,7 +10,7 @@ import type {
 
 export async function getCampaigns(): Promise<CampaignSummary[]> {
     const response = await axiosClient.get<CampaignSummary[]>(
-        "/campaigns",
+        "/v1/campaigns",
     );
 
     return response.data;
@@ -21,7 +21,7 @@ export async function getCampaignById(
     id: string,
 ): Promise<Campaign> {
     const response = await axiosClient.get<Campaign>(
-        `/campaigns/${id}`,
+        `/v1/campaigns/${id}`,
     );
 
     return response.data;
@@ -32,7 +32,7 @@ export async function createCampaign(
     request: CreateCampaignRequest,
 ): Promise<Campaign> {
     const response = await axiosClient.post<Campaign>(
-        "/campaigns",
+        "/v1/campaigns",
         request,
     );
 
@@ -45,7 +45,7 @@ export async function updateCampaign(
     request: UpdateCampaignRequest,
 ): Promise<Campaign> {
     const response = await axiosClient.put<Campaign>(
-        `/campaigns/${id}`,
+        `/v1/campaigns/${id}`,
         request,
     );
 
@@ -57,7 +57,7 @@ export async function planCampaign(
     id: string,
 ): Promise<Campaign> {
     const response = await axiosClient.patch<Campaign>(
-        `/campaigns/${id}/plan`,
+        `/v1/campaigns/${id}/plan`,
     );
 
     return response.data;
@@ -68,7 +68,7 @@ export async function activateCampaign(
     id: string,
 ): Promise<Campaign> {
     const response = await axiosClient.patch<Campaign>(
-        `/campaigns/${id}/activate`,
+        `/v1/campaigns/${id}/activate`,
     );
 
     return response.data;
@@ -79,7 +79,7 @@ export async function completeCampaign(
     id: string,
 ): Promise<Campaign> {
     const response = await axiosClient.patch<Campaign>(
-        `/campaigns/${id}/complete`,
+        `/v1/campaigns/${id}/complete`,
     );
 
     return response.data;
@@ -90,7 +90,7 @@ export async function archiveCampaign(
     id: string,
 ): Promise<Campaign> {
     const response = await axiosClient.patch<Campaign>(
-        `/campaigns/${id}/archive`,
+        `/v1/campaigns/${id}/archive`,
     );
 
     return response.data;
@@ -101,6 +101,6 @@ export async function deleteCampaign(
     id: string,
 ): Promise<void> {
     await axiosClient.delete(
-        `/campaigns/${id}`,
+        `/v1/campaigns/${id}`,
     );
 }

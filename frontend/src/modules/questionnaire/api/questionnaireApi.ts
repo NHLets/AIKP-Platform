@@ -14,7 +14,7 @@ export async function getQuestionnaires(): Promise<
 > {
     const response = await axiosClient.get<
         QuestionnaireSummary[]
-    >("/questionnaires");
+    >("/v1/questionnaires");
 
     return response.data;
 }
@@ -24,7 +24,7 @@ export async function getQuestionnaire(
 ): Promise<Questionnaire> {
     const response = await axiosClient.get<
         Questionnaire
-    >(`/questionnaires/${id}`);
+    >(`/v1/questionnaires/${id}`);
 
     return response.data;
 }
@@ -35,7 +35,7 @@ export async function createQuestionnaire(
     const response = await axiosClient.post<
         Questionnaire
     >(
-        "/questionnaires",
+        "/v1/questionnaires",
         request,
     );
 
@@ -49,7 +49,7 @@ export async function updateQuestionnaire(
     const response = await axiosClient.put<
         Questionnaire
     >(
-        `/questionnaires/${id}`,
+        `/v1/questionnaires/${id}`,
         request,
     );
 
@@ -62,7 +62,7 @@ export async function submitQuestionnaireForReview(
     const response = await axiosClient.patch<
         Questionnaire
     >(
-        `/questionnaires/${id}/submit-for-review`,
+        `/v1/questionnaires/${id}/submit-for-review`,
     );
 
     return response.data;
@@ -74,7 +74,7 @@ export async function approveQuestionnaire(
     const response = await axiosClient.patch<
         Questionnaire
     >(
-        `/questionnaires/${id}/approve`,
+        `/v1/questionnaires/${id}/approve`,
     );
 
     return response.data;
@@ -86,7 +86,7 @@ export async function activateQuestionnaire(
     const response = await axiosClient.patch<
         Questionnaire
     >(
-        `/questionnaires/${id}/activate`,
+        `/v1/questionnaires/${id}/activate`,
     );
 
     return response.data;
@@ -98,7 +98,7 @@ export async function deactivateQuestionnaire(
     const response = await axiosClient.patch<
         Questionnaire
     >(
-        `/questionnaires/${id}/deactivate`,
+        `/v1/questionnaires/${id}/deactivate`,
     );
 
     return response.data;
@@ -110,7 +110,7 @@ export async function publishQuestionnaire(
     const response = await axiosClient.patch<
         Questionnaire
     >(
-        `/questionnaires/${id}/publish`,
+        `/v1/questionnaires/${id}/publish`,
     );
 
     return response.data;
@@ -122,7 +122,7 @@ export async function archiveQuestionnaire(
     const response = await axiosClient.patch<
         Questionnaire
     >(
-        `/questionnaires/${id}/archive`,
+        `/v1/questionnaires/${id}/archive`,
     );
 
     return response.data;
@@ -132,6 +132,6 @@ export async function deleteQuestionnaire(
     id: string,
 ): Promise<void> {
     await axiosClient.delete(
-        `/questionnaires/${id}`,
+        `/v1/questionnaires/${id}`,
     );
 }

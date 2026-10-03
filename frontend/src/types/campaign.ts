@@ -1,5 +1,5 @@
 export interface CampaignSummary {
-  id: number;
+  id: string;
   code: string;
   name: string;
   referenceYear: number;
