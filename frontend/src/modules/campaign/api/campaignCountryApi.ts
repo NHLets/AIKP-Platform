@@ -6,7 +6,7 @@ import type {
 } from "../types/campaignCountry.types";
 
 
-const BASE_PATH = "/campaigns";
+const BASE_PATH = "/v1/campaigns";
 
 
 export async function getCampaignCountries(
