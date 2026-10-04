@@ -4,6 +4,7 @@ import LoginPage from "@/modules/auth/pages/LoginPage";
 
 import CampaignDetailPage from "@/modules/campaign/pages/CampaignDetailPage";
 import CampaignListPage from "@/modules/campaign/pages/CampaignListPage";
+import CountryListPage from "@/modules/country/pages/CountryListPage";
 
 import CreateDataCollectionPage from "@/modules/data-collection/pages/CreateDataCollectionPage";
 import DataCollectionDetailPage from "@/modules/data-collection/pages/DataCollectionDetailPage";
@@ -57,6 +58,15 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard roles={ALL_ROLES}>
             <DashboardPage />
+          </RoleGuard>
+        ),
+      },
+
+      {
+        path: "countries",
+        element: (
+          <RoleGuard roles={ALL_ROLES}>
+            <CountryListPage />
           </RoleGuard>
         ),
       },

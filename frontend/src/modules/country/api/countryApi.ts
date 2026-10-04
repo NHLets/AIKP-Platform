@@ -12,7 +12,7 @@ export const countryApi = {
     async getAll(): Promise<CountrySummary[]> {
 
         const response =
-            await axiosClient.get<CountrySummary[]>("/countries");
+            await axiosClient.get<CountrySummary[]>("/v1/countries");
 
         return response.data;
 
@@ -24,7 +24,7 @@ export const countryApi = {
 
         const response =
             await axiosClient.post<CountryResponse>(
-                "/countries",
+                "/v1/countries",
                 request,
             );
 
@@ -39,7 +39,7 @@ export const countryApi = {
 
         const response =
             await axiosClient.put<CountryResponse>(
-                `/countries/${id}`,
+                `/v1/countries/${id}`,
                 request,
             );
 
@@ -49,13 +49,13 @@ export const countryApi = {
 
     async delete(id: string): Promise<void> {
 
-        await axiosClient.delete(`/countries/${id}`);
+        await axiosClient.delete(`/v1/countries/${id}`);
 
     },
     async activate(id: string): Promise<void> {
 
     await axiosClient.patch(
-        `/countries/${id}/activate`,
+        `/v1/countries/${id}/activate`,
     );
 
     },
@@ -63,7 +63,7 @@ export const countryApi = {
 async deactivate(id: string): Promise<void> {
 
     await axiosClient.patch(
-        `/countries/${id}/deactivate`,
+        `/v1/countries/${id}/deactivate`,
     );
 
     },
