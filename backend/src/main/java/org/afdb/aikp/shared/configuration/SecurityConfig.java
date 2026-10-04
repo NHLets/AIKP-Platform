@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.Customizer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +23,9 @@ import org.afdb.aikp.shared.security.JwtAuthenticationFilter;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    @Value("${aikp.security.cors.allowed-origins:https://letsara.co}")
+    private List<String> allowedCorsOrigins;
 
     private final JwtAuthenticationFilter jwtFilter;
 
@@ -75,12 +79,7 @@ public class SecurityConfig {
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
-        configuration.setAllowedOrigins(
-                List.of(
-                        "https://letsara.co",
-                        "https://www.letsara.co"
-                )
-        );
+        configuration.setAllowedOrigins(allowedCorsOrigins);
 
         configuration.setAllowedMethods(
                 List.of(

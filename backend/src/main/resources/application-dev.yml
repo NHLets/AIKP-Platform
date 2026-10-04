@@ -49,3 +49,9 @@ logging:
     org.hibernate.SQL: DEBUG
 
     org.springframework: INFO
+
+aikp:
+  security:
+    cors:
+      allowed-origins:
+        - http://localhost:5173

@@ -46,3 +46,10 @@ logging:
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
+
+aikp:
+  security:
+    cors:
+      allowed-origins:
+        - https://letsara.co
+        - https://www.letsara.co
