@@ -30,7 +30,6 @@ import {
     getCampaigns,
     getCountries,
     getOrganizations,
-    getPersons,
     getQuestionnaires,
 } from "../api/dataCollectionOptionsApi";
 
@@ -38,7 +37,6 @@ import type {
     CampaignOption,
     CountryOption,
     OrganizationOption,
-    PersonOption,
     QuestionnaireOption,
 } from "../api/dataCollectionOptionsApi";
 
@@ -92,9 +90,6 @@ export default function DataCollectionListPage() {
     const [organizations, setOrganizations] =
         useState<OrganizationOption[]>([]);
 
-    const [persons, setPersons] =
-        useState<PersonOption[]>([]);
-
     const [campaignFilter, setCampaignFilter] =
         useState("");
 
@@ -134,14 +129,12 @@ export default function DataCollectionListPage() {
                     countryData,
                     questionnaireData,
                     organizationData,
-                    personData,
                 ] = await Promise.all([
                     getDataCollections(),
                     getCampaigns(),
                     getCountries(),
                     getQuestionnaires(),
                     getOrganizations(),
-                    getPersons(),
                 ]);
 
                 setDataCollections(dataCollectionData);
@@ -149,7 +142,6 @@ export default function DataCollectionListPage() {
                 setCountries(countryData);
                 setQuestionnaires(questionnaireData);
                 setOrganizations(organizationData);
-                setPersons(personData);
             } catch (error) {
                 console.error(
                     "Failed to load data collections:",
@@ -214,8 +206,8 @@ export default function DataCollectionListPage() {
                                 item.responsibleOrganizationId,
                         );
 
-                    const person =
-                        persons.find(
+                    const dataCollectorOrganization =
+                        organizations.find(
                             (entry) =>
                                 entry.id ===
                                 item.dataCollectorId,
@@ -240,7 +232,8 @@ export default function DataCollectionListPage() {
                                 entry.id ===
                                 item.operatorOrganizationId,
                         )?.name,
-                        person?.fullName,
+                        dataCollectorOrganization?.code,
+                        dataCollectorOrganization?.name,
                         item.status,
                     ];
 
@@ -342,7 +335,6 @@ export default function DataCollectionListPage() {
             countries,
             questionnaires,
             organizations,
-            persons,
             campaignFilter,
             countryFilter,
             statusFilter,
@@ -678,8 +670,8 @@ export default function DataCollectionListPage() {
                                             item.operatorOrganizationId,
                                     );
 
-                                const person =
-                                    persons.find(
+                                const dataCollectorOrganization =
+                                    organizations.find(
                                         (entry) =>
                                             entry.id ===
                                             item.dataCollectorId,
@@ -729,8 +721,8 @@ export default function DataCollectionListPage() {
                                         </TableCell>
 
                                         <TableCell>
-                                            {person
-                                                ? person.fullName
+                                            {dataCollectorOrganization
+                                                ? `${dataCollectorOrganization.code} — ${dataCollectorOrganization.name}`
                                                 : item.dataCollectorId}
                                         </TableCell>
 

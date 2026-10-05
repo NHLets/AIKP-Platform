@@ -23,12 +23,10 @@ import {
     getCountries,
     getCountriesByCampaign,
     getOrganizations,
-    getPersons,
     getQuestionnaires,
     type CampaignOption,
     type CountryOption,
     type OrganizationOption,
-    type PersonOption,
     type QuestionnaireOption,
 } from "../api/dataCollectionOptionsApi";
 
@@ -69,9 +67,6 @@ export default function CreateDataCollectionPage() {
     const [organizations, setOrganizations] =
         useState<OrganizationOption[]>([]);
 
-    const [persons, setPersons] =
-        useState<PersonOption[]>([]);
-
     const [isLoading, setIsLoading] =
         useState(true);
 
@@ -92,13 +87,11 @@ export default function CreateDataCollectionPage() {
                     countryData,
                     questionnaireData,
                     organizationData,
-                    personData,
                 ] = await Promise.all([
                     getCampaigns(),
                     getCountries(),
                     getQuestionnaires(),
                     getOrganizations(),
-                    getPersons(),
                 ]);
 
                 setCampaigns(
@@ -125,11 +118,6 @@ export default function CreateDataCollectionPage() {
                     ),
                 );
 
-                setPersons(
-                    personData.filter(
-                        (item) => item.active,
-                    ),
-                );
             } catch (error) {
                 console.error(
                     "Failed to load form options:",
@@ -193,13 +181,6 @@ export default function CreateDataCollectionPage() {
     const filteredOrganizations =
         organizations.filter(
             (item) => item.countryId === countryId,
-        );
-
-    const filteredPersons =
-        persons.filter(
-            (item) =>
-                item.organizationId ===
-                responsibleOrganizationId,
         );
 
     async function handleSubmit(
@@ -427,12 +408,12 @@ export default function CreateDataCollectionPage() {
                                 required
                                 fullWidth
                             >
-                                {filteredPersons.map((item) => (
+                                {filteredOrganizations.map((item) => (
                                     <MenuItem
                                         key={item.id}
                                         value={item.id}
                                     >
-                                        {item.fullName}
+                                        {item.code} — {item.name}
                                     </MenuItem>
                                 ))}
                             </TextField>
