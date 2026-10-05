@@ -376,7 +376,8 @@ void shouldReturn409ForInvalidLifecycleTransition()
                         "AIKP2026",
                         "AIKP 2026 Pilot",
                         2026,
-                        CampaignStatus.ACTIVE
+                        CampaignStatus.ACTIVE,
+                        true
                 )
         ));
 

@@ -21,6 +21,9 @@ public record CampaignSummaryDto(
     Integer referenceYear,
 
     @Schema(description = "Campaign status")
-    CampaignStatus status
+    CampaignStatus status,
+
+    @Schema(description = "Whether the campaign is currently active")
+    boolean active
 
 ) {}

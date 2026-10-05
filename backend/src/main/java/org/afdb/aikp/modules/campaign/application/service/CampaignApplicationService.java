@@ -185,7 +185,8 @@ public class CampaignApplicationService {
                         c.getCode().getValue(),
                         c.getName().getValue(),
                         c.getStartDate().getYear(),
-                        c.getStatus()
+                        c.getStatus(),
+                        c.isActive()
                 ))
                 .toList();
     }
