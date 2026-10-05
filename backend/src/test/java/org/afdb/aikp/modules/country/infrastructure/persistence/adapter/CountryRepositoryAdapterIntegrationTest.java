@@ -9,7 +9,9 @@ import org.afdb.aikp.modules.country.domain.valueobject.Iso3Code;
 import org.afdb.aikp.modules.country.domain.valueobject.NumericCode;
 import org.afdb.aikp.modules.country.domain.valueobject.OfficialCountryName;
 import org.afdb.aikp.modules.country.infrastructure.persistence.entity.CountryEntity;
+import org.afdb.aikp.modules.campaigncountry.infrastructure.persistence.repository.CampaignCountryJpaRepository;
 import org.afdb.aikp.modules.country.infrastructure.persistence.repository.CountryJpaRepository;
+import org.afdb.aikp.modules.organization.infrastructure.persistence.repository.OrganizationJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,8 +67,16 @@ class CountryRepositoryAdapterIntegrationTest {
     @Autowired
     private CountryJpaRepository jpaRepository;
 
+    @Autowired
+    private CampaignCountryJpaRepository campaignCountryJpaRepository;
+
+    @Autowired
+    private OrganizationJpaRepository organizationJpaRepository;
+
     @BeforeEach
     void cleanDatabase() {
+        campaignCountryJpaRepository.deleteAll();
+        organizationJpaRepository.deleteAll();
         jpaRepository.deleteAll();
     }
 

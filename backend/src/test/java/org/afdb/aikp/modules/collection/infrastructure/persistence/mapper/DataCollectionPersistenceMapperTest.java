@@ -12,7 +12,6 @@ import org.afdb.aikp.modules.collection.domain.valueobject.DataCollectionId;
 import org.afdb.aikp.modules.collection.infrastructure.persistence.entity.DataCollectionEntity;
 import org.afdb.aikp.modules.country.domain.valueobject.CountryId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
-import org.afdb.aikp.modules.person.domain.valueobject.PersonId;
 import org.afdb.aikp.modules.questionnaire.domain.valueobject.QuestionnaireId;
 import org.junit.jupiter.api.Test;
 
@@ -39,8 +38,8 @@ class DataCollectionPersistenceMapperTest {
         OrganizationId organizationId =
                 OrganizationId.generate();
 
-        PersonId personId =
-                PersonId.generate();
+        OrganizationId dataCollectorOrganizationId =
+                OrganizationId.generate();
 
         DataCollection dataCollection =
                 DataCollection.create(
@@ -49,7 +48,8 @@ class DataCollectionPersistenceMapperTest {
                         countryId,
                         questionnaireId,
                         organizationId,
-                        personId);
+                        null,
+                        dataCollectorOrganizationId);
 
         DataCollectionEntity entity =
                 mapper.toEntity(dataCollection);
@@ -77,7 +77,7 @@ class DataCollectionPersistenceMapperTest {
                 entity.getResponsibleOrganizationId());
 
         assertEquals(
-                personId.getValue(),
+                dataCollectorOrganizationId.getValue(),
                 entity.getDataCollectorId());
 
         assertEquals(
@@ -103,7 +103,7 @@ class DataCollectionPersistenceMapperTest {
         UUID organizationId =
                 UUID.randomUUID();
 
-        UUID personId =
+        UUID dataCollectorOrganizationId =
                 UUID.randomUUID();
 
         DataCollectionEntity entity =
@@ -113,7 +113,7 @@ class DataCollectionPersistenceMapperTest {
                         countryId,
                         questionnaireId,
                         organizationId,
-                        personId,
+                        dataCollectorOrganizationId,
                         DataCollectionStatus.SUBMITTED);
 
         DataCollection dataCollection =
@@ -152,7 +152,7 @@ class DataCollectionPersistenceMapperTest {
                         .getValue());
 
         assertEquals(
-                personId,
+                dataCollectorOrganizationId,
                 dataCollection
                         .getDataCollectorId()
                         .getValue());
@@ -172,7 +172,8 @@ class DataCollectionPersistenceMapperTest {
                         CountryId.generate(),
                         QuestionnaireId.generate(),
                         OrganizationId.generate(),
-                        PersonId.generate());
+                        null,
+                        OrganizationId.generate());
 
         DataCollectionEntity entity =
                 mapper.toEntity(original);

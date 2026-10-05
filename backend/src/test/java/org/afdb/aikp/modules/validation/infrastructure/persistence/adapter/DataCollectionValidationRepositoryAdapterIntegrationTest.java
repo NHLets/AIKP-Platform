@@ -378,7 +378,7 @@ class DataCollectionValidationRepositoryAdapterIntegrationTest {
                         countryId,
                         questionnaire.getId(),
                         organizationId,
-                        personId);
+                        organizationId);
 
         dataCollectionRepository.save(dataCollection);
 

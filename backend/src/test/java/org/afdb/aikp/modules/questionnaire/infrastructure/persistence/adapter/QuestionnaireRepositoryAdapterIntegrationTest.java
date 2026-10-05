@@ -193,12 +193,13 @@ class QuestionnaireRepositoryAdapterIntegrationTest {
                 adapter.findAll();
 
         assertThat(questionnaires)
-                .hasSize(5);
+                .hasSize(6);
 
         assertThat(questionnaires)
                 .extracting(q ->
                         q.getCode().getValue())
                 .containsExactlyInAnyOrder(
+                "PW_A",
                 "PW_B",
                 "PW_C",
                 "F_G",

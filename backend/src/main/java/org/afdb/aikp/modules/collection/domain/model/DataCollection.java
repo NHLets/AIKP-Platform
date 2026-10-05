@@ -7,7 +7,6 @@ import org.afdb.aikp.modules.collection.domain.enums.DataCollectionStatus;
 import org.afdb.aikp.modules.collection.domain.valueobject.DataCollectionId;
 import org.afdb.aikp.modules.country.domain.valueobject.CountryId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
-import org.afdb.aikp.modules.person.domain.valueobject.PersonId;
 import org.afdb.aikp.modules.questionnaire.domain.valueobject.QuestionnaireId;
 import org.afdb.aikp.shared.domain.AggregateRoot;
 
@@ -38,7 +37,7 @@ public final class DataCollection
 
     private OrganizationId operatorOrganizationId;
 
-    private PersonId dataCollectorId;
+    private OrganizationId dataCollectorId;
 
     private DataCollectionStatus status;
 
@@ -49,7 +48,7 @@ public final class DataCollection
             QuestionnaireId questionnaireId,
             OrganizationId responsibleOrganizationId,
             OrganizationId operatorOrganizationId,
-            PersonId dataCollectorId,
+            OrganizationId dataCollectorId,
             DataCollectionStatus status) {
 
         super(Objects.requireNonNull(
@@ -95,7 +94,7 @@ public final class DataCollection
             CountryId countryId,
             QuestionnaireId questionnaireId,
             OrganizationId responsibleOrganizationId,
-            PersonId dataCollectorId) {
+            OrganizationId dataCollectorId) {
 
         return create(
                 id,
@@ -114,7 +113,7 @@ public final class DataCollection
             QuestionnaireId questionnaireId,
             OrganizationId responsibleOrganizationId,
             OrganizationId operatorOrganizationId,
-            PersonId dataCollectorId) {
+            OrganizationId dataCollectorId) {
 
         return new DataCollection(
                 id,
@@ -136,7 +135,7 @@ public final class DataCollection
             CountryId countryId,
             QuestionnaireId questionnaireId,
             OrganizationId responsibleOrganizationId,
-            PersonId dataCollectorId,
+            OrganizationId dataCollectorId,
             DataCollectionStatus status) {
 
         return restore(
@@ -157,7 +156,7 @@ public final class DataCollection
             QuestionnaireId questionnaireId,
             OrganizationId responsibleOrganizationId,
             OrganizationId operatorOrganizationId,
-            PersonId dataCollectorId,
+            OrganizationId dataCollectorId,
             DataCollectionStatus status) {
 
         return new DataCollection(
@@ -202,7 +201,7 @@ public final class DataCollection
      * Changes the designated data collector.
      */
     public void changeDataCollector(
-            PersonId dataCollectorId) {
+            OrganizationId dataCollectorId) {
 
         this.dataCollectorId =
                 Objects.requireNonNull(
@@ -308,7 +307,7 @@ public final class DataCollection
         return operatorOrganizationId;
     }
 
-    public PersonId getDataCollectorId() {
+    public OrganizationId getDataCollectorId() {
         return dataCollectorId;
     }
 

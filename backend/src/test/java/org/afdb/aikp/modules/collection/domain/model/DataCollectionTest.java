@@ -8,7 +8,6 @@ import org.afdb.aikp.modules.collection.domain.enums.DataCollectionStatus;
 import org.afdb.aikp.modules.collection.domain.valueobject.DataCollectionId;
 import org.afdb.aikp.modules.country.domain.valueobject.CountryId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
-import org.afdb.aikp.modules.person.domain.valueobject.PersonId;
 import org.afdb.aikp.modules.questionnaire.domain.valueobject.QuestionnaireId;
 
 import org.junit.jupiter.api.Test;
@@ -204,14 +203,14 @@ class DataCollectionTest {
         DataCollection dataCollection =
                 createDataCollection();
 
-        PersonId newPersonId =
-                PersonId.generate();
+        OrganizationId newDataCollectorOrganizationId =
+                OrganizationId.generate();
 
         dataCollection.changeDataCollector(
-                newPersonId);
+                newDataCollectorOrganizationId);
 
         assertEquals(
-                newPersonId,
+                newDataCollectorOrganizationId,
                 dataCollection.getDataCollectorId());
     }
 
@@ -223,6 +222,7 @@ class DataCollectionTest {
                 CountryId.generate(),
                 QuestionnaireId.generate(),
                 OrganizationId.generate(),
-                PersonId.generate());
+                null,
+                OrganizationId.generate());
     }
 }

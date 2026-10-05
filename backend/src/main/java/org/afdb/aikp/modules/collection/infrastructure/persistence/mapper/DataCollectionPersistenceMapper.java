@@ -6,7 +6,6 @@ import org.afdb.aikp.modules.collection.domain.valueobject.DataCollectionId;
 import org.afdb.aikp.modules.collection.infrastructure.persistence.entity.DataCollectionEntity;
 import org.afdb.aikp.modules.country.domain.valueobject.CountryId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
-import org.afdb.aikp.modules.person.domain.valueobject.PersonId;
 import org.afdb.aikp.modules.questionnaire.domain.valueobject.QuestionnaireId;
 
 import org.springframework.stereotype.Component;
@@ -56,7 +55,7 @@ public class DataCollectionPersistenceMapper {
                         ? null
                         : OrganizationId.of(
                                 entity.getOperatorOrganizationId()),
-                PersonId.of(
+                OrganizationId.of(
                         entity.getDataCollectorId()),
                 entity.getStatus());
     }

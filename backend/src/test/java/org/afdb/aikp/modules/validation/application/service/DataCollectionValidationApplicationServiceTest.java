@@ -420,7 +420,7 @@ class DataCollectionValidationApplicationServiceTest {
                 CountryId.generate(),
                 QuestionnaireId.generate(),
                 OrganizationId.generate(),
-                PersonId.generate(),
+                OrganizationId.generate(),
                 status);
     }
 

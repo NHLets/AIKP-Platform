@@ -68,7 +68,7 @@ class DataCollectionControllerTest {
         UUID questionnaireId = UUID.randomUUID();
         UUID organizationId = UUID.randomUUID();
         UUID operatorId = UUID.randomUUID();
-        UUID personId = UUID.randomUUID();
+        UUID dataCollectorOrganizationId = UUID.randomUUID();
 
         CreateDataCollectionRequest request =
                 new CreateDataCollectionRequest(
@@ -77,7 +77,7 @@ class DataCollectionControllerTest {
                         questionnaireId,
                         organizationId,
                         operatorId,
-                        personId);
+                        dataCollectorOrganizationId);
 
         DataCollectionResponse response =
                 response(
@@ -87,7 +87,7 @@ class DataCollectionControllerTest {
                         questionnaireId,
                         organizationId,
                         operatorId,
-                        personId,
+                        dataCollectorOrganizationId,
                         DataCollectionStatus.DRAFT);
 
         when(service.createDataCollection(any()))
@@ -275,13 +275,13 @@ class DataCollectionControllerTest {
         UUID id = UUID.randomUUID();
         UUID organizationId = UUID.randomUUID();
         UUID operatorId = UUID.randomUUID();
-        UUID personId = UUID.randomUUID();
+        UUID dataCollectorOrganizationId = UUID.randomUUID();
 
         UpdateDataCollectionRequest request =
                 new UpdateDataCollectionRequest(
                         organizationId,
                         operatorId,
-                        personId);
+                        dataCollectorOrganizationId);
 
         DataCollectionResponse response =
                 response(
@@ -291,7 +291,7 @@ class DataCollectionControllerTest {
                         UUID.randomUUID(),
                         organizationId,
                         operatorId,
-                        personId,
+                        dataCollectorOrganizationId,
                         DataCollectionStatus.DRAFT);
 
         when(service.updateDataCollection(any()))
@@ -314,7 +314,7 @@ class DataCollectionControllerTest {
                                 .value(operatorId.toString()))
                 .andExpect(
                         jsonPath("$.dataCollectorId")
-                                .value(personId.toString()));
+                                .value(dataCollectorOrganizationId.toString()));
     }
 
     @Test
@@ -454,7 +454,7 @@ class DataCollectionControllerTest {
             UUID questionnaireId,
             UUID organizationId,
             UUID operatorId,
-            UUID personId,
+            UUID dataCollectorOrganizationId,
             DataCollectionStatus status) {
 
         return new DataCollectionResponse(
@@ -464,7 +464,7 @@ class DataCollectionControllerTest {
                 questionnaireId,
                 organizationId,
                 operatorId,
-                personId,
+                dataCollectorOrganizationId,
                 status);
     }
 
@@ -475,7 +475,7 @@ class DataCollectionControllerTest {
             UUID questionnaireId,
             UUID organizationId,
             UUID operatorId,
-            UUID personId,
+            UUID dataCollectorOrganizationId,
             DataCollectionStatus status) {
 
         return new DataCollectionSummary(
@@ -485,7 +485,7 @@ class DataCollectionControllerTest {
                 questionnaireId,
                 organizationId,
                 operatorId,
-                personId,
+                dataCollectorOrganizationId,
                 status);
     }
 }

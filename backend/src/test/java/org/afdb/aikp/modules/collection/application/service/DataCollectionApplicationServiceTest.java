@@ -44,9 +44,6 @@ import org.afdb.aikp.modules.organization.domain.exception.OrganizationNotFoundE
 import org.afdb.aikp.modules.organization.domain.repository.OrganizationRepository;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
 
-import org.afdb.aikp.modules.person.domain.exception.PersonNotFoundException;
-import org.afdb.aikp.modules.person.domain.repository.PersonRepository;
-import org.afdb.aikp.modules.person.domain.valueobject.PersonId;
 
 import org.afdb.aikp.modules.questionnaire.domain.exception.QuestionnaireNotFoundException;
 import org.afdb.aikp.modules.questionnaire.domain.repository.QuestionnaireRepository;
@@ -81,9 +78,6 @@ class DataCollectionApplicationServiceTest {
     private OrganizationRepository organizationRepository;
 
     @Mock
-    private PersonRepository personRepository;
-
-    @Mock
     private DataCollectionApplicationMapper mapper;
 
     @InjectMocks
@@ -97,7 +91,7 @@ class DataCollectionApplicationServiceTest {
     private UUID questionnaireUuid;
     private UUID organizationUuid;
     private UUID operatorUuid;
-    private UUID personUuid;
+    private UUID dataCollectorOrganizationUuid;
     private UUID dataCollectionUuid;
 
     private CampaignId campaignId;
@@ -105,7 +99,7 @@ class DataCollectionApplicationServiceTest {
     private QuestionnaireId questionnaireId;
     private OrganizationId organizationId;
     private OrganizationId operatorId;
-    private PersonId personId;
+    private OrganizationId dataCollectorOrganizationId;
     private DataCollectionId dataCollectionId;
 
     @BeforeEach
@@ -116,7 +110,7 @@ class DataCollectionApplicationServiceTest {
         questionnaireUuid = UUID.randomUUID();
         organizationUuid = UUID.randomUUID();
         operatorUuid = UUID.randomUUID();
-        personUuid = UUID.randomUUID();
+        dataCollectorOrganizationUuid = UUID.randomUUID();
         dataCollectionUuid = UUID.randomUUID();
 
         campaignId = CampaignId.of(campaignUuid);
@@ -124,7 +118,7 @@ class DataCollectionApplicationServiceTest {
         questionnaireId = QuestionnaireId.of(questionnaireUuid);
         organizationId = OrganizationId.of(organizationUuid);
         operatorId = OrganizationId.of(operatorUuid);
-        personId = PersonId.of(personUuid);
+        dataCollectorOrganizationId = OrganizationId.of(dataCollectorOrganizationUuid);
         dataCollectionId =
                 DataCollectionId.of(dataCollectionUuid);
     }
@@ -143,7 +137,7 @@ class DataCollectionApplicationServiceTest {
                         questionnaireUuid,
                         organizationUuid,
                         operatorUuid,
-                        personUuid);
+                        dataCollectorOrganizationUuid);
 
         when(campaignRepository.existsById(campaignId))
                 .thenReturn(true);
@@ -160,7 +154,7 @@ class DataCollectionApplicationServiceTest {
         when(organizationRepository.existsById(operatorId))
                 .thenReturn(true);
 
-        when(personRepository.existsById(personId))
+        when(organizationRepository.existsById(dataCollectorOrganizationId))
                 .thenReturn(true);
 
         when(dataCollectionRepository.save(any()))
@@ -174,7 +168,7 @@ class DataCollectionApplicationServiceTest {
                         questionnaireUuid,
                         organizationUuid,
                         operatorUuid,
-                        personUuid,
+                        dataCollectorOrganizationUuid,
                         DataCollectionStatus.DRAFT);
 
         when(mapper.toResponse(any()))
@@ -200,7 +194,7 @@ class DataCollectionApplicationServiceTest {
         assertEquals(
                 operatorId,
                 saved.getOperatorOrganizationId());
-        assertEquals(personId, saved.getDataCollectorId());
+        assertEquals(dataCollectorOrganizationId, saved.getDataCollectorId());
         assertEquals(
                 DataCollectionStatus.DRAFT,
                 saved.getStatus());
@@ -216,7 +210,7 @@ class DataCollectionApplicationServiceTest {
                         questionnaireUuid,
                         organizationUuid,
                         null,
-                        personUuid);
+                        dataCollectorOrganizationUuid);
 
         when(campaignRepository.existsById(campaignId))
                 .thenReturn(false);
@@ -239,7 +233,7 @@ class DataCollectionApplicationServiceTest {
                         questionnaireUuid,
                         organizationUuid,
                         null,
-                        personUuid);
+                        dataCollectorOrganizationUuid);
 
         when(campaignRepository.existsById(campaignId))
                 .thenReturn(true);
@@ -265,7 +259,7 @@ class DataCollectionApplicationServiceTest {
                         questionnaireUuid,
                         organizationUuid,
                         null,
-                        personUuid);
+                        dataCollectorOrganizationUuid);
 
         when(campaignRepository.existsById(campaignId))
                 .thenReturn(true);
@@ -294,7 +288,7 @@ class DataCollectionApplicationServiceTest {
                         questionnaireUuid,
                         organizationUuid,
                         null,
-                        personUuid);
+                        dataCollectorOrganizationUuid);
 
         when(campaignRepository.existsById(campaignId))
                 .thenReturn(true);
@@ -317,7 +311,7 @@ class DataCollectionApplicationServiceTest {
     }
 
     @Test
-    void shouldThrowPersonNotFoundExceptionWhenPersonDoesNotExist() {
+    void shouldThrowOrganizationNotFoundExceptionWhenDataCollectorOrganizationDoesNotExist() {
 
         CreateDataCollectionCommand command =
                 new CreateDataCollectionCommand(
@@ -326,7 +320,7 @@ class DataCollectionApplicationServiceTest {
                         questionnaireUuid,
                         organizationUuid,
                         null,
-                        personUuid);
+                        dataCollectorOrganizationUuid);
 
         when(campaignRepository.existsById(campaignId))
                 .thenReturn(true);
@@ -340,11 +334,11 @@ class DataCollectionApplicationServiceTest {
         when(organizationRepository.existsById(organizationId))
                 .thenReturn(true);
 
-        when(personRepository.existsById(personId))
+        when(organizationRepository.existsById(dataCollectorOrganizationId))
                 .thenReturn(false);
 
         assertThrows(
-                PersonNotFoundException.class,
+                OrganizationNotFoundException.class,
                 () -> service.createDataCollection(command));
 
         verify(dataCollectionRepository, never())
@@ -360,7 +354,7 @@ class DataCollectionApplicationServiceTest {
 
         UUID newOrganizationUuid = UUID.randomUUID();
         UUID newOperatorUuid = UUID.randomUUID();
-        UUID newPersonUuid = UUID.randomUUID();
+        UUID newDataCollectorOrganizationUuid = UUID.randomUUID();
 
         OrganizationId newOrganizationId =
                 OrganizationId.of(newOrganizationUuid);
@@ -368,8 +362,8 @@ class DataCollectionApplicationServiceTest {
         OrganizationId newOperatorId =
                 OrganizationId.of(newOperatorUuid);
 
-        PersonId newPersonId =
-                PersonId.of(newPersonUuid);
+        OrganizationId newDataCollectorOrganizationId =
+                OrganizationId.of(newDataCollectorOrganizationUuid);
 
         DataCollection dataCollection =
                 createDraftDataCollection();
@@ -379,7 +373,7 @@ class DataCollectionApplicationServiceTest {
                         dataCollectionUuid,
                         newOrganizationUuid,
                         newOperatorUuid,
-                        newPersonUuid);
+                        newDataCollectorOrganizationUuid);
 
         when(dataCollectionRepository.findById(dataCollectionId))
                 .thenReturn(Optional.of(dataCollection));
@@ -390,7 +384,8 @@ class DataCollectionApplicationServiceTest {
         when(organizationRepository.existsById(newOperatorId))
                 .thenReturn(true);
 
-        when(personRepository.existsById(newPersonId))
+        when(organizationRepository.existsById(
+                newDataCollectorOrganizationId))
                 .thenReturn(true);
 
         when(dataCollectionRepository.save(any()))
@@ -404,7 +399,7 @@ class DataCollectionApplicationServiceTest {
                         questionnaireUuid,
                         newOrganizationUuid,
                         newOperatorUuid,
-                        newPersonUuid,
+                        newDataCollectorOrganizationUuid,
                         DataCollectionStatus.DRAFT);
 
         when(mapper.toResponse(any()))
@@ -424,7 +419,7 @@ class DataCollectionApplicationServiceTest {
                 dataCollection.getOperatorOrganizationId());
 
         assertEquals(
-                newPersonId,
+                newDataCollectorOrganizationId,
                 dataCollection.getDataCollectorId());
 
         verify(dataCollectionRepository)
@@ -439,7 +434,7 @@ class DataCollectionApplicationServiceTest {
                         dataCollectionUuid,
                         organizationUuid,
                         null,
-                        personUuid);
+                        dataCollectorOrganizationUuid);
 
         when(dataCollectionRepository.findById(dataCollectionId))
                 .thenReturn(Optional.empty());
@@ -724,7 +719,7 @@ class DataCollectionApplicationServiceTest {
                         countryId,
                         questionnaireId,
                         organizationId,
-                        personId);
+                        dataCollectorOrganizationId);
 
         DataCollectionSummary firstSummary =
                 summaryFor(first);
@@ -822,7 +817,7 @@ class DataCollectionApplicationServiceTest {
                 countryId,
                 questionnaireId,
                 organizationId,
-                personId);
+                dataCollectorOrganizationId);
     }
 
     private DataCollection createDataCollectionInProgress() {
@@ -855,7 +850,7 @@ class DataCollectionApplicationServiceTest {
                 questionnaireUuid,
                 organizationUuid,
                 null,
-                personUuid,
+                dataCollectorOrganizationUuid,
                 status);
     }
 

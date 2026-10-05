@@ -36,10 +36,6 @@ import org.afdb.aikp.modules.organization.domain.exception.OrganizationNotFoundE
 import org.afdb.aikp.modules.organization.domain.repository.OrganizationRepository;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
 
-import org.afdb.aikp.modules.person.domain.exception.PersonNotFoundException;
-import org.afdb.aikp.modules.person.domain.repository.PersonRepository;
-import org.afdb.aikp.modules.person.domain.valueobject.PersonId;
-
 import org.afdb.aikp.modules.questionnaire.domain.exception.QuestionnaireNotFoundException;
 import org.afdb.aikp.modules.questionnaire.domain.repository.QuestionnaireRepository;
 import org.afdb.aikp.modules.questionnaire.domain.valueobject.QuestionnaireId;
@@ -64,8 +60,6 @@ public class DataCollectionApplicationService {
 
     private final OrganizationRepository organizationRepository;
 
-    private final PersonRepository personRepository;
-
     private final DataCollectionApplicationMapper mapper;
 
     public DataCollectionApplicationService(
@@ -74,7 +68,6 @@ public class DataCollectionApplicationService {
             CountryRepository countryRepository,
             QuestionnaireRepository questionnaireRepository,
             OrganizationRepository organizationRepository,
-            PersonRepository personRepository,
             DataCollectionApplicationMapper mapper) {
 
         this.dataCollectionRepository = Objects.requireNonNull(
@@ -96,10 +89,6 @@ public class DataCollectionApplicationService {
         this.organizationRepository = Objects.requireNonNull(
                 organizationRepository,
                 "OrganizationRepository cannot be null.");
-
-        this.personRepository = Objects.requireNonNull(
-                personRepository,
-                "PersonRepository cannot be null.");
 
         this.mapper = Objects.requireNonNull(
                 mapper,
@@ -135,8 +124,8 @@ public class DataCollectionApplicationService {
                         : OrganizationId.of(
                                 command.operatorOrganizationId());
 
-        PersonId personId =
-                PersonId.of(command.dataCollectorId());
+        OrganizationId dataCollectorOrganizationId =
+                OrganizationId.of(command.dataCollectorId());
 
         ensureCampaignExists(campaignId);
         ensureCountryExists(countryId);
@@ -147,7 +136,7 @@ public class DataCollectionApplicationService {
             ensureOrganizationExists(operatorOrganizationId);
         }
 
-        ensurePersonExists(personId);
+        ensureOrganizationExists(dataCollectorOrganizationId);
 
         DataCollection dataCollection =
                 DataCollection.create(
@@ -157,7 +146,7 @@ public class DataCollectionApplicationService {
                         questionnaireId,
                         organizationId,
                         operatorOrganizationId,
-                        personId);
+                        dataCollectorOrganizationId);
 
         DataCollection savedDataCollection =
                 dataCollectionRepository.save(
@@ -194,8 +183,8 @@ public class DataCollectionApplicationService {
                         : OrganizationId.of(
                                 command.operatorOrganizationId());
 
-        PersonId personId =
-                PersonId.of(
+        OrganizationId dataCollectorOrganizationId =
+                OrganizationId.of(
                         command.dataCollectorId());
 
         ensureOrganizationExists(organizationId);
@@ -204,7 +193,7 @@ public class DataCollectionApplicationService {
             ensureOrganizationExists(operatorOrganizationId);
         }
 
-        ensurePersonExists(personId);
+        ensureOrganizationExists(dataCollectorOrganizationId);
 
         dataCollection.changeResponsibleOrganization(
                 organizationId);
@@ -212,7 +201,8 @@ public class DataCollectionApplicationService {
         dataCollection.changeOperatorOrganization(
                 operatorOrganizationId);
 
-        dataCollection.changeDataCollector(personId);
+        dataCollection.changeDataCollector(
+                dataCollectorOrganizationId);
 
         DataCollection savedDataCollection =
                 dataCollectionRepository.save(
@@ -492,11 +482,5 @@ public class DataCollectionApplicationService {
         }
     }
 
-    private void ensurePersonExists(
-            PersonId personId) {
 
-        if (!personRepository.existsById(personId)) {
-            throw new PersonNotFoundException(personId);
-        }
-    }
 }

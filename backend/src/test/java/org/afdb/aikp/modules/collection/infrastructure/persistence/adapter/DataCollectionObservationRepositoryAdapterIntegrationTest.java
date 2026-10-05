@@ -608,25 +608,13 @@ class DataCollectionObservationRepositoryAdapterIntegrationTest {
                         countryId)
                 .setParameter(
                         "iso2",
-                        "T" + UUID.randomUUID()
-                                .toString()
-                                .substring(0, 1)
-                                .toUpperCase())
+                        "XZ")
                 .setParameter(
                         "iso3",
-                        UUID.randomUUID()
-                                .toString()
-                                .replace("-", "")
-                                .substring(0, 3)
-                                .toUpperCase())
+                        "XZT")
                 .setParameter(
                         "numeric",
-                        "9" + String.format(
-                                "%02d",
-                                Math.abs(
-                                        UUID.randomUUID()
-                                                .hashCode())
-                                        % 100))
+                        "999")
                 .setParameter(
                         "name",
                         "Observation Test Country")
@@ -765,7 +753,7 @@ class DataCollectionObservationRepositoryAdapterIntegrationTest {
                     :countryId,
                     :questionnaireId,
                     :organizationId,
-                    :personId,
+                    :organizationId,
                     :status
                 )
                 """)
@@ -784,9 +772,6 @@ class DataCollectionObservationRepositoryAdapterIntegrationTest {
                 .setParameter(
                         "organizationId",
                         organizationId)
-                .setParameter(
-                        "personId",
-                        personId)
                 .setParameter(
                         "status",
                         DataCollectionStatus.DRAFT.name())

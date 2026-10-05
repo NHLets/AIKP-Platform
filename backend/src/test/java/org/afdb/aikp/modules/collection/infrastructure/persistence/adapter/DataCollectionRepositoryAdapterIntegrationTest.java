@@ -33,10 +33,6 @@ import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationCode;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationName;
 
-import org.afdb.aikp.modules.person.domain.model.Person;
-import org.afdb.aikp.modules.person.domain.repository.PersonRepository;
-import org.afdb.aikp.modules.person.domain.valueobject.PersonFullName;
-import org.afdb.aikp.modules.person.domain.valueobject.PersonId;
 
 import org.afdb.aikp.modules.questionnaire.domain.enums.RenderType;
 import org.afdb.aikp.modules.questionnaire.domain.model.Questionnaire;
@@ -109,9 +105,6 @@ class DataCollectionRepositoryAdapterIntegrationTest {
 
     @Autowired
     private OrganizationRepository organizationRepository;
-
-    @Autowired
-    private PersonRepository personRepository;
 
     @Test
     void shouldSaveAndFindDataCollectionById() {
@@ -299,17 +292,14 @@ class DataCollectionRepositoryAdapterIntegrationTest {
                 createAndSaveOrganization(
                         country);
 
-        Person person =
-                createAndSavePerson(
-                        organization);
-
         return DataCollection.create(
                 DataCollectionId.generate(),
                 campaign.getId(),
                 country.getCountryId(),
                 questionnaire.getId(),
                 organization.getOrganizationId(),
-                person.getPersonId());
+                null,
+                organization.getOrganizationId());
     }
 
     private DataCollection createDataCollection(
@@ -325,17 +315,14 @@ class DataCollectionRepositoryAdapterIntegrationTest {
                 createAndSaveOrganization(
                         country);
 
-        Person person =
-                createAndSavePerson(
-                        organization);
-
         return DataCollection.create(
                 DataCollectionId.generate(),
                 campaign.getId(),
                 country.getCountryId(),
                 questionnaire.getId(),
                 organization.getOrganizationId(),
-                person.getPersonId());
+                null,
+                organization.getOrganizationId());
     }
 
     private DataCollection createDataCollection(
@@ -351,17 +338,14 @@ class DataCollectionRepositoryAdapterIntegrationTest {
                 createAndSaveOrganization(
                         country);
 
-        Person person =
-                createAndSavePerson(
-                        organization);
-
         return DataCollection.create(
                 DataCollectionId.generate(),
                 campaign.getId(),
                 country.getCountryId(),
                 questionnaire.getId(),
                 organization.getOrganizationId(),
-                person.getPersonId());
+                null,
+                organization.getOrganizationId());
     }
 
     private Campaign createAndSaveCampaign() {
@@ -518,21 +502,4 @@ class DataCollectionRepositoryAdapterIntegrationTest {
                 organization);
     }
 
-    private Person createAndSavePerson(
-            Organization organization) {
-
-        String suffix =
-                UUID.randomUUID()
-                        .toString()
-                        .substring(0, 8);
-
-        Person person =
-                Person.create(
-                        PersonId.generate(),
-                        PersonFullName.of(
-                                "Test Person " + suffix),
-                        organization.getOrganizationId());
-
-        return personRepository.save(person);
-    }
 }
