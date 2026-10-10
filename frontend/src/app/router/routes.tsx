@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import LoginPage from "@/modules/auth/pages/LoginPage";
+import CountryQualityDashboardPage from "@/modules/quality/pages/CountryQualityDashboardPage";
 
 import CampaignDetailPage from "@/modules/campaign/pages/CampaignDetailPage";
 import CampaignListPage from "@/modules/campaign/pages/CampaignListPage";
@@ -58,6 +59,15 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard roles={ALL_ROLES}>
             <DashboardPage />
+          </RoleGuard>
+        ),
+      },
+
+      {
+        path: "quality",
+        element: (
+          <RoleGuard roles={["ADMIN", "COORDINATOR", "VALIDATOR"]}>
+            <CountryQualityDashboardPage />
           </RoleGuard>
         ),
       },

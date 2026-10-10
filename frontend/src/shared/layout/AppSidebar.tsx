@@ -111,6 +111,11 @@ const reportingItems: NavigationItem[] = [
         path: "/indicators",
         icon: <AssessmentOutlinedIcon />,
     },
+    {
+        label: "Data Quality",
+        path: "/quality",
+        icon: <AnalyticsOutlinedIcon />,
+    },
 ];
 
 const administrationItems: NavigationItem[] = [
