@@ -151,8 +151,10 @@ public class QualityEngine {
             return savedRun;
 
         } catch (RuntimeException exception) {
-            run.fail();
-            qualityRunRepository.save(run);
+            if (run.getStatus() == org.afdb.aikp.modules.quality.domain.enums.QualityRunStatus.RUNNING) {
+                run.fail();
+                qualityRunRepository.save(run);
+            }
             throw exception;
         }
     }

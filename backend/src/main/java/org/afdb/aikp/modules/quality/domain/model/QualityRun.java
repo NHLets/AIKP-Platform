@@ -69,7 +69,8 @@ public final class QualityRun {
             int rulesFailed,
             int rulesNotEvaluable,
             int rulesNotApplicable,
-            int rulesErrored) {
+            int rulesErrored,
+            List<RuleEvaluation> evaluations) {
 
         QualityRun run = new QualityRun(
                 id,
@@ -85,6 +86,10 @@ public final class QualityRun {
         run.rulesNotEvaluable = rulesNotEvaluable;
         run.rulesNotApplicable = rulesNotApplicable;
         run.rulesErrored = rulesErrored;
+
+        if (evaluations != null) {
+            run.evaluations.addAll(evaluations);
+        }
 
         return run;
     }

@@ -56,19 +56,18 @@ class QualityAssessmentServiceTest {
         QualityAssessment assessment =
                 service.assess(run, List.of());
 
-        assertThat(assessment.getDimensions())
-                .anySatisfy(dimension -> {
-                    if (dimension.getDimension()
-                            == QualityDimension.INTERNAL_CONSISTENCY) {
-                        assertThat(dimension.getRulesEvaluated())
-                                .isEqualTo(1);
-                        assertThat(dimension.getFindingsCount())
-                                .isZero();
-                        assertThat(dimension.getStatus())
-                                .isEqualTo(
-                                        QualityDimensionStatus.EVALUATED);
-                    }
-                });
+        var dimension = assessment.getDimensions()
+                .stream()
+                .filter(d -> d.getDimension()
+                        == QualityDimension.INTERNAL_CONSISTENCY)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(
+                        "INTERNAL_CONSISTENCY dimension not found"));
+
+        assertThat(dimension.getRulesEvaluated()).isEqualTo(2);
+        assertThat(dimension.getFindingsCount()).isZero();
+        assertThat(dimension.getStatus())
+                .isEqualTo(QualityDimensionStatus.EVALUATED);
     }
 
     @Test

@@ -45,6 +45,7 @@ public class QualityRunPersistenceMapper {
                 entity.getRulesFailed(),
                 entity.getRulesNotEvaluable(),
                 entity.getRulesNotApplicable(),
-                entity.getRulesErrored());
+                entity.getRulesErrored(),
+                java.util.List.of());
     }
 }
