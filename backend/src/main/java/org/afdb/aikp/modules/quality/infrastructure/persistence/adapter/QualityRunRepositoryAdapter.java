@@ -34,6 +34,11 @@ public class QualityRunRepositoryAdapter
     }
 
     @Override
+    public void deleteById(QualityRunId id) {
+        repository.deleteById(id.getValue());
+    }
+
+    @Override
     public Optional<QualityRun> findById(QualityRunId id) {
         return repository.findById(id.getValue())
                 .map(mapper::toDomain);

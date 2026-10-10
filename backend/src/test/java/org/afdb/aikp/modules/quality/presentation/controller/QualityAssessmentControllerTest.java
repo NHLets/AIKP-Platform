@@ -2,8 +2,10 @@ package org.afdb.aikp.modules.quality.presentation.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -14,10 +16,13 @@ import java.util.UUID;
 import org.afdb.aikp.modules.quality.application.dto.QualityAssessmentResponse;
 import org.afdb.aikp.modules.quality.application.mapper.QualityAssessmentApplicationMapper;
 import org.afdb.aikp.modules.quality.application.service.QualityAssessmentService;
+import org.afdb.aikp.modules.quality.application.service.QualityEngine;
 import org.afdb.aikp.modules.quality.domain.enums.QualityDimension;
 import org.afdb.aikp.modules.quality.domain.enums.QualityDimensionStatus;
 import org.afdb.aikp.modules.quality.domain.enums.QualityLevel;
+import org.afdb.aikp.modules.quality.domain.enums.QualityRunTrigger;
 import org.afdb.aikp.modules.quality.domain.model.QualityAssessment;
+import org.afdb.aikp.modules.quality.domain.model.QualityRun;
 import org.afdb.aikp.modules.quality.domain.valueobject.QualityRunId;
 import org.afdb.aikp.modules.collection.domain.valueobject.DataCollectionId;
 import org.afdb.aikp.shared.security.AikpUserDetailsService;
@@ -43,6 +48,9 @@ class QualityAssessmentControllerTest {
     private QualityAssessmentApplicationMapper mapper;
 
     @MockBean
+    private QualityEngine qualityEngine;
+
+    @MockBean
     private JwtService jwtService;
 
     @MockBean
@@ -53,6 +61,26 @@ class QualityAssessmentControllerTest {
 
     private static final UUID QUALITY_RUN_ID =
             UUID.fromString("22222222-2222-2222-2222-222222222222");
+
+    @Test
+    void shouldRunManualQualityAssessment() throws Exception {
+
+        QualityRun run = mock(QualityRun.class);
+
+        when(qualityEngine.execute(
+                any(DataCollectionId.class),
+                org.mockito.ArgumentMatchers.eq(QualityRunTrigger.MANUAL)))
+                .thenReturn(run);
+
+        mockMvc.perform(post(
+                "/api/quality/data-collections/{dataCollectionId}/assessment",
+                DATA_COLLECTION_ID))
+                .andExpect(status().isOk());
+
+        verify(qualityEngine).execute(
+                DataCollectionId.of(DATA_COLLECTION_ID),
+                QualityRunTrigger.MANUAL);
+    }
 
     @Test
     void shouldReturnQualityAssessment() throws Exception {

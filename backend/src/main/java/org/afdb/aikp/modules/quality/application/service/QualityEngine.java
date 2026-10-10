@@ -65,9 +65,10 @@ public class QualityEngine {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Data collection not found: " + dataCollectionId));
 
-        if (collection.getStatus() != DataCollectionStatus.SUBMITTED) {
+        if (collection.getStatus() != DataCollectionStatus.SUBMITTED
+                && collection.getStatus() != DataCollectionStatus.VALIDATED) {
             throw new IllegalStateException(
-                    "Quality analysis requires a SUBMITTED DataCollection.");
+                    "Quality analysis requires a SUBMITTED or VALIDATED DataCollection.");
         }
 
         QualityRun run = QualityRun.start(
@@ -138,7 +139,16 @@ public class QualityEngine {
             }
 
             run.complete();
-            return qualityRunRepository.save(run);
+            QualityRun savedRun = qualityRunRepository.save(run);
+
+            List<QualityRun> runs =
+                    qualityRunRepository.findByDataCollectionId(dataCollectionId);
+
+            for (int index = 2; index < runs.size(); index++) {
+                qualityRunRepository.deleteById(runs.get(index).getId());
+            }
+
+            return savedRun;
 
         } catch (RuntimeException exception) {
             run.fail();

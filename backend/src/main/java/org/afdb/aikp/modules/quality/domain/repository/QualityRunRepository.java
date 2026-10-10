@@ -11,6 +11,8 @@ public interface QualityRunRepository {
 
     QualityRun save(QualityRun run);
 
+    void deleteById(QualityRunId id);
+
     Optional<QualityRun> findById(QualityRunId id);
 
     List<QualityRun> findByDataCollectionId(DataCollectionId dataCollectionId);

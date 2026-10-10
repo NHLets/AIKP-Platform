@@ -46,6 +46,7 @@ import org.afdb.aikp.modules.quality.domain.enums.QualityRunTrigger;
 import org.afdb.aikp.modules.quality.domain.model.QualityFinding;
 import org.afdb.aikp.modules.quality.domain.model.QualityRun;
 import org.afdb.aikp.modules.quality.domain.repository.QualityFindingRepository;
+import org.afdb.aikp.modules.quality.domain.repository.QualityRunRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -100,6 +101,9 @@ class QualityEnginePwaIntegrationTest {
     @Autowired
     private QualityFindingRepository qualityFindingRepository;
 
+    @Autowired
+    private QualityRunRepository qualityRunRepository;
+
     @Test
     @Transactional
     void shouldEvaluateAllPwaRulesAndKeepSubmittedStatusWhenDataIsConsistent() {
@@ -137,6 +141,85 @@ class QualityEnginePwaIntegrationTest {
 
         assertThat(persisted.getStatus())
                 .isEqualTo(DataCollectionStatus.SUBMITTED);
+    }
+
+    @Test
+    @Transactional
+    void shouldEvaluateValidatedDataCollection() {
+
+        Questionnaire questionnaire = findPwaQuestionnaire();
+        DataCollection collection =
+                createSubmittedDataCollection(questionnaire);
+
+        saveValidPwaData(collection);
+
+        collection.validate();
+        dataCollectionRepository.save(collection);
+
+        QualityRun run = qualityEngine.execute(
+                collection.getDataCollectionId(),
+                QualityRunTrigger.MANUAL);
+
+        assertThat(run.getStatus())
+                .isEqualTo(QualityRunStatus.COMPLETED);
+
+        assertThat(run.getRulesEvaluated())
+                .isGreaterThanOrEqualTo(6);
+
+        assertThat(run.getRulesErrored())
+                .isZero();
+
+        DataCollection persisted =
+                dataCollectionRepository
+                        .findById(collection.getDataCollectionId())
+                        .orElseThrow();
+
+        assertThat(persisted.getStatus())
+                .isEqualTo(DataCollectionStatus.VALIDATED);
+    }
+
+    @Test
+    @Transactional
+    void shouldKeepOnlyTwoMostRecentQualityRuns() {
+
+        Questionnaire questionnaire = findPwaQuestionnaire();
+        DataCollection collection =
+                createSubmittedDataCollection(questionnaire);
+
+        saveValidPwaData(collection);
+
+        QualityRun firstRun = qualityEngine.execute(
+                collection.getDataCollectionId(),
+                QualityRunTrigger.MANUAL);
+
+        QualityRun secondRun = qualityEngine.execute(
+                collection.getDataCollectionId(),
+                QualityRunTrigger.MANUAL);
+
+        QualityRun thirdRun = qualityEngine.execute(
+                collection.getDataCollectionId(),
+                QualityRunTrigger.MANUAL);
+
+        List<QualityRun> runs =
+                qualityRunRepository.findByDataCollectionId(
+                        collection.getDataCollectionId());
+
+        assertThat(runs)
+                .hasSize(2);
+
+        assertThat(runs)
+                .extracting(QualityRun::getId)
+                .containsExactly(
+                        thirdRun.getId(),
+                        secondRun.getId());
+
+        assertThat(runs)
+                .extracting(QualityRun::getId)
+                .doesNotContain(firstRun.getId());
+
+        assertThat(
+                qualityRunRepository.findById(firstRun.getId()))
+                .isEmpty();
     }
 
     @Test
