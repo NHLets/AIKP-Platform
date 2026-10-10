@@ -37,7 +37,6 @@ export function summarizeCountryQuality(inputs: CountryQualityInput[]): CountryQ
     const assessment = item.assessment!;
     if (
       !assessment.analysisComplete ||
-      assessment.dimensions.some((dimension) => dimension.status !== "EVALUATED") ||
       !assessment.overallLevel
     ) {
       incompleteCodes.push(code);

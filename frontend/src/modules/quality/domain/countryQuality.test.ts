@@ -26,6 +26,36 @@ describe("summarizeCountryQuality", () => {
       complete: false, level: null, missingCodes: ["F_G"],
     });
   });
+  it("rates a complete assessment even when some dimensions are not evaluable", () => {
+    const input = four();
+    input[0]!.assessment!.dimensions = [
+      {
+        dimension: "COMPLETENESS",
+        level: "GOOD",
+        status: "EVALUATED",
+        rulesEvaluated: 2,
+        findingsCount: 0,
+        affectedRuleCodes: [],
+        explanation: "",
+      },
+      {
+        dimension: "MATHEMATICAL_CONSISTENCY",
+        level: "FAIR",
+        status: "NOT_EVALUABLE",
+        rulesEvaluated: 0,
+        findingsCount: 0,
+        affectedRuleCodes: [],
+        explanation: "No applicable quality rule was evaluated for this dimension.",
+      },
+    ];
+
+    expect(summarizeCountryQuality(input)).toMatchObject({
+      complete: true,
+      level: "POOR",
+      incompleteCodes: [],
+    });
+  });
+
   it("does not rate an incomplete analysis", () => {
     const input = four();
     input[2]!.assessment = makeAssessment("FAIR", false);
