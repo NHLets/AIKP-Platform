@@ -11,7 +11,6 @@ import type {
 
 interface Props {
   observationId: string;
-  validatorId: string;
   onSubmit: (
     comment: string,
     severity: ValidationSeverity,

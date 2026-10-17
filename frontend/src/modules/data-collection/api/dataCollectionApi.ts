@@ -90,6 +90,15 @@ export async function cancelDataCollection(
 }
 
 
+export async function deleteDataCollection(
+    id: string,
+): Promise<void> {
+    await axiosClient.delete(
+        `${DATA_COLLECTIONS_ENDPOINT}/${id}`,
+    );
+}
+
+
 /* ============================================================
    Legacy compatibility (M16–M18)
    ============================================================ */

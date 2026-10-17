@@ -7,7 +7,7 @@ export async function getQuestionnaireVariables(
 ): Promise<QuestionnaireVariable[]> {
     const response =
         await axiosClient.get<QuestionnaireVariable[]>(
-            `/questionnaire-variables/questionnaire/${questionnaireId}`,
+            `/v1/questionnaire-variables/questionnaire/${questionnaireId}`,
         );
 
     return response.data;

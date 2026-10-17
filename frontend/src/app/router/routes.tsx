@@ -2,10 +2,12 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import LoginPage from "@/modules/auth/pages/LoginPage";
 import CountryQualityDashboardPage from "@/modules/quality/pages/CountryQualityDashboardPage";
+import ValidationStatusPage from "@/modules/validation/pages/ValidationStatusPage";
 
 import CampaignDetailPage from "@/modules/campaign/pages/CampaignDetailPage";
 import CampaignListPage from "@/modules/campaign/pages/CampaignListPage";
 import CountryListPage from "@/modules/country/pages/CountryListPage";
+import OrganizationListPage from "@/modules/organization/pages/OrganizationListPage";
 
 import CreateDataCollectionPage from "@/modules/data-collection/pages/CreateDataCollectionPage";
 import DataCollectionDetailPage from "@/modules/data-collection/pages/DataCollectionDetailPage";
@@ -23,8 +25,11 @@ import ValidationReviewPage from "@/modules/validation/pages/ValidationReviewPag
 
 import DashboardPage from "@/pages/DashboardPage";
 import HomePage from "@/pages/home/HomePage";
+import SectorCoveragePage from "@/modules/sector/pages/SectorCoveragePage";
 import { AppLayout } from "@/shared/layout";
 import RoleGuard from "@/shared/routes/RoleGuard";
+import UserManagementPage from "@/modules/admin/pages/UserManagementPage";
+import SettingsPage from "@/modules/admin/pages/SettingsPage";
 
 const ALL_ROLES = [
   "ADMIN",
@@ -55,6 +60,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: "sector-coverage",
+        element: (
+          <RoleGuard roles={ALL_ROLES}>
+            <SectorCoveragePage />
+          </RoleGuard>
+        ),
+      },
+      {
         path: "analytics",
         element: (
           <RoleGuard roles={ALL_ROLES}>
@@ -73,10 +86,46 @@ export const router = createBrowserRouter([
       },
 
       {
+        path: "validation-status",
+        element: (
+          <RoleGuard roles={["ADMIN", "COORDINATOR", "VALIDATOR"]}>
+            <ValidationStatusPage />
+          </RoleGuard>
+        ),
+      },
+
+      {
         path: "countries",
         element: (
           <RoleGuard roles={ALL_ROLES}>
             <CountryListPage />
+          </RoleGuard>
+        ),
+      },
+
+      {
+        path: "organizations",
+        element: (
+          <RoleGuard roles={ALL_ROLES}>
+            <OrganizationListPage />
+          </RoleGuard>
+        ),
+      },
+
+      {
+        path: "users",
+        element: (
+          <RoleGuard roles={["ADMIN"]}>
+            <UserManagementPage />
+          </RoleGuard>
+        ),
+      },
+
+      {
+        path: "settings",
+        element: (
+          <RoleGuard roles={["ADMIN"]}>
+            <SettingsPage />
           </RoleGuard>
         ),
       },

@@ -32,6 +32,14 @@ import org.afdb.aikp.modules.validation.domain.repository.DataCollectionValidati
 import org.afdb.aikp.modules.validation.domain.valueobject.DataCollectionValidationId;
 import org.afdb.aikp.modules.validation.domain.valueobject.ValidationComments;
 
+import org.afdb.aikp.modules.iam.domain.model.User;
+import org.afdb.aikp.modules.iam.domain.repository.UserRepository;
+import org.afdb.aikp.modules.iam.domain.valueobject.Email;
+import org.afdb.aikp.modules.iam.domain.valueobject.FullName;
+import org.afdb.aikp.modules.iam.domain.valueobject.PasswordHash;
+import org.afdb.aikp.modules.iam.domain.valueobject.UserId;
+import org.afdb.aikp.modules.iam.domain.valueobject.Username;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -45,6 +53,7 @@ class DataCollectionValidationApplicationServiceTest {
     private DataCollectionValidationRepository validationRepository;
     private DataCollectionRepository dataCollectionRepository;
     private PersonRepository personRepository;
+    private UserRepository userRepository;
     private DataCollectionValidationApplicationMapper validationMapper;
 
     private DataCollectionValidationApplicationService service;
@@ -61,6 +70,8 @@ class DataCollectionValidationApplicationServiceTest {
         personRepository =
                 mock(PersonRepository.class);
 
+        userRepository = mock(UserRepository.class);
+
         validationMapper =
                 new DataCollectionValidationApplicationMapper();
 
@@ -69,7 +80,106 @@ class DataCollectionValidationApplicationServiceTest {
                         validationRepository,
                         dataCollectionRepository,
                         personRepository,
-                        validationMapper);
+                        validationMapper,
+                        userRepository);
+    }
+
+
+    @Test
+    void shouldCreateValidationForAuthenticatedIamUser() {
+        UUID collectionUuid = UUID.randomUUID();
+        UUID userUuid = UUID.randomUUID();
+        String email = "validator@example.org";
+        Instant validatedAt = Instant.parse("2026-10-15T12:00:00Z");
+
+        DataCollection collection =
+                createDataCollection(collectionUuid, DataCollectionStatus.SUBMITTED);
+
+        User user = User.create(
+                Username.of("validator01"),
+                Email.of(email),
+                FullName.of("Test Validator"),
+                PasswordHash.of("$2a$10$abcdefghijklmnopqrstuvwxyz0123456789012345678901234567890"));
+
+        when(userRepository.findByEmail(Email.of(email)))
+                .thenReturn(Optional.of(user));
+        when(dataCollectionRepository.findById(any()))
+                .thenReturn(Optional.of(collection));
+        when(validationRepository.save(any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        DataCollectionValidationResponse response =
+                service.createForAuthenticatedUser(
+                        collectionUuid,
+                        email,
+                        ValidationDecision.VALIDATED,
+                        "IAM validation",
+                        validatedAt);
+
+        assertEquals(collectionUuid, response.dataCollectionId());
+        assertEquals(user.getId().getValue(), response.validatorUserId());
+        assertEquals(ValidationDecision.VALIDATED, response.decision());
+        assertEquals("IAM validation", response.comments());
+        assertEquals(DataCollectionStatus.VALIDATED, collection.getStatus());
+
+        verify(userRepository).findByEmail(Email.of(email));
+        verify(dataCollectionRepository).save(collection);
+        verify(validationRepository).save(argThat(validation ->
+                validation.getValidatorUserId() != null
+                        && validation.getValidatorUserId().equals(user.getId())
+                        && validation.getValidatorId() == null));
+    }
+
+    @Test
+    void shouldRejectAuthenticatedValidationWhenIamUserDoesNotExist() {
+        String email = "missing@example.org";
+
+        when(userRepository.findByEmail(Email.of(email)))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                UsernameNotFoundException.class,
+                () -> service.createForAuthenticatedUser(
+                        UUID.randomUUID(),
+                        email,
+                        ValidationDecision.VALIDATED,
+                        "IAM validation",
+                        Instant.now()));
+
+        verify(dataCollectionRepository, never()).save(any());
+        verify(validationRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldRejectAuthenticatedValidationWhenCollectionIsNotSubmitted() {
+        UUID collectionUuid = UUID.randomUUID();
+        String email = "validator@example.org";
+
+        User user = User.create(
+                Username.of("validator01"),
+                Email.of(email),
+                FullName.of("Test Validator"),
+                PasswordHash.of("$2a$10$abcdefghijklmnopqrstuvwxyz0123456789012345678901234567890"));
+
+        DataCollection collection =
+                createDataCollection(collectionUuid, DataCollectionStatus.DRAFT);
+
+        when(userRepository.findByEmail(Email.of(email)))
+                .thenReturn(Optional.of(user));
+        when(dataCollectionRepository.findById(any()))
+                .thenReturn(Optional.of(collection));
+
+        assertThrows(
+                DataCollectionValidationNotAllowedException.class,
+                () -> service.createForAuthenticatedUser(
+                        collectionUuid,
+                        email,
+                        ValidationDecision.VALIDATED,
+                        "IAM validation",
+                        Instant.now()));
+
+        verify(dataCollectionRepository, never()).save(any());
+        verify(validationRepository, never()).save(any());
     }
 
     @Test

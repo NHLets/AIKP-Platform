@@ -38,7 +38,11 @@ class DashboardApplicationServiceTest {
                         2,
                         3,
                         100,
-                        80);
+                        80,
+                        3,
+                        16,
+                        4,
+                        17);
 
         when(dashboardRepository.getDashboard())
                 .thenReturn(expectedResponse);

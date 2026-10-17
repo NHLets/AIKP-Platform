@@ -52,7 +52,11 @@ class DashboardControllerTest {
                         2,
                         3,
                         100,
-                        80);
+                        80,
+                        3,
+                        16,
+                        4,
+                        17);
 
         when(dashboardApplicationService.handle(
                 new GetDashboardQuery()))
@@ -93,6 +97,18 @@ class DashboardControllerTest {
                         .value(100))
                 .andExpect(jsonPath(
                         "$.activePersons")
-                        .value(80));
+                        .value(80))
+                .andExpect(jsonPath(
+                        "$.fullyValidatedCountries")
+                        .value(3))
+                .andExpect(jsonPath(
+                        "$.countriesWithFgNotValidated")
+                        .value(16))
+                .andExpect(jsonPath(
+                        "$.countriesWithFgValidated")
+                        .value(4))
+                .andExpect(jsonPath(
+                        "$.countriesNotValidatedBecauseOnePwNotValidated")
+                        .value(17));
     }
 }

@@ -12,7 +12,6 @@ export interface ValidationComment {
 
 export interface CreateValidationCommentRequest {
   observationId: string;
-  validatorId: string;
   comment: string;
   severity: ValidationSeverity;
 }

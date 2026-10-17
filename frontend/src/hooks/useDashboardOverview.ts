@@ -8,6 +8,7 @@ export function useDashboardOverview(
   return useQuery({
     queryKey: ['dashboard-overview', campaignId, referenceYear],
     queryFn: () => getDashboardOverview(campaignId, referenceYear),
+    enabled: Boolean(campaignId),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,

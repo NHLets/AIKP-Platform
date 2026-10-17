@@ -20,9 +20,6 @@ export default function ReviewPanel({ observationId }: Props) {
     createComment,
   } = useValidationComments(observationId);
 
-  const validatorId =
-    "74f625a4-6daa-4b2c-b063-564c6a4f2808";
-
   return (
     <Paper elevation={2} sx={{ p: 2, height: "100%" }}>
       <Stack spacing={2}>
@@ -54,14 +51,8 @@ export default function ReviewPanel({ observationId }: Props) {
 
             <CommentComposer
               observationId={observationId}
-              validatorId={validatorId}
               onSubmit={async (comment, severity) => {
-                await createComment({
-                  observationId,
-                  validatorId,
-                  comment,
-                  severity,
-                });
+                await createComment({ observationId, comment, severity });
               }}
             />
           </Stack>

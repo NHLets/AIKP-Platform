@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
+
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useNavigate, useParams } from "react-router-dom";
 
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Alert,
   Box,
   Button,
@@ -16,15 +21,12 @@ import {
   DialogTitle,
   Grid,
   Stack,
-  Tab,
-  Tabs,
   Typography,
 } from "@mui/material";
 
 import ValidationDashboard from "@/modules/validation/components/ValidationDashboard";
 import ReviewPanel from "@/modules/validation/components/ReviewPanel";
 
-import DataEntryForm from "../components/DataEntryForm";
 import SpreadsheetDataEntryForm from "../components/SpreadsheetDataEntryForm";
 
 import {
@@ -34,7 +36,23 @@ import {
   rejectDataCollection,
 } from "../api/dataCollectionApi";
 
+import { startDataCollection } from "../api/workflowApi";
+
 import { getQuestionnaire } from "@/modules/questionnaire/api/questionnaireApi";
+
+import {
+  getCampaigns,
+  getCountries,
+  getQuestionnaires,
+  getOrganizations,
+} from "../api/dataCollectionOptionsApi";
+
+import type {
+  CampaignOption,
+  CountryOption,
+  QuestionnaireOption,
+  OrganizationOption,
+} from "../api/dataCollectionOptionsApi";
 import { getQuestionnaireGroups } from "@/modules/questionnaire/api/questionnaireGroupApi";
 import { getQuestionnaireVariables } from "@/modules/questionnaire/api/questionnaireVariableApi";
 
@@ -42,19 +60,34 @@ import type { DataCollection } from "../types/dataCollection.types";
 import type { QuestionnaireGroup } from "@/modules/questionnaire/types/questionnaireGroup.types";
 import type { QuestionnaireVariable } from "@/modules/questionnaire/types/questionnaireVariable.types";
 
-type PendingAction = "SUBMIT" | "APPROVE" | "REJECT" | null;
+type PendingAction =
+  | "START"
+  | "SUBMIT"
+  | "APPROVE"
+  | "REJECT"
+  | null;
 
 export default function DataCollectionDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const [tab, setTab] = useState(0);
 
   const [dataCollection, setDataCollection] =
     useState<DataCollection | null>(null);
 
   const [groups, setGroups] = useState<QuestionnaireGroup[]>([]);
   const [variables, setVariables] = useState<QuestionnaireVariable[]>([]);
+
+  const [campaigns, setCampaigns] =
+    useState<CampaignOption[]>([]);
+
+  const [countries, setCountries] =
+    useState<CountryOption[]>([]);
+
+  const [questionnaires, setQuestionnaires] =
+    useState<QuestionnaireOption[]>([]);
+
+  const [organizations, setOrganizations] =
+    useState<OrganizationOption[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [structureLoading, setStructureLoading] = useState(false);
@@ -63,7 +96,10 @@ export default function DataCollectionDetailPage() {
   const [pendingAction, setPendingAction] =
     useState<PendingAction>(null);
 
-  const [selectedObservationId] = useState<string>();
+  const [selectedObservationId, setSelectedObservationId] =
+    useState<string | undefined>();
+
+  const [reviewOpen, setReviewOpen] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -74,6 +110,23 @@ export default function DataCollectionDetailPage() {
 
         const dc = await getDataCollectionById(id);
         setDataCollection(dc);
+
+        const [
+          campaignData,
+          countryData,
+          questionnaireData,
+          organizationData,
+        ] = await Promise.all([
+          getCampaigns(),
+          getCountries(),
+          getQuestionnaires(),
+          getOrganizations(),
+        ]);
+
+        setCampaigns(campaignData);
+        setCountries(countryData);
+        setQuestionnaires(questionnaireData);
+        setOrganizations(organizationData);
 
         setStructureLoading(true);
 
@@ -114,6 +167,10 @@ export default function DataCollectionDetailPage() {
     if (!dataCollection || !pendingAction) return;
 
     switch (pendingAction) {
+      case "START":
+        await startDataCollection(dataCollection.id);
+        break;
+
       case "SUBMIT":
         await submitDataCollection(dataCollection.id);
         break;
@@ -176,9 +233,11 @@ export default function DataCollectionDetailPage() {
 
         <Typography
           color="text.secondary"
-          sx={{ mb: 3 }}
+          sx={{ mb: 1 }}
         >
-          {dataCollection.questionnaireId}
+          {questionnaires.find(
+            (item) => item.id === dataCollection.questionnaireId,
+          )?.name ?? dataCollection.questionnaireId}
         </Typography>
 
         <Card sx={{ mb: 3 }}>
@@ -190,7 +249,15 @@ export default function DataCollectionDetailPage() {
                     Campaign
                   </Typography>
                   <Typography>
-                    {dataCollection.campaignId}
+                    {campaigns.find(
+                      (item) => item.id === dataCollection.campaignId,
+                    )?.code
+                      ? `${campaigns.find(
+                          (item) => item.id === dataCollection.campaignId,
+                        )?.code} — ${campaigns.find(
+                          (item) => item.id === dataCollection.campaignId,
+                        )?.name}`
+                      : dataCollection.campaignId}
                   </Typography>
                 </Grid>
 
@@ -199,16 +266,21 @@ export default function DataCollectionDetailPage() {
                     Country
                   </Typography>
                   <Typography>
-                    {dataCollection.countryId}
+                    {countries.find(
+                      (item) => item.id === dataCollection.countryId,
+                    )?.name ?? dataCollection.countryId}
                   </Typography>
                 </Grid>
 
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="caption">
-                    Questionnaire
+                    Operator Data Provider
                   </Typography>
                   <Typography>
-                    {dataCollection.questionnaireId}
+                    {organizations.find(
+                      (item) =>
+                        item.id === dataCollection.operatorOrganizationId,
+                    )?.name ?? dataCollection.operatorOrganizationId}
                   </Typography>
                 </Grid>
 
@@ -229,34 +301,52 @@ export default function DataCollectionDetailPage() {
                 direction="row"
                 spacing={1}
               >
-                <Button
-                  variant="contained"
-                  onClick={() =>
-                    setPendingAction("SUBMIT")
-                  }
-                >
-                  Submit
-                </Button>
+                {(dataCollection.status === "DRAFT" ||
+                  dataCollection.status === "REJECTED") && (
+                  <Button
+                    variant="contained"
+                    onClick={() =>
+                      setPendingAction("START")
+                    }
+                  >
+                    Start
+                  </Button>
+                )}
 
-                <Button
-                  color="success"
-                  variant="contained"
-                  onClick={() =>
-                    setPendingAction("APPROVE")
-                  }
-                >
-                  Validate
-                </Button>
+                {dataCollection.status === "IN_PROGRESS" && (
+                  <Button
+                    variant="contained"
+                    onClick={() =>
+                      setPendingAction("SUBMIT")
+                    }
+                  >
+                    Submit
+                  </Button>
+                )}
 
-                <Button
-                  color="error"
-                  variant="contained"
-                  onClick={() =>
-                    setPendingAction("REJECT")
-                  }
-                >
-                  Reject
-                </Button>
+                {dataCollection.status === "SUBMITTED" && (
+                  <>
+                    <Button
+                      color="success"
+                      variant="contained"
+                      onClick={() =>
+                        setPendingAction("APPROVE")
+                      }
+                    >
+                      Validate
+                    </Button>
+
+                    <Button
+                      color="error"
+                      variant="contained"
+                      onClick={() =>
+                        setPendingAction("REJECT")
+                      }
+                    >
+                      Reject
+                    </Button>
+                  </>
+                )}
               </Stack>
             </Stack>
           </CardContent>
@@ -266,45 +356,42 @@ export default function DataCollectionDetailPage() {
           dataCollectionId={dataCollection.id}
         />
 
-        <Grid
-          container
-          spacing={3}
-          sx={{ mt: 2 }}
-        >
-          <Grid size={{ xs: 12, lg: 8 }}>
-            <Tabs
-              value={tab}
-              onChange={(_, value) => setTab(value)}
-              sx={{ mb: 2 }}
-            >
-              <Tab label="Questionnaire" />
-              <Tab label="Spreadsheet" />
-            </Tabs>
-
-            {structureLoading ? (
-              <CircularProgress />
-            ) : tab === 0 ? (
-              <DataEntryForm
-                dataCollectionId={dataCollection.id}
-                groups={groups}
-                variables={variables}
-              />
-            ) : (
-              <SpreadsheetDataEntryForm
-                dataCollectionId={dataCollection.id}
-                groups={groups}
-                variables={variables}
-                status={dataCollection.status}
-              />
-            )}
-          </Grid>
-
-          <Grid size={{ xs: 12, lg: 4 }}>
-            <ReviewPanel
-              observationId={selectedObservationId}
+        <Box sx={{ mt: 2 }}>
+          {structureLoading ? (
+            <CircularProgress />
+          ) : (
+            <SpreadsheetDataEntryForm
+              dataCollectionId={dataCollection.id}
+              groups={groups}
+              variables={variables}
+              status={dataCollection.status}
+              onObservationSelect={(observationId) => {
+                setSelectedObservationId(observationId);
+                setReviewOpen(Boolean(observationId));
+              }}
             />
-          </Grid>
-        </Grid>
+          )}
+
+          <Accordion
+            expanded={reviewOpen}
+            onChange={(_, expanded) => setReviewOpen(expanded)}
+            sx={{ mt: 3 }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+            >
+              <Typography variant="h6">
+                Validation Review
+              </Typography>
+            </AccordionSummary>
+
+            <AccordionDetails>
+              <ReviewPanel
+                observationId={selectedObservationId}
+              />
+            </AccordionDetails>
+          </Accordion>
+        </Box>
       </Box>
 
       <Dialog

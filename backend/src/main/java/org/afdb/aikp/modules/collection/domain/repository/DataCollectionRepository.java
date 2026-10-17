@@ -2,6 +2,7 @@ package org.afdb.aikp.modules.collection.domain.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.afdb.aikp.modules.campaign.domain.valueobject.CampaignId;
 import org.afdb.aikp.modules.collection.domain.model.DataCollection;
@@ -28,6 +29,9 @@ public interface DataCollectionRepository {
 
     boolean existsById(
             DataCollectionId id);
+
+    boolean existsByOrganizationId(
+            UUID organizationId);
 
     void delete(
             DataCollection dataCollection);

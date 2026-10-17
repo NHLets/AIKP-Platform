@@ -11,7 +11,7 @@ const sectors = [
     "Power",
     "Transport",
     "ICT",
-    "Water and Sanitation",
+    "Water & Sanitation",
 ];
 
 export default function SectorListPage() {

@@ -21,6 +21,10 @@ import org.afdb.aikp.modules.collection.application.response.DataCollectionSumma
 import org.afdb.aikp.modules.collection.application.service.DataCollectionApplicationService;
 import org.afdb.aikp.modules.collection.presentation.request.CreateDataCollectionRequest;
 import org.afdb.aikp.modules.collection.presentation.request.UpdateDataCollectionRequest;
+import org.afdb.aikp.modules.validation.application.service.DataCollectionValidationApplicationService;
+import org.afdb.aikp.modules.validation.domain.enums.ValidationDecision;
+import org.springframework.security.core.Authentication;
+import java.time.Instant;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -40,11 +44,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class DataCollectionController {
 
     private final DataCollectionApplicationService service;
+    private final DataCollectionValidationApplicationService validationService;
 
-    public DataCollectionController(
-            DataCollectionApplicationService service) {
-
+    @org.springframework.beans.factory.annotation.Autowired
+    public DataCollectionController(DataCollectionApplicationService service,
+            DataCollectionValidationApplicationService validationService) {
         this.service = service;
+        this.validationService = validationService;
+    }
+
+    /** Compatibility constructor for tests that exercise non-validation endpoints. */
+    public DataCollectionController(DataCollectionApplicationService service) {
+        this.service = service;
+        this.validationService = null;
     }
 
     @PostMapping
@@ -162,25 +174,21 @@ public class DataCollectionController {
     @PostMapping("/{id}/validate")
     public ResponseEntity<DataCollectionResponse>
             validateDataCollection(
-                    @PathVariable("id") UUID id) {
-
-        DataCollectionResponse response =
-                service.validateDataCollection(
-                        new ValidateDataCollectionCommand(id));
-
-        return ResponseEntity.ok(response);
+                    @PathVariable("id") UUID id, Authentication authentication) {
+        requireAuthenticated(authentication);
+        validationService.createForAuthenticatedUser(id, authentication.getName(),
+                ValidationDecision.VALIDATED, null, Instant.now());
+        return ResponseEntity.ok(service.getDataCollection(new GetDataCollectionQuery(id)));
     }
 
     @PostMapping("/{id}/reject")
     public ResponseEntity<DataCollectionResponse>
             rejectDataCollection(
-                    @PathVariable("id") UUID id) {
-
-        DataCollectionResponse response =
-                service.rejectDataCollection(
-                        new RejectDataCollectionCommand(id));
-
-        return ResponseEntity.ok(response);
+                    @PathVariable("id") UUID id, Authentication authentication) {
+        requireAuthenticated(authentication);
+        validationService.createForAuthenticatedUser(id, authentication.getName(),
+                ValidationDecision.REJECTED, null, Instant.now());
+        return ResponseEntity.ok(service.getDataCollection(new GetDataCollectionQuery(id)));
     }
 
     @PostMapping("/{id}/cancel")
@@ -204,4 +212,10 @@ public class DataCollectionController {
 
         return ResponseEntity.noContent().build();
     }
+    private void requireAuthenticated(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new org.springframework.security.access.AccessDeniedException("Authentication required");
+        }
+    }
+
 }

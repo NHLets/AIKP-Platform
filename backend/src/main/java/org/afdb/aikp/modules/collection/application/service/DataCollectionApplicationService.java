@@ -24,8 +24,12 @@ import org.afdb.aikp.modules.collection.application.response.DataCollectionRespo
 import org.afdb.aikp.modules.collection.application.response.DataCollectionSummary;
 
 import org.afdb.aikp.modules.collection.domain.exception.DataCollectionNotFoundException;
+import org.afdb.aikp.modules.collection.domain.exception.DataCollectionDeletionNotAllowedException;
+import org.afdb.aikp.modules.collection.domain.enums.DataCollectionStatus;
+import org.afdb.aikp.modules.collection.domain.repository.DataCollectionObservationRepository;
 import org.afdb.aikp.modules.collection.domain.model.DataCollection;
 import org.afdb.aikp.modules.collection.domain.repository.DataCollectionRepository;
+import org.afdb.aikp.modules.validation.domain.repository.DataCollectionValidationRepository;
 import org.afdb.aikp.modules.collection.domain.valueobject.DataCollectionId;
 
 import org.afdb.aikp.modules.country.domain.exception.CountryNotFoundException;
@@ -52,6 +56,12 @@ public class DataCollectionApplicationService {
 
     private final DataCollectionRepository dataCollectionRepository;
 
+    private final DataCollectionObservationRepository
+            dataCollectionObservationRepository;
+
+    private final DataCollectionValidationRepository
+            dataCollectionValidationRepository;
+
     private final CampaignRepository campaignRepository;
 
     private final CountryRepository countryRepository;
@@ -64,6 +74,10 @@ public class DataCollectionApplicationService {
 
     public DataCollectionApplicationService(
             DataCollectionRepository dataCollectionRepository,
+            DataCollectionObservationRepository
+                    dataCollectionObservationRepository,
+            DataCollectionValidationRepository
+                    dataCollectionValidationRepository,
             CampaignRepository campaignRepository,
             CountryRepository countryRepository,
             QuestionnaireRepository questionnaireRepository,
@@ -73,6 +87,16 @@ public class DataCollectionApplicationService {
         this.dataCollectionRepository = Objects.requireNonNull(
                 dataCollectionRepository,
                 "DataCollectionRepository cannot be null.");
+
+        this.dataCollectionObservationRepository =
+                Objects.requireNonNull(
+                        dataCollectionObservationRepository,
+                        "DataCollectionObservationRepository cannot be null.");
+
+        this.dataCollectionValidationRepository =
+                Objects.requireNonNull(
+                        dataCollectionValidationRepository,
+                        "DataCollectionValidationRepository cannot be null.");
 
         this.campaignRepository = Objects.requireNonNull(
                 campaignRepository,
@@ -333,6 +357,14 @@ public class DataCollectionApplicationService {
 
     /**
      * Deletes a DataCollection.
+     *
+     * <p>
+     * Deletion is allowed only while the collection is still
+     * DRAFT or IN_PROGRESS. Dependent validations are removed
+     * first, followed by observations, and finally the collection.
+     * The whole operation runs in the transaction opened at the
+     * service level.
+     * </p>
      */
     public void deleteDataCollection(
             DeleteDataCollectionCommand command) {
@@ -346,8 +378,29 @@ public class DataCollectionApplicationService {
                         DataCollectionId.of(
                                 command.dataCollectionId()));
 
-        dataCollectionRepository.delete(
-                dataCollection);
+        DataCollectionStatus status =
+                dataCollection.getStatus();
+
+        if (status != DataCollectionStatus.DRAFT
+                && status != DataCollectionStatus.IN_PROGRESS) {
+
+            throw new DataCollectionDeletionNotAllowedException(
+                    dataCollection.getDataCollectionId(),
+                    status);
+        }
+
+        DataCollectionId dataCollectionId =
+                dataCollection.getDataCollectionId();
+
+        dataCollectionValidationRepository
+                .findByDataCollectionId(dataCollectionId)
+                .forEach(dataCollectionValidationRepository::delete);
+
+        dataCollectionObservationRepository
+                .findByDataCollectionId(dataCollectionId)
+                .forEach(dataCollectionObservationRepository::delete);
+
+        dataCollectionRepository.delete(dataCollection);
     }
 
     /**

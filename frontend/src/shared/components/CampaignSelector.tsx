@@ -7,12 +7,36 @@ import {
 
 import { useCampaign } from "../context/CampaignContext";
 import { useCampaigns } from "../../hooks/useCampaigns";
+import type { CampaignSummary } from "../../types/campaign";
+import { useEffect } from "react";
 
 export default function CampaignSelector() {
   const { campaignId, setCampaignId } = useCampaign();
   const { data } = useCampaigns();
 
-  const campaigns = Array.isArray(data) ? data : [];
+  const campaigns: CampaignSummary[] = Array.isArray(data) ? data : [];
+
+  useEffect(() => {
+    if (campaigns.length === 0) {
+      return;
+    }
+
+    const currentCampaignExists = campaigns.some(
+      (campaign) => campaign.id === campaignId,
+    );
+
+    if (currentCampaignExists) {
+      return;
+    }
+
+    const activeCampaign = campaigns.find(
+      (campaign) => campaign.status === "ACTIVE",
+    );
+
+    if (activeCampaign) {
+      setCampaignId(activeCampaign.id);
+    }
+  }, [campaigns, campaignId, setCampaignId]);
 
   return (
     <FormControl size="small" sx={{ minWidth: 240 }}>

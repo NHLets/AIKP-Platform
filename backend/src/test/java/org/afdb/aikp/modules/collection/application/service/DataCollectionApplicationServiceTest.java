@@ -34,6 +34,8 @@ import org.afdb.aikp.modules.collection.domain.enums.DataCollectionStatus;
 import org.afdb.aikp.modules.collection.domain.exception.DataCollectionNotFoundException;
 import org.afdb.aikp.modules.collection.domain.model.DataCollection;
 import org.afdb.aikp.modules.collection.domain.repository.DataCollectionRepository;
+import org.afdb.aikp.modules.collection.domain.repository.DataCollectionObservationRepository;
+import org.afdb.aikp.modules.validation.domain.repository.DataCollectionValidationRepository;
 import org.afdb.aikp.modules.collection.domain.valueobject.DataCollectionId;
 
 import org.afdb.aikp.modules.country.domain.exception.CountryNotFoundException;
@@ -64,6 +66,12 @@ class DataCollectionApplicationServiceTest {
 
     @Mock
     private DataCollectionRepository dataCollectionRepository;
+
+    @Mock
+    private DataCollectionObservationRepository dataCollectionObservationRepository;
+
+    @Mock
+    private DataCollectionValidationRepository dataCollectionValidationRepository;
 
     @Mock
     private CampaignRepository campaignRepository;

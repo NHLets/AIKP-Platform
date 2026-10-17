@@ -33,6 +33,14 @@ import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationCode;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationId;
 import org.afdb.aikp.modules.organization.domain.valueobject.OrganizationName;
 
+import org.afdb.aikp.modules.iam.domain.model.User;
+import org.afdb.aikp.modules.iam.domain.repository.UserRepository;
+import org.afdb.aikp.modules.iam.domain.valueobject.Email;
+import org.afdb.aikp.modules.iam.domain.valueobject.FullName;
+import org.afdb.aikp.modules.iam.domain.valueobject.PasswordHash;
+import org.afdb.aikp.modules.iam.domain.valueobject.UserId;
+import org.afdb.aikp.modules.iam.domain.valueobject.Username;
+import org.afdb.aikp.modules.validation.infrastructure.persistence.entity.DataCollectionValidationEntity;
 import org.afdb.aikp.modules.person.domain.model.Person;
 import org.afdb.aikp.modules.person.domain.repository.PersonRepository;
 import org.afdb.aikp.modules.person.domain.valueobject.PersonFullName;
@@ -106,6 +114,9 @@ class DataCollectionValidationRepositoryAdapterIntegrationTest {
     private PersonRepository personRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private OrganizationRepository organizationRepository;
 
     @Autowired
@@ -176,6 +187,57 @@ class DataCollectionValidationRepositoryAdapterIntegrationTest {
                             .isEqualTo(
                                     "Validation approved.");
                 });
+    }
+
+
+    @Test
+    void shouldSaveAndFindValidationByIamUserId() {
+
+        TestData testData = createTestData();
+        String suffix = UUID.randomUUID().toString().replace("-", "");
+
+        User user = User.create(
+                Username.of("iamtest" + suffix.substring(0, 12)),
+                Email.of("iamtest" + suffix + "@example.org"),
+                FullName.of("IAM Integration Tester"),
+                PasswordHash.of("$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"));
+
+        user = userRepository.save(user);
+        UserId userId = user.getId();
+
+        DataCollectionValidation validation =
+                DataCollectionValidation.createForUser(
+                        DataCollectionValidationId.generate(),
+                        testData.dataCollectionId(),
+                        userId,
+                        ValidationDecision.VALIDATED,
+                        ValidationComments.of("IAM validation approved."),
+                        Instant.now());
+
+        DataCollectionValidation saved = validationRepository.save(validation);
+
+        assertThat(saved.getValidatorUserId()).isEqualTo(userId);
+        assertThat(saved.getValidatorId()).isNull();
+
+        assertThat(validationRepository.findById(
+                saved.getDataCollectionValidationId()))
+                .isPresent()
+                .hasValueSatisfying(found -> {
+                    assertThat(found.getValidatorUserId()).isEqualTo(userId);
+                    assertThat(found.getValidatorId()).isNull();
+                    assertThat(found.getDecision())
+                            .isEqualTo(ValidationDecision.VALIDATED);
+                    assertThat(found.getComments().getValue())
+                            .isEqualTo("IAM validation approved.");
+                });
+
+        DataCollectionValidationEntity entity =
+                validationJpaRepository.findById(
+                        saved.getDataCollectionValidationId().getValue())
+                        .orElseThrow();
+
+        assertThat(entity.getValidatorUserId()).isEqualTo(userId.getValue());
+        assertThat(entity.getValidatorId()).isNull();
     }
 
     @Test

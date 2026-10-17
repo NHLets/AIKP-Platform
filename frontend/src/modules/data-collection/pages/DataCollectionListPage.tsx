@@ -8,6 +8,11 @@ import {
     Button,
     Chip,
     CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
     FormControl,
     InputLabel,
     MenuItem,
@@ -24,7 +29,11 @@ import {
     Typography,
 } from "@mui/material";
 
-import { getDataCollections } from "../api/dataCollectionApi";
+import {
+    deleteDataCollection,
+    getDataCollections,
+} from "../api/dataCollectionApi";
+
 
 import {
     getCampaigns,
@@ -117,6 +126,15 @@ export default function DataCollectionListPage() {
     const [error, setError] =
         useState<string | null>(null);
 
+    const [deleteTarget, setDeleteTarget] =
+        useState<DataCollectionSummary | null>(null);
+
+    const [isDeleting, setIsDeleting] =
+        useState(false);
+
+    const [deleteError, setDeleteError] =
+        useState<string | null>(null);
+
     useEffect(() => {
         async function loadData() {
             try {
@@ -158,6 +176,39 @@ export default function DataCollectionListPage() {
 
         void loadData();
     }, []);
+
+    async function handleDeleteConfirm() {
+        if (!deleteTarget) {
+            return;
+        }
+
+        try {
+            setIsDeleting(true);
+            setDeleteError(null);
+
+            await deleteDataCollection(deleteTarget.id);
+
+            setDataCollections((current) =>
+                current.filter(
+                    (item) => item.id !== deleteTarget.id,
+                ),
+            );
+
+            setDeleteTarget(null);
+        } catch (error) {
+            console.error(
+                "Failed to delete data collection:",
+                error,
+            );
+
+            setDeleteError(
+                "Unable to delete this data collection. "
+                + "Please try again.",
+            );
+        } finally {
+            setIsDeleting(false);
+        }
+    }
 
     const filteredDataCollections = useMemo(
         () => {
@@ -629,6 +680,9 @@ export default function DataCollectionListPage() {
                             <TableCell>
                                 Status
                             </TableCell>
+                            <TableCell align="right">
+                                Actions
+                            </TableCell>
                         </TableRow>
                     </TableHead>
 
@@ -735,6 +789,28 @@ export default function DataCollectionListPage() {
                                                 size="small"
                                             />
                                         </TableCell>
+
+                                        <TableCell
+                                            align="right"
+                                            onClick={(event) =>
+                                                event.stopPropagation()
+                                            }
+                                        >
+                                            {(item.status === "DRAFT" ||
+                                                item.status === "IN_PROGRESS") && (
+                                                <Button
+                                                    aria-label="Delete data collection"
+                                                    color="error"
+                                                    size="small"
+                                                    onClick={() => {
+                                                        setDeleteError(null);
+                                                        setDeleteTarget(item);
+                                                    }}
+                                                >
+                                                    Delete
+                                                </Button>
+                                            )}
+                                        </TableCell>
                                     </TableRow>
                                 );
                             },
@@ -744,7 +820,7 @@ export default function DataCollectionListPage() {
                             0 && (
                             <TableRow>
                                 <TableCell
-                                    colSpan={7}
+                                    colSpan={8}
                                     align="center"
                                 >
                                     No data collections found.
@@ -774,6 +850,57 @@ export default function DataCollectionListPage() {
                     rowsPerPageOptions={[5, 10, 25, 50]}
                 />
             </Paper>
+
+            <Dialog
+                open={deleteTarget !== null}
+                onClose={() => {
+                    if (!isDeleting) {
+                        setDeleteTarget(null);
+                        setDeleteError(null);
+                    }
+                }}
+            >
+                <DialogTitle>
+                    Delete Data Collection
+                </DialogTitle>
+
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to delete this
+                        Data Collection? This action cannot be undone.
+                    </DialogContentText>
+
+                    {deleteError && (
+                        <Alert
+                            severity="error"
+                            sx={{ mt: 2 }}
+                        >
+                            {deleteError}
+                        </Alert>
+                    )}
+                </DialogContent>
+
+                <DialogActions>
+                    <Button
+                        onClick={() => {
+                            setDeleteTarget(null);
+                            setDeleteError(null);
+                        }}
+                        disabled={isDeleting}
+                    >
+                        Cancel
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        color="error"
+                        onClick={() => void handleDeleteConfirm()}
+                        disabled={isDeleting}
+                    >
+                        {isDeleting ? "Deleting..." : "Delete"}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

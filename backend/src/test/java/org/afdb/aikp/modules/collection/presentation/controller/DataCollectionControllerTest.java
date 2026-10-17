@@ -10,6 +10,8 @@ import java.util.UUID;
 import org.afdb.aikp.modules.collection.application.response.DataCollectionResponse;
 import org.afdb.aikp.modules.collection.application.response.DataCollectionSummary;
 import org.afdb.aikp.modules.collection.application.service.DataCollectionApplicationService;
+import org.afdb.aikp.modules.validation.application.service.DataCollectionValidationApplicationService;
+import org.afdb.aikp.modules.validation.domain.enums.ValidationDecision;
 import org.afdb.aikp.modules.collection.domain.enums.DataCollectionStatus;
 import org.afdb.aikp.modules.collection.presentation.request.CreateDataCollectionRequest;
 import org.afdb.aikp.modules.collection.presentation.request.UpdateDataCollectionRequest;
@@ -25,6 +27,7 @@ import org.afdb.aikp.shared.security.AikpUserDetailsService;
 import org.afdb.aikp.shared.security.JwtService;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,6 +60,9 @@ class DataCollectionControllerTest {
 
     @MockBean
     private DataCollectionApplicationService service;
+
+    @MockBean
+    private DataCollectionValidationApplicationService validationService;
 
     @Test
     void shouldCreateDataCollection()
@@ -363,14 +369,16 @@ class DataCollectionControllerTest {
 
         UUID id = UUID.randomUUID();
 
-        when(service.validateDataCollection(any()))
-                .thenReturn(
-                        responseWithStatus(
-                                id,
-                                DataCollectionStatus.VALIDATED));
+        when(validationService.createForAuthenticatedUser(
+                org.mockito.ArgumentMatchers.eq(id), org.mockito.ArgumentMatchers.eq("reviewer@example.org"),
+                org.mockito.ArgumentMatchers.eq(ValidationDecision.VALIDATED), org.mockito.ArgumentMatchers.isNull(), any()))
+                .thenReturn(null);
+        when(service.getDataCollection(any())).thenReturn(
+                responseWithStatus(id, DataCollectionStatus.VALIDATED));
 
         mockMvc.perform(
-                        post("/api/data-collections/{id}/validate", id))
+                        post("/api/data-collections/{id}/validate", id)
+                                .principal(new UsernamePasswordAuthenticationToken("reviewer@example.org", "n/a", List.of())))
                 .andExpect(status().isOk())
                 .andExpect(
                         jsonPath("$.status")
@@ -383,14 +391,16 @@ class DataCollectionControllerTest {
 
         UUID id = UUID.randomUUID();
 
-        when(service.rejectDataCollection(any()))
-                .thenReturn(
-                        responseWithStatus(
-                                id,
-                                DataCollectionStatus.REJECTED));
+        when(validationService.createForAuthenticatedUser(
+                org.mockito.ArgumentMatchers.eq(id), org.mockito.ArgumentMatchers.eq("reviewer@example.org"),
+                org.mockito.ArgumentMatchers.eq(ValidationDecision.REJECTED), org.mockito.ArgumentMatchers.isNull(), any()))
+                .thenReturn(null);
+        when(service.getDataCollection(any())).thenReturn(
+                responseWithStatus(id, DataCollectionStatus.REJECTED));
 
         mockMvc.perform(
-                        post("/api/data-collections/{id}/reject", id))
+                        post("/api/data-collections/{id}/reject", id)
+                                .principal(new UsernamePasswordAuthenticationToken("reviewer@example.org", "n/a", List.of())))
                 .andExpect(status().isOk())
                 .andExpect(
                         jsonPath("$.status")

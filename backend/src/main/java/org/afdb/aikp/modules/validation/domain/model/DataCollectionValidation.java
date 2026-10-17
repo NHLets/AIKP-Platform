@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import org.afdb.aikp.modules.collection.domain.valueobject.DataCollectionId;
 import org.afdb.aikp.modules.person.domain.valueobject.PersonId;
+import org.afdb.aikp.modules.iam.domain.valueobject.UserId;
 import org.afdb.aikp.modules.validation.domain.enums.ValidationDecision;
 import org.afdb.aikp.modules.validation.domain.valueobject.DataCollectionValidationId;
 import org.afdb.aikp.modules.validation.domain.valueobject.ValidationComments;
@@ -25,6 +26,8 @@ public final class DataCollectionValidation
 
     private final PersonId validatorId;
 
+    private final UserId validatorUserId;
+
     private final ValidationDecision decision;
 
     private final ValidationComments comments;
@@ -35,6 +38,7 @@ public final class DataCollectionValidation
             DataCollectionValidationId id,
             DataCollectionId dataCollectionId,
             PersonId validatorId,
+            UserId validatorUserId,
             ValidationDecision decision,
             ValidationComments comments,
             Instant validatedAt) {
@@ -47,9 +51,11 @@ public final class DataCollectionValidation
                 dataCollectionId,
                 "Data collection ID cannot be null.");
 
-        this.validatorId = Objects.requireNonNull(
-                validatorId,
-                "Validator ID cannot be null.");
+        if (validatorId == null && validatorUserId == null) {
+            throw new IllegalArgumentException("A person or IAM user validator is required.");
+        }
+        this.validatorId = validatorId;
+        this.validatorUserId = validatorUserId;
 
         this.decision = Objects.requireNonNull(
                 decision,
@@ -73,13 +79,19 @@ public final class DataCollectionValidation
             ValidationComments comments,
             Instant validatedAt) {
 
-        return new DataCollectionValidation(
-                id,
-                dataCollectionId,
-                validatorId,
-                decision,
-                comments,
-                validatedAt);
+        return new DataCollectionValidation(id, dataCollectionId, validatorId, null,
+                decision, comments, validatedAt);
+    }
+
+    public static DataCollectionValidation createForUser(
+            DataCollectionValidationId id,
+            DataCollectionId dataCollectionId,
+            UserId validatorUserId,
+            ValidationDecision decision,
+            ValidationComments comments,
+            Instant validatedAt) {
+        return new DataCollectionValidation(id, dataCollectionId, null, validatorUserId,
+                decision, comments, validatedAt);
     }
 
     /**
@@ -92,14 +104,19 @@ public final class DataCollectionValidation
             ValidationDecision decision,
             ValidationComments comments,
             Instant validatedAt) {
+        return new DataCollectionValidation(id, dataCollectionId, validatorId, null,
+                decision, comments, validatedAt);
+    }
 
-        return new DataCollectionValidation(
-                id,
-                dataCollectionId,
-                validatorId,
-                decision,
-                comments,
-                validatedAt);
+    public static DataCollectionValidation restoreForUser(
+            DataCollectionValidationId id,
+            DataCollectionId dataCollectionId,
+            UserId validatorUserId,
+            ValidationDecision decision,
+            ValidationComments comments,
+            Instant validatedAt) {
+        return new DataCollectionValidation(id, dataCollectionId, null, validatorUserId,
+                decision, comments, validatedAt);
     }
 
     public DataCollectionValidationId
@@ -114,6 +131,10 @@ public final class DataCollectionValidation
 
     public PersonId getValidatorId() {
         return validatorId;
+    }
+
+    public UserId getValidatorUserId() {
+        return validatorUserId;
     }
 
     public ValidationDecision getDecision() {

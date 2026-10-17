@@ -9,10 +9,6 @@ import {
     Box,
     Button,
     CircularProgress,
-    FormControl,
-    InputLabel,
-    MenuItem,
-    Select,
     Stack,
     Table,
     TableBody,
@@ -56,15 +52,14 @@ interface SpreadsheetDataEntryFormProps {
     groups: QuestionnaireGroup[];
     variables: QuestionnaireVariable[];
     status: DataCollectionStatus;
+    onObservationSelect?: (
+        observationId: string | undefined,
+    ) => void;
 }
 
 type CellKey = `${string}:${number}`;
 
-type CellValue =
-    | string
-    | number
-    | boolean
-    | null;
+type CellValue = string | null;
 
 interface CellState {
     value: CellValue;
@@ -81,25 +76,52 @@ function makeCellKey(
 
 function getObservationValue(
     observation: DataCollectionObservation,
+    variable: QuestionnaireVariable,
 ): CellValue {
-    if (observation.numericValue !== null &&
-        observation.numericValue !== undefined) {
-        return observation.numericValue;
+    if (
+        observation.numericValue !== null &&
+        observation.numericValue !== undefined
+    ) {
+        const numericValue =
+            String(observation.numericValue);
+
+        const choices =
+            PW_A_CHOICE_OPTIONS[
+                variable.seriesCode.toUpperCase()
+            ];
+
+        if (choices) {
+            const matchedChoice =
+                choices.find(
+                    (option) =>
+                        String(option.value) ===
+                        numericValue,
+                );
+
+            if (matchedChoice) {
+                return (
+                    matchedChoice.aliases?.[0] ??
+                    matchedChoice.label
+                );
+            }
+        }
+
+        return numericValue;
     }
 
     if (observation.textValue !== null &&
         observation.textValue !== undefined) {
-        return observation.textValue;
+        return String(observation.textValue);
     }
 
     if (observation.booleanValue !== null &&
         observation.booleanValue !== undefined) {
-        return observation.booleanValue;
+        return String(observation.booleanValue);
     }
 
     if (observation.dateValue !== null &&
         observation.dateValue !== undefined) {
-        return observation.dateValue;
+        return String(observation.dateValue);
     }
 
     return null;
@@ -136,8 +158,22 @@ function createInitialCells(
             continue;
         }
 
+        const variable =
+            variables.find(
+                (item) =>
+                    item.id ===
+                    observation.questionnaireVariableId,
+            );
+
+        if (!variable) {
+            continue;
+        }
+
         cells[key] = {
-            value: getObservationValue(observation),
+            value: getObservationValue(
+                observation,
+                variable,
+            ),
             status: observation.status,
             observationId: observation.id,
         };
@@ -146,54 +182,12 @@ function createInitialCells(
     return cells;
 }
 
-function getInputType(
-    variable: QuestionnaireVariable,
-): "text" | "number" {
-    switch (variable.dataType) {
-        case "NUMBER":
-        case "INTEGER":
-        case "DECIMAL":
-        case "PERCENTAGE":
-            return "number";
-
-        default:
-            return "text";
-    }
-}
-
-function normalizeValue(
-    variable: QuestionnaireVariable,
-    value: string,
-): CellValue {
-    if (value === "") {
-        return null;
-    }
-
-    switch (variable.dataType) {
-        case "NUMBER":
-        case "INTEGER":
-        case "DECIMAL":
-        case "PERCENTAGE": {
-            const numericValue = Number(value);
-
-            return Number.isNaN(numericValue)
-                ? null
-                : numericValue;
-        }
-
-        case "BOOLEAN":
-            return value === "true";
-
-        default:
-            return value;
-    }
-}
-
 export default function SpreadsheetDataEntryForm({
     dataCollectionId,
     groups,
     variables,
     status,
+    onObservationSelect,
 }: SpreadsheetDataEntryFormProps) {
     const [cells, setCells] = useState<
         Record<string, CellState>
@@ -316,20 +310,14 @@ export default function SpreadsheetDataEntryForm({
         startVariable: QuestionnaireVariable,
         startYear: number,
     ) {
+        if (isReadOnly) {
+            return;
+        }
+
         const clipboardText =
             event.clipboardData.getData("text/plain");
 
-        // Laisser le navigateur gérer le collage d'une seule cellule.
-        // Ce handler traite uniquement les matrices Excel
-        // contenant plusieurs lignes et/ou colonnes.
-        if (
-            !clipboardText ||
-            (
-                !clipboardText.includes("\t") &&
-                !clipboardText.includes("\n") &&
-                !clipboardText.includes("\r")
-            )
-        ) {
+        if (!clipboardText) {
             return;
         }
 
@@ -338,79 +326,121 @@ export default function SpreadsheetDataEntryForm({
         const rows = clipboardText
             .replace(/\r\n/g, "\n")
             .replace(/\r/g, "\n")
-            .split("\n")
-            .map((row) => row.split("\t"));
+            .split("\n");
 
-        const startVariableIndex =
-            variables.findIndex(
-                (variable) =>
-                    variable.id === startVariable.id,
-            );
+        // Excel ajoute parfois une ligne vide finale.
+        while (
+            rows.length > 1 &&
+            rows[rows.length - 1] === ""
+        ) {
+            rows.pop();
+        }
+
+        const matrix = rows.map((row) =>
+            row.split("\t"),
+        );
 
         const startYearIndex =
             PW_A_REFERENCE_YEARS.findIndex(
                 (year) => year === startYear,
             );
 
-        if (
-            startVariableIndex < 0 ||
-            startYearIndex < 0
-        ) {
+        if (startYearIndex < 0) {
+            return;
+        }
+
+        /*
+         * Le tableau est affiché groupe par groupe.
+         * Le collage doit donc utiliser exactement
+         * l'ordre des variables du groupe affiché,
+         * et non l'ordre global de `variables`.
+         */
+        const startGroup = groupedVariables.find(
+            ({ variables: groupVariables }) =>
+                groupVariables.some(
+                    (variable) =>
+                        variable.id === startVariable.id,
+                ),
+        );
+
+        if (!startGroup) {
+            return;
+        }
+
+        const startVariableIndex =
+            startGroup.variables.findIndex(
+                (variable) =>
+                    variable.id === startVariable.id,
+            );
+
+        if (startVariableIndex < 0) {
             return;
         }
 
         const pastedCells: Array<{
             key: string;
+            rawValue: string;
             variable: QuestionnaireVariable;
             year: number;
-            rawValue: string;
         }> = [];
 
-        rows.forEach((row, rowOffset) => {
+        matrix.forEach((row, rowOffset) => {
             const variableIndex =
                 startVariableIndex + rowOffset;
 
+            /*
+             * Le collage ne déborde pas du groupe courant.
+             */
             if (
                 variableIndex < 0 ||
-                variableIndex >= variables.length
+                variableIndex >=
+                    startGroup.variables.length
             ) {
                 return;
             }
 
             const variable =
-                variables[variableIndex];
+                startGroup.variables[variableIndex];
 
-            row.forEach((rawValue, columnOffset) => {
-                const yearIndex =
-                    startYearIndex + columnOffset;
+            row.forEach(
+                (rawValue, columnOffset) => {
+                    const yearIndex =
+                        startYearIndex +
+                        columnOffset;
 
-                if (
-                    yearIndex < 0 ||
-                    yearIndex >=
-                        PW_A_REFERENCE_YEARS.length
-                ) {
-                    return;
-                }
+                    if (
+                        yearIndex < 0 ||
+                        yearIndex >=
+                            PW_A_REFERENCE_YEARS.length
+                    ) {
+                        return;
+                    }
 
-                // Les cellules vides du presse-papiers
-                // ne doivent pas écraser les données existantes.
-                if (rawValue.trim() === "") {
-                    return;
-                }
+                    /*
+                     * On conserve exactement le texte
+                     * provenant d'Excel.
+                     *
+                     * Une cellule vide n'écrase pas
+                     * la valeur existante.
+                     */
+                    if (rawValue === "") {
+                        return;
+                    }
 
-                const year =
-                    PW_A_REFERENCE_YEARS[yearIndex];
+                    const year =
+                        PW_A_REFERENCE_YEARS[yearIndex];
 
-                pastedCells.push({
-                    key: makeCellKey(
-                        variable.id,
+                    pastedCells.push({
+                        key: makeCellKey(
+                            variable.id,
+                            year,
+                        ),
+                        variable,
                         year,
-                    ),
-                    variable,
-                    year,
-                    rawValue: rawValue.trim(),
-                });
-            });
+                        rawValue,
+                    });
+                },
+            );
         });
 
         if (pastedCells.length === 0) {
@@ -423,51 +453,14 @@ export default function SpreadsheetDataEntryForm({
             pastedCells.forEach(
                 ({
                     key,
-                    variable,
                     rawValue,
                 }) => {
-                    const existing = current[key];
-
-                    const normalizedText =
-                        rawValue
-                            .trim()
-                            .toUpperCase();
-
-                    // NA = NOT_AVAILABLE
-                    if (normalizedText === "NA") {
-                        next[key] = {
-                            ...existing,
-                            value: null,
-                            status: "NOT_AVAILABLE",
-                        };
-                        return;
-                    }
-
-                    // N/A = NOT_APPLICABLE
-                    if (normalizedText === "N/A") {
-                        next[key] = {
-                            ...existing,
-                            value: null,
-                            status: "NOT_APPLICABLE",
-                        };
-                        return;
-                    }
-
-                    const normalized =
-                        normalizeValue(
-                            variable,
-                            rawValue,
-                        );
-
-                    // Une valeur invalide ne doit pas
-                    // écraser une valeur existante.
-                    if (normalized === null) {
-                        return;
-                    }
+                    const existing =
+                        current[key];
 
                     next[key] = {
                         ...existing,
-                        value: normalized,
+                        value: rawValue,
                         status: "PROVIDED",
                     };
                 },
@@ -478,7 +471,9 @@ export default function SpreadsheetDataEntryForm({
 
         setSuccessMessage(
             `${pastedCells.length} cell${
-                pastedCells.length === 1 ? "" : "s"
+                pastedCells.length === 1
+                    ? ""
+                    : "s"
             } pasted from Excel.`,
         );
     }
@@ -528,38 +523,161 @@ export default function SpreadsheetDataEntryForm({
         );
     }
 
+    function buildObservationRequest(
+        variable: QuestionnaireVariable,
+        cell: CellState,
+        year: number,
+    ) {
+        const rawValue = cell.value;
+
+        const base = {
+            dataCollectionId,
+            questionnaireVariableId: variable.id,
+            referenceYear: year,
+            numericValue: null as string | null,
+            textValue: null as string | null,
+            booleanValue: null as boolean | null,
+            dateValue: null as string | null,
+            selectedUnit: variable.unit ?? null,
+            comment: null as string | null,
+        };
+
+        if (rawValue === null) {
+            return base;
+        }
+
+        switch (variable.dataType) {
+            case "NUMBER":
+            case "INTEGER":
+            case "DECIMAL":
+            case "PERCENTAGE": {
+                const choices =
+                    PW_A_CHOICE_OPTIONS[
+                        variable.seriesCode.toUpperCase()
+                    ];
+
+                if (choices) {
+                    const normalizedRawValue =
+                        rawValue
+                            .trim()
+                            .replace(/\\s+/g, " ")
+                            .toLowerCase();
+
+                    const matchedChoice =
+                        choices.find((option) => {
+                            const normalizedLabel =
+                                option.label
+                                    .replace(/\\s+/g, " ")
+                                    .trim()
+                                    .toLowerCase();
+
+                            const normalizedAliases =
+                                (option.aliases ?? []).map(
+                                    (alias) =>
+                                        alias
+                                            .replace(
+                                                /\\s+/g,
+                                                " ",
+                                            )
+                                            .trim()
+                                            .toLowerCase(),
+                                );
+
+                            return (
+                                String(option.value) ===
+                                    rawValue.trim() ||
+                                normalizedLabel ===
+                                    normalizedRawValue ||
+                                normalizedAliases.includes(
+                                    normalizedRawValue,
+                                )
+                            );
+                        });
+
+                    if (matchedChoice) {
+                        return {
+                            ...base,
+                            numericValue:
+                                String(
+                                    matchedChoice.value,
+                                ),
+                        };
+                    }
+                }
+
+                // For ordinary numeric variables, or for an
+                // unrecognised coded value, keep the raw value.
+                // Backend validation remains authoritative.
+                return {
+                    ...base,
+                    numericValue: rawValue.trim(),
+                };
+            }
+
+            case "TEXT":
+                return {
+                    ...base,
+                    textValue: rawValue,
+                };
+
+            case "BOOLEAN": {
+                const normalized =
+                    rawValue.trim().toLowerCase();
+
+                if (
+                    normalized === "true" ||
+                    normalized === "1" ||
+                    normalized === "yes" ||
+                    normalized === "oui"
+                ) {
+                    return {
+                        ...base,
+                        booleanValue: true,
+                    };
+                }
+
+                if (
+                    normalized === "false" ||
+                    normalized === "0" ||
+                    normalized === "no" ||
+                    normalized === "non"
+                ) {
+                    return {
+                        ...base,
+                        booleanValue: false,
+                    };
+                }
+
+                throw new Error(
+                    `Invalid boolean value "${rawValue}" for variable "${variable.seriesCode}".`,
+                );
+            }
+
+            case "DATE":
+                return {
+                    ...base,
+                    dateValue: rawValue.trim(),
+                };
+
+            default:
+                throw new Error(
+                    `Unsupported data type "${variable.dataType}" for variable "${variable.seriesCode}".`,
+                );
+        }
+    }
+
     async function saveCell(
         variable: QuestionnaireVariable,
         year: number,
         cell: CellState,
         previousCell: CellState | undefined,
     ) {
-        const request = {
-            dataCollectionId,
-            questionnaireVariableId:
-                variable.id,
-            referenceYear: year,
-            numericValue:
-                typeof cell.value === "number"
-                    ? String(cell.value)
-                    : null,
-            textValue:
-                typeof cell.value === "string"
-                    ? cell.value
-                    : null,
-            booleanValue:
-                typeof cell.value === "boolean"
-                    ? cell.value
-                    : null,
-            dateValue:
-                variable.dataType === "DATE" &&
-                typeof cell.value === "string"
-                    ? cell.value
-                    : null,
-            selectedUnit:
-                variable.unit ?? null,
-            comment: null,
-        };
+        const request =
+            buildObservationRequest(
+                variable,
+                cell,
+                year,
+            );
 
         // Observation status is managed by dedicated backend endpoints.
         if (cell.status === "NOT_AVAILABLE") {
@@ -699,17 +817,44 @@ export default function SpreadsheetDataEntryForm({
             }
 
             for (const entry of changedEntries) {
-                await saveCell(
-                    entry.variable,
-                    entry.year,
-                    entry.cell,
-                    savedCells[
-                        makeCellKey(
-                            entry.variable.id,
-                            entry.year,
-                        )
-                    ],
-                );
+                try {
+                    console.log(
+                        "[PW_A SAVE]",
+                        entry.variable.seriesCode,
+                        entry.variable.dataType,
+                        entry.year,
+                        entry.cell.value,
+                    );
+
+                    await saveCell(
+                        entry.variable,
+                        entry.year,
+                        entry.cell,
+                        savedCells[
+                            makeCellKey(
+                                entry.variable.id,
+                                entry.year,
+                            )
+                        ],
+                    );
+                } catch (error) {
+                    console.error(
+                        "[PW_A SAVE FAILED]",
+                        {
+                            seriesCode:
+                                entry.variable.seriesCode,
+                            dataType:
+                                entry.variable.dataType,
+                            year:
+                                entry.year,
+                            value:
+                                entry.cell.value,
+                            error,
+                        },
+                    );
+
+                    throw error;
+                }
             }
 
             await loadObservations();
@@ -913,8 +1058,8 @@ export default function SpreadsheetDataEntryForm({
                                     >
                                         <TableCell
                                             sx={{
-                                                width: 70,
-                                                minWidth: 70,
+                                                width: 60,
+                                                minWidth: 60,
                                                 position: "sticky",
                                                 left: 0,
                                                 zIndex: 2,
@@ -926,6 +1071,7 @@ export default function SpreadsheetDataEntryForm({
                                                 variant="body2"
                                                 sx={{
                                                     fontWeight: 600,
+                                                    fontSize: "0.75rem",
                                                     whiteSpace: "nowrap",
                                                 }}
                                             >
@@ -935,8 +1081,8 @@ export default function SpreadsheetDataEntryForm({
 
                                         <TableCell
                                             sx={{
-                                                width: 280,
-                                                minWidth: 280,
+                                                width: 250,
+                                                minWidth: 250,
                                                 position: "sticky",
                                                 left: 70,
                                                 zIndex: 2,
@@ -948,6 +1094,7 @@ export default function SpreadsheetDataEntryForm({
                                                 variant="body2"
                                                 sx={{
                                                     fontWeight: 600,
+                                                    fontSize: "0.75rem",
                                                     whiteSpace: "nowrap",
                                                     overflow: "hidden",
                                                     textOverflow: "ellipsis",
@@ -965,6 +1112,8 @@ export default function SpreadsheetDataEntryForm({
                                                 color="text.secondary"
                                                 sx={{
                                                     display: "block",
+                                                    fontSize: "0.6875rem",
+                                                    lineHeight: 1.2,
                                                     whiteSpace: "nowrap",
                                                     overflow: "hidden",
                                                     textOverflow: "ellipsis",
@@ -980,10 +1129,10 @@ export default function SpreadsheetDataEntryForm({
 
                                         <TableCell
                                             sx={{
-                                                width: 60,
-                                                minWidth: 60,
+                                                width: 150,
+                                                minWidth: 150,
                                                 position: "sticky",
-                                                left: 350,
+                                                left: 310,
                                                 zIndex: 2,
                                                 backgroundColor:
                                                     "background.paper",
@@ -999,218 +1148,40 @@ export default function SpreadsheetDataEntryForm({
                                                     year,
                                                 );
 
-                                                const choices =
-                                                    PW_A_CHOICE_OPTIONS[
-                                                        variable.seriesCode.toUpperCase()
-                                                    ];
-
-                                                if (choices) {
-                                                    return (
-                                                        <TableCell
-                                                            key={year}
-                                                            align="center"
-                                                            sx={{
-                                                                width: 82,
-                                                                minWidth: 82,
-                                                                p: 0.5,
-                                                            }}
-                                                        >
-                                                            <FormControl
-                                                                size="small"
-                                                                fullWidth
-                                                            >
-                                                                <InputLabel>
-                                                                    Value
-                                                                </InputLabel>
-
-                                                                <Select
-                                                                    disabled={isReadOnly}
-                                                                    label="Value"
-                                                                    value={
-                                                                        cell.value ===
-                                                                        null
-                                                                            ? ""
-                                                                            : String(
-                                                                                  cell.value,
-                                                                              )
-                                                                    }
-                                                                    onChange={(
-                                                                        event,
-                                                                    ) =>
-                                                                        updateCell(
-                                                                            variable,
-                                                                            year,
-                                                                            normalizeValue(
-                                                                                variable,
-                                                                                event
-                                                                                    .target
-                                                                                    .value,
-                                                                            ),
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    {choices.map(
-                                                                        (
-                                                                            option,
-                                                                        ) => (
-                                                                            <MenuItem
-                                                                                key={
-                                                                                    option.value
-                                                                                }
-                                                                                value={
-                                                                                    option.value
-                                                                                }
-                                                                            >
-                                                                                {
-                                                                                    option.label
-                                                                                }
-                                                                            </MenuItem>
-                                                                        ),
-                                                                    )}
-                                                                </Select>
-                                                            </FormControl>
-                                                        </TableCell>
-                                                    );
-                                                }
-
-                                                if (
-                                                    variable.dataType ===
-                                                    "BOOLEAN"
-                                                ) {
-                                                    const booleanSelectValue =
-                                                        cell.status ===
-                                                            "NOT_AVAILABLE"
-                                                            ? "NOT_AVAILABLE"
-                                                            : cell.status ===
-                                                                "NOT_APPLICABLE"
-                                                            ? "NOT_APPLICABLE"
-                                                            : cell.value ===
-                                                                null
-                                                            ? ""
-                                                            : cell.value
-                                                                ? "true"
-                                                                : "false";
-
-                                                    return (
-                                                        <TableCell
-                                                            key={year}
-                                                            align="center"
-                                                            sx={{
-                                                                width: 82,
-                                                                minWidth: 82,
-                                                                p: 0.5,
-                                                            }}
-                                                        >
-                                                            <FormControl
-                                                                size="small"
-                                                                fullWidth
-                                                            >
-                                                                <InputLabel>
-                                                                    Value
-                                                                </InputLabel>
-
-                                                                <Select
-                                                                    disabled={isReadOnly}
-                                                                    label="Value"
-                                                                    value={
-                                                                        booleanSelectValue
-                                                                    }
-                                                                    onChange={(
-                                                                        event,
-                                                                    ) => {
-                                                                        const selected =
-                                                                            event
-                                                                                .target
-                                                                                .value;
-
-                                                                        if (
-                                                                            selected ===
-                                                                            "NOT_AVAILABLE"
-                                                                        ) {
-                                                                            updateCell(
-                                                                                variable,
-                                                                                year,
-                                                                                null,
-                                                                                "NOT_AVAILABLE",
-                                                                            );
-                                                                            return;
-                                                                        }
-
-                                                                        if (
-                                                                            selected ===
-                                                                            "NOT_APPLICABLE"
-                                                                        ) {
-                                                                            updateCell(
-                                                                                variable,
-                                                                                year,
-                                                                                null,
-                                                                                "NOT_APPLICABLE",
-                                                                            );
-                                                                            return;
-                                                                        }
-
-                                                                        updateCell(
-                                                                            variable,
-                                                                            year,
-                                                                            selected ===
-                                                                                "true",
-                                                                        );
-                                                                    }}
-                                                                >
-                                                                    <MenuItem value="true">
-                                                                        Yes
-                                                                    </MenuItem>
-
-                                                                    <MenuItem value="false">
-                                                                        No
-                                                                    </MenuItem>
-
-                                                                    <MenuItem value="NOT_AVAILABLE">
-                                                                        Not Available
-                                                                    </MenuItem>
-
-                                                                    <MenuItem value="NOT_APPLICABLE">
-                                                                        Not Applicable
-                                                                    </MenuItem>
-                                                                </Select>
-                                                            </FormControl>
-                                                        </TableCell>
-                                                    );
-                                                }
-
                                                 return (
                                                     <TableCell
                                                         key={year}
                                                         align="center"
+                                                        onClick={() =>
+                                                            onObservationSelect?.(
+                                                                cell.observationId ?? undefined,
+                                                            )
+                                                        }
                                                         sx={{
-                                                            width: 110,
-                                                            minWidth: 110,
-                                                            p: 0.5,
+                                                            width: 95,
+                                                            minWidth: 95,
+                                                            p: 0.25,
                                                         }}
                                                     >
                                                         <TextField
                                                             size="small"
                                                             fullWidth
                                                             disabled={isReadOnly}
-                                                            type={getInputType(
-                                                                variable,
-                                                            )}
-                                                            value={
-                                                                cell.value ??
-                                                                ""
-                                                            }
-                                                            onChange={(
-                                                                event,
-                                                            ) =>
+                                                            type="text"
+                                                            sx={{
+                                                                "& .MuiInputBase-input": {
+                                                                    fontSize: "0.75rem",
+                                                                    padding: "6px 8px",
+                                                                },
+                                                            }}
+                                                            value={cell.value ?? ""}
+                                                            onChange={(event) =>
                                                                 updateCell(
                                                                     variable,
                                                                     year,
-                                                                    normalizeValue(
-                                                                        variable,
-                                                                        event
-                                                                            .target
-                                                                            .value,
-                                                                    ),
+                                                                    event.target.value === ""
+                                                                        ? null
+                                                                        : event.target.value,
                                                                 )
                                                             }
                                                             onPaste={(event) =>
@@ -1220,17 +1191,6 @@ export default function SpreadsheetDataEntryForm({
                                                                     year,
                                                                 )
                                                             }
-                                                            slotProps={{
-                                                                htmlInput:
-                                                                    variable.dataType ===
-                                                                    "INTEGER"
-                                                                        ? {
-                                                                              step: 1,
-                                                                          }
-                                                                        : {
-                                                                              step: "any",
-                                                                          },
-                                                            }}
                                                         />
                                                     </TableCell>
                                                 );

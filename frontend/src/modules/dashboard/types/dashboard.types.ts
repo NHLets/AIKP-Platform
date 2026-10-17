@@ -11,4 +11,8 @@ export interface DashboardResponse {
     cancelledDataCollections: number;
     totalPersons: number;
     activePersons: number;
+    fullyValidatedCountries: number;
+    countriesWithFgNotValidated: number;
+    countriesWithFgValidated: number;
+    countriesNotValidatedBecauseOnePwNotValidated: number;
 }

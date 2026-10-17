@@ -29,7 +29,7 @@ public class ObservationController {
 
     @GetMapping("/collection/{id}")
     public List<Observation> getByCollection(
-            @PathVariable UUID id){
+            @PathVariable("id") UUID id){
         return service.getByCollection(id);
     }
 }

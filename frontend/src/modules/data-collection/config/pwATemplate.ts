@@ -32,6 +32,7 @@ export const PW_A_BOOLEAN_VARIABLES = new Set([
 export interface PwAChoiceOption {
     value: string;
     label: string;
+    aliases?: string[];
 }
 
 export const PW_A_CHOICE_OPTIONS: Record<
@@ -42,6 +43,7 @@ export const PW_A_CHOICE_OPTIONS: Record<
         {
             value: "0",
             label: "Central",
+            aliases: ["Central Government"],
         },
         {
             value: "1",

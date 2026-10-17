@@ -346,14 +346,13 @@ class DashboardAnalyticsRepositoryIntegrationTest {
                  status)
             VALUES
                 (:id, :campaignId, :countryId, :questionnaireId,
-                 :organizationId, :personId, 'SUBMITTED')
+                 :organizationId, :organizationId, 'SUBMITTED')
             """)
                 .setParameter("id", dataCollectionId)
                 .setParameter("campaignId", campaignId)
                 .setParameter("countryId", countryId)
                 .setParameter("questionnaireId", questionnaireId)
                 .setParameter("organizationId", organizationId)
-                .setParameter("personId", personId)
                 .executeUpdate();
     }
 

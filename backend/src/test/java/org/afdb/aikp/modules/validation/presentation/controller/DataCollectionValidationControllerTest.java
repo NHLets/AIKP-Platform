@@ -1,6 +1,7 @@
 package org.afdb.aikp.modules.validation.presentation.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
@@ -25,6 +26,7 @@ import org.afdb.aikp.shared.security.AikpUserDetailsService;
 import org.afdb.aikp.shared.security.JwtService;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -79,11 +81,13 @@ class DataCollectionValidationControllerTest {
                         id,
                         dataCollectionId,
                         validatorId,
+                        null,
                         ValidationDecision.VALIDATED,
                         "Validation successful.",
                         validatedAt);
 
-        when(service.create(any()))
+        when(service.createForAuthenticatedUser(eq(dataCollectionId), eq("reviewer@example.org"),
+                eq(ValidationDecision.VALIDATED), eq("Validation successful."), eq(validatedAt)))
                 .thenReturn(response);
 
         mockMvc.perform(
@@ -92,7 +96,8 @@ class DataCollectionValidationControllerTest {
                                         MediaType.APPLICATION_JSON)
                                 .content(
                                         objectMapper.writeValueAsString(
-                                                request)))
+                                                request))
+                                .principal(new UsernamePasswordAuthenticationToken("reviewer@example.org", "n/a", List.of())))
                 .andExpect(status().isCreated())
                 .andExpect(
                         jsonPath("$.id")
@@ -123,6 +128,7 @@ class DataCollectionValidationControllerTest {
                         id,
                         dataCollectionId,
                         validatorId,
+                        null,
                         ValidationDecision.REJECTED,
                         "Incomplete data.",
                         validatedAt);
@@ -153,6 +159,7 @@ class DataCollectionValidationControllerTest {
                 new DataCollectionValidationSummary(
                         UUID.randomUUID(),
                         UUID.randomUUID(),
+                        null,
                         ValidationDecision.VALIDATED,
                         Instant.now());
 
@@ -160,6 +167,7 @@ class DataCollectionValidationControllerTest {
                 new DataCollectionValidationSummary(
                         UUID.randomUUID(),
                         UUID.randomUUID(),
+                        null,
                         ValidationDecision.REJECTED,
                         Instant.now());
 

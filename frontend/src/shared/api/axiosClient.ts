@@ -10,11 +10,15 @@ export const axiosClient = axios.create({
 });
 
 axiosClient.interceptors.request.use((config) => {
-  const token = TokenProvider.getToken();
+  const isLoginRequest = config.url === "/auth/login";
 
-  if (token) {
-    config.headers = config.headers ?? {};
-    config.headers.Authorization = `Bearer ${token}`;
+  if (!isLoginRequest) {
+    const token = TokenProvider.getToken();
+
+    if (token) {
+      config.headers = config.headers ?? {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
 
   return config;

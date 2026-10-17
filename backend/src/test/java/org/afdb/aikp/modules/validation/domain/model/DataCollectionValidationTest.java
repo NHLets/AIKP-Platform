@@ -189,10 +189,9 @@ class DataCollectionValidationTest {
                         ValidationDecision.VALIDATED,
                         null,
                         Instant.now()))
-                .isInstanceOf(
-                        NullPointerException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage(
-                        "Validator ID cannot be null.");
+                        "A person or IAM user validator is required.");
     }
 
     @Test

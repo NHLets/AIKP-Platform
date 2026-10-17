@@ -36,9 +36,12 @@ public class DataCollectionValidationEntity {
 
     @Column(
             name = "validator_id",
-            nullable = false,
+            nullable = true,
             updatable = false)
     private UUID validatorId;
+
+    @Column(name = "validator_user_id", nullable = true, updatable = false)
+    private UUID validatorUserId;
 
     @Enumerated(EnumType.STRING)
     @Column(
@@ -68,9 +71,16 @@ public class DataCollectionValidationEntity {
     }
 
     public DataCollectionValidationEntity(
+            UUID id, UUID dataCollectionId, UUID validatorId,
+            ValidationDecision decision, String comments, Instant validatedAt) {
+        this(id, dataCollectionId, validatorId, null, decision, comments, validatedAt);
+    }
+
+    public DataCollectionValidationEntity(
             UUID id,
             UUID dataCollectionId,
             UUID validatorId,
+            UUID validatorUserId,
             ValidationDecision decision,
             String comments,
             Instant validatedAt) {
@@ -78,6 +88,7 @@ public class DataCollectionValidationEntity {
         this.id = id;
         this.dataCollectionId = dataCollectionId;
         this.validatorId = validatorId;
+        this.validatorUserId = validatorUserId;
         this.decision = decision;
         this.comments = comments;
         this.validatedAt = validatedAt;
@@ -93,6 +104,10 @@ public class DataCollectionValidationEntity {
 
     public UUID getValidatorId() {
         return validatorId;
+    }
+
+    public UUID getValidatorUserId() {
+        return validatorUserId;
     }
 
     public ValidationDecision getDecision() {

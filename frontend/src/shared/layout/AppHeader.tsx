@@ -1,9 +1,11 @@
 import MenuIcon from "@mui/icons-material/Menu";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import { useAuth } from "@/shared/context/AuthContext";
 
 import {
     AppBar,
+    Box,
     IconButton,
     Toolbar,
     Tooltip,
@@ -19,6 +21,12 @@ export default function AppHeader({
     title = "AIKP Platform",
     onMenuClick,
 }: AppHeaderProps) {
+    const { user } = useAuth();
+    const userLabel = user?.email || user?.userId || "Utilisateur";
+    const userTooltip = user
+        ? `${userLabel} — ${user.role}`
+        : "Utilisateur non identifié";
+
     return (
         <AppBar
             position="sticky"
@@ -69,13 +77,28 @@ export default function AppHeader({
                     </IconButton>
                 </Tooltip>
 
-                <Tooltip title="User account">
+                <Tooltip title={userTooltip}>
                     <IconButton
                         color="inherit"
-                        aria-label="User account"
-                        sx={{ ml: 1 }}
+                        aria-label={userTooltip}
+                        sx={{ ml: 1, borderRadius: 2, gap: 1 }}
                     >
                         <AccountCircleOutlinedIcon />
+                        <Box
+                            component="span"
+                            sx={{
+                                display: { xs: "none", sm: "inline" },
+                                textTransform: "none",
+                                fontSize: "0.875rem",
+                                fontWeight: 500,
+                                maxWidth: 220,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                            }}
+                        >
+                            {userLabel}
+                        </Box>
                     </IconButton>
                 </Tooltip>
             </Toolbar>

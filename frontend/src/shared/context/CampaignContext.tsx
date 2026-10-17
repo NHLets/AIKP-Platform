@@ -13,6 +13,18 @@ interface CampaignContextType {
   setReferenceYear: (year: number) => void;
 }
 
+const MIN_REFERENCE_YEAR = 2015;
+const MAX_REFERENCE_YEAR = 2025;
+
+function isValidReferenceYear(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= MIN_REFERENCE_YEAR &&
+    value <= MAX_REFERENCE_YEAR
+  );
+}
+
 const CampaignContext = createContext<CampaignContextType | undefined>(undefined);
 
 export function CampaignProvider({ children }: { children: ReactNode }) {
@@ -33,10 +45,34 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
       return "";
     }
   });
-  const [referenceYear, setReferenceYear] = useState(() => {
+  const [referenceYear, setReferenceYearState] = useState<number>(() => {
     const saved = localStorage.getItem("campaign_context");
-    return saved ? JSON.parse(saved).referenceYear : 2026;
+
+    if (saved) {
+      try {
+        const parsed: unknown = JSON.parse(saved);
+
+        if (
+          typeof parsed === "object" &&
+          parsed !== null &&
+          "referenceYear" in parsed &&
+          isValidReferenceYear(parsed.referenceYear)
+        ) {
+          return parsed.referenceYear;
+        }
+      } catch {
+        // Use the default year if saved data is invalid.
+      }
+    }
+
+    return MAX_REFERENCE_YEAR;
   });
+
+  const setReferenceYear = (year: number) => {
+    if (isValidReferenceYear(year)) {
+      setReferenceYearState(year);
+    }
+  };
 
 
   useEffect(() => {

@@ -11,6 +11,7 @@ import org.afdb.aikp.modules.validation.domain.enums.ValidationDecision;
 public record DataCollectionValidationSummary(
         UUID id,
         UUID validatorId,
+        UUID validatorUserId,
         ValidationDecision decision,
         Instant validatedAt) {
 }

@@ -1,5 +1,7 @@
 package org.afdb.aikp.modules.organization.application.service;
 
+import org.afdb.aikp.modules.organization.application.port.out.DataCollectionUsageChecker;
+
 import org.afdb.aikp.modules.country.domain.valueobject.CountryId;
 import org.afdb.aikp.modules.organization.application.command.ActivateOrganizationCommand;
 import org.afdb.aikp.modules.organization.application.command.CreateOrganizationCommand;
@@ -15,6 +17,7 @@ import org.afdb.aikp.modules.organization.application.query.GetOrganizationsQuer
 import org.afdb.aikp.modules.organization.application.response.OrganizationResponse;
 import org.afdb.aikp.modules.organization.application.response.OrganizationSummary;
 import org.afdb.aikp.modules.organization.domain.exception.OrganizationNotFoundException;
+import org.afdb.aikp.modules.organization.domain.exception.OrganizationInUseException;
 import org.afdb.aikp.modules.organization.domain.model.Organization;
 import org.afdb.aikp.modules.organization.domain.repository.OrganizationRepository;
 import org.afdb.aikp.modules.organization.domain.service.OrganizationDomainService;
@@ -35,12 +38,16 @@ public class OrganizationApplicationService {
 
     private final OrganizationDomainService domainService;
 
+    private final DataCollectionUsageChecker dataCollectionUsageChecker;
+
     public OrganizationApplicationService(
             OrganizationRepository repository,
-            OrganizationDomainService domainService) {
+            OrganizationDomainService domainService,
+            DataCollectionUsageChecker dataCollectionUsageChecker) {
 
         this.repository = repository;
         this.domainService = domainService;
+        this.dataCollectionUsageChecker = dataCollectionUsageChecker;
     }
 
     @Transactional(readOnly = true)
@@ -224,6 +231,11 @@ public class OrganizationApplicationService {
                 repository.findById(id)
                         .orElseThrow(
                                 () -> new OrganizationNotFoundException(id));
+
+        if (dataCollectionUsageChecker
+                .isUsedByAnyDataCollection(id.getValue())) {
+            throw new OrganizationInUseException(id.getValue());
+        }
 
         repository.delete(organization);
     }

@@ -25,9 +25,10 @@ public class DataCollectionValidationApplicationMapper {
                 validation
                         .getDataCollectionId()
                         .getValue(),
-                validation
-                        .getValidatorId()
-                        .getValue(),
+                validation.getValidatorId() != null
+                        ? validation.getValidatorId().getValue() : null,
+                validation.getValidatorUserId() != null
+                        ? validation.getValidatorUserId().getValue() : null,
                 validation.getDecision(),
                 validation.getComments() != null
                         ? validation.getComments().getValue()
@@ -45,9 +46,10 @@ public class DataCollectionValidationApplicationMapper {
                 validation
                         .getDataCollectionValidationId()
                         .getValue(),
-                validation
-                        .getValidatorId()
-                        .getValue(),
+                validation.getValidatorId() != null
+                        ? validation.getValidatorId().getValue() : null,
+                validation.getValidatorUserId() != null
+                        ? validation.getValidatorUserId().getValue() : null,
                 validation.getDecision(),
                 validation.getValidatedAt());
     }

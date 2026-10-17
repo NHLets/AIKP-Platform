@@ -12,4 +12,8 @@ public record DashboardResponse(
         long rejectedDataCollections,
         long cancelledDataCollections,
         long totalPersons,
-        long activePersons) {}
+        long activePersons,
+        long fullyValidatedCountries,
+        long countriesWithFgNotValidated,
+        long countriesWithFgValidated,
+        long countriesNotValidatedBecauseOnePwNotValidated) {}

@@ -1,12 +1,6 @@
-import axios from "axios";
+import { axiosClient } from "@/shared/api/axiosClient";
 
-const api = axios.create({
-  baseURL: "/api/v1/observations",
-});
-
-/* ============================================================
-   Legacy DTO (M16–M18 compatible)
-   ============================================================ */
+const api = axiosClient;
 
 export interface CreateObservationRequest {
   dataCollectionId: string;
@@ -22,22 +16,19 @@ export interface CreateObservationRequest {
   comment: string | null;
 }
 
-function extractValue(r: CreateObservationRequest): string {
-  if (r.numericValue !== null) return r.numericValue;
-  if (r.textValue !== null) return r.textValue;
-  if (r.booleanValue !== null) return String(r.booleanValue);
-  if (r.dateValue !== null) return r.dateValue;
-  return "";
-}
-
 export async function createDataCollectionObservation(
   request: CreateObservationRequest,
 ) {
-  const { data } = await api.post("", {
+  const { data } = await api.post("/data-collection-observations", {
     dataCollectionId: request.dataCollectionId,
-    variableId: request.questionnaireVariableId,
-    organizationId: "00000000-0000-0000-0000-000000000001",
-    value: extractValue(request),
+    questionnaireVariableId: request.questionnaireVariableId,
+    referenceYear: request.referenceYear,
+    numericValue: request.numericValue,
+    textValue: request.textValue,
+    booleanValue: request.booleanValue,
+    dateValue: request.dateValue,
+    selectedUnit: request.selectedUnit,
+    comment: request.comment,
   });
 
   return data;
@@ -46,7 +37,10 @@ export async function createDataCollectionObservation(
 export async function getDataCollectionObservations(
   dataCollectionId: string,
 ) {
-  const { data } = await api.get(`/collection/${dataCollectionId}`);
+  const { data } = await api.get(
+    `/data-collection-observations/collection/${dataCollectionId}`,
+  );
+
   return data;
 }
 
@@ -54,38 +48,67 @@ export async function updateDataCollectionObservation(
   id: string,
   request: CreateObservationRequest,
 ) {
-  const { data } = await api.put(`/${id}`, {
-    value: extractValue(request),
-  });
+  const { data } = await api.put(
+    `/data-collection-observations/${id}`,
+    {
+      numericValue: request.numericValue,
+      textValue: request.textValue,
+      booleanValue: request.booleanValue,
+      dateValue: request.dateValue,
+      selectedUnit: request.selectedUnit,
+      comment: request.comment,
+    },
+  );
 
   return data;
 }
 
 export async function deleteDataCollectionObservation(id: string) {
-  const { data } = await api.delete(`/${id}`);
+  const { data } = await api.delete(
+    `/data-collection-observations/${id}`,
+  );
+
   return data;
 }
 
 export async function createNotApplicableObservation(
   request: CreateObservationRequest,
 ) {
-  return createDataCollectionObservation({
-    ...request,
-    textValue: "NOT_APPLICABLE",
-    numericValue: null,
-    booleanValue: null,
-    dateValue: null,
-  });
+  const { data } = await api.post(
+    "/data-collection-observations/not-applicable",
+    {
+      dataCollectionId: request.dataCollectionId,
+      questionnaireVariableId: request.questionnaireVariableId,
+      referenceYear: request.referenceYear,
+      numericValue: null,
+      textValue: null,
+      booleanValue: null,
+      dateValue: null,
+      selectedUnit: request.selectedUnit,
+      comment: request.comment,
+    },
+  );
+
+  return data;
 }
 
 export async function createNotAvailableObservation(
   request: CreateObservationRequest,
 ) {
-  return createDataCollectionObservation({
-    ...request,
-    textValue: "NOT_AVAILABLE",
-    numericValue: null,
-    booleanValue: null,
-    dateValue: null,
-  });
+  const { data } = await api.post(
+    "/data-collection-observations/not-available",
+    {
+      dataCollectionId: request.dataCollectionId,
+      questionnaireVariableId: request.questionnaireVariableId,
+      referenceYear: request.referenceYear,
+      numericValue: null,
+      textValue: null,
+      booleanValue: null,
+      dateValue: null,
+      selectedUnit: request.selectedUnit,
+      comment: request.comment,
+    },
+  );
+
+  return data;
 }

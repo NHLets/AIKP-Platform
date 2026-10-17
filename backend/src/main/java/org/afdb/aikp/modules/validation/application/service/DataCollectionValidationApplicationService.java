@@ -10,6 +10,9 @@ import org.afdb.aikp.modules.collection.domain.valueobject.DataCollectionId;
 import org.afdb.aikp.modules.person.domain.exception.PersonNotFoundException;
 import org.afdb.aikp.modules.person.domain.repository.PersonRepository;
 import org.afdb.aikp.modules.person.domain.valueobject.PersonId;
+import org.afdb.aikp.modules.iam.domain.repository.UserRepository;
+import org.afdb.aikp.modules.iam.domain.valueobject.Email;
+import org.afdb.aikp.modules.iam.domain.valueobject.UserId;
 import org.afdb.aikp.modules.validation.application.command.CreateDataCollectionValidationCommand;
 import org.afdb.aikp.modules.validation.application.command.DeleteDataCollectionValidationCommand;
 import org.afdb.aikp.modules.validation.application.mapper.DataCollectionValidationApplicationMapper;
@@ -47,16 +50,53 @@ public class DataCollectionValidationApplicationService {
     private final DataCollectionValidationApplicationMapper
             validationMapper;
 
+    private final UserRepository userRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public DataCollectionValidationApplicationService(
+            DataCollectionValidationRepository validationRepository,
+            DataCollectionRepository dataCollectionRepository,
+            PersonRepository personRepository,
+            DataCollectionValidationApplicationMapper validationMapper,
+            UserRepository userRepository) {
+        this.validationRepository = validationRepository;
+        this.dataCollectionRepository = dataCollectionRepository;
+        this.personRepository = personRepository;
+        this.validationMapper = validationMapper;
+        this.userRepository = userRepository;
+    }
+
+    /** Compatibility constructor for unit tests and legacy service clients. */
     public DataCollectionValidationApplicationService(
             DataCollectionValidationRepository validationRepository,
             DataCollectionRepository dataCollectionRepository,
             PersonRepository personRepository,
             DataCollectionValidationApplicationMapper validationMapper) {
+        this(validationRepository, dataCollectionRepository, personRepository,
+                validationMapper, null);
+    }
 
-        this.validationRepository = validationRepository;
-        this.dataCollectionRepository = dataCollectionRepository;
-        this.personRepository = personRepository;
-        this.validationMapper = validationMapper;
+    /** Creates a decision attributed to the authenticated IAM account. */
+    public DataCollectionValidationResponse createForAuthenticatedUser(
+            java.util.UUID dataCollectionUuid, String authenticatedEmail,
+            ValidationDecision decision, String comments, java.time.Instant validatedAt) {
+        if (userRepository == null) {
+            throw new IllegalStateException("IAM user repository is not configured.");
+        }
+        var user = userRepository.findByEmail(Email.of(authenticatedEmail))
+                .orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException(authenticatedEmail));
+        DataCollectionId collectionId = DataCollectionId.of(dataCollectionUuid);
+        DataCollection dataCollection = dataCollectionRepository.findById(collectionId)
+                .orElseThrow(() -> new DataCollectionNotFoundException(collectionId));
+        if (dataCollection.getStatus() != DataCollectionStatus.SUBMITTED) {
+            throw new DataCollectionValidationNotAllowedException(collectionId.getValue(), dataCollection.getStatus());
+        }
+        DataCollectionValidation validation = DataCollectionValidation.createForUser(
+                DataCollectionValidationId.generate(), collectionId, user.getId(), decision,
+                ValidationComments.of(comments), validatedAt == null ? java.time.Instant.now() : validatedAt);
+        if (decision == ValidationDecision.VALIDATED) dataCollection.validate(); else dataCollection.reject();
+        dataCollectionRepository.save(dataCollection);
+        return validationMapper.toResponse(validationRepository.save(validation));
     }
 
     /**

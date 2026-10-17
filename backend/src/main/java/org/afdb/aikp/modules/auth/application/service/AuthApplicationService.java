@@ -33,13 +33,20 @@ public class AuthApplicationService {
     @Transactional(readOnly = true)
     public LoginResponseDto login(LoginRequestDto request) {
 
-        User user = userRepository.findByEmail(Email.of(request.email()))
-                .orElseThrow(() ->
-                        new BadCredentialsException("Invalid credentials"));
 
-        if (!passwordEncoder.matches(
+        User user = userRepository.findByEmail(Email.of(request.email()))
+                .orElseThrow(() -> {
+                    return new BadCredentialsException("Invalid credentials");
+                });
+
+
+        boolean passwordMatches = passwordEncoder.matches(
                 request.password(),
-                user.getPasswordHash().value())) {
+                user.getPasswordHash().value()
+        );
+
+
+        if (!passwordMatches) {
             throw new BadCredentialsException("Invalid credentials");
         }
 
@@ -48,6 +55,7 @@ public class AuthApplicationService {
                     "Authenticated user has no assigned role: "
                             + user.getEmail().value());
         }
+
 
         String role = user.getRole().getName().value();
 

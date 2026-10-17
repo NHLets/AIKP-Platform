@@ -6,7 +6,7 @@ export async function getQuestionnaireGroups(
     questionnaireId: string,
 ): Promise<QuestionnaireGroup[]> {
     const response = await axiosClient.get<QuestionnaireGroup[]>(
-        `/questionnaires/${questionnaireId}/groups`,
+        `/v1/questionnaires/${questionnaireId}/groups`,
     );
 
     return response.data;

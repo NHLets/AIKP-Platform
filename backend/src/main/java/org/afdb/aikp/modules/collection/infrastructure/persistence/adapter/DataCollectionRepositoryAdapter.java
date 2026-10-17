@@ -103,6 +103,14 @@ public class DataCollectionRepositoryAdapter
     }
 
     @Override
+    public boolean existsByOrganizationId(
+            java.util.UUID organizationId) {
+
+        return dataCollectionJpaRepository
+                .existsByOrganizationId(organizationId);
+    }
+
+    @Override
     public void delete(
             DataCollection dataCollection) {
 

@@ -7,7 +7,12 @@ import {
 
 import { useCampaign } from "../context/CampaignContext";
 
-const YEARS = [2024, 2025, 2026, 2027, 2028];
+const MIN_YEAR = 2015;
+const MAX_YEAR = 2025;
+const YEARS = Array.from(
+  { length: MAX_YEAR - MIN_YEAR + 1 },
+  (_, index) => MIN_YEAR + index,
+);
 
 export default function ReferenceYearSelector() {
 

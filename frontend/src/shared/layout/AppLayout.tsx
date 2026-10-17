@@ -5,6 +5,8 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 
+import { SectorProvider } from "@/shared/context/SectorContext";
+
 import AppFooter from "./AppFooter";
 import AppHeader from "./AppHeader";
 import AppSidebar from "./AppSidebar";
@@ -26,8 +28,9 @@ export default function AppLayout() {
     }, [isDataCollectionDetail]);
 
     return (
-        <Box
-            sx={{
+        <SectorProvider>
+            <Box
+                sx={{
                 minHeight: "100vh",
                 display: "flex",
                 flexDirection: "column",
@@ -93,6 +96,7 @@ export default function AppLayout() {
             </Box>
 
             <AppFooter />
-        </Box>
+            </Box>
+        </SectorProvider>
     );
 }

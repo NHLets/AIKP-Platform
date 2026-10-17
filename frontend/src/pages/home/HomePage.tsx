@@ -1,5 +1,10 @@
 import { useDashboard } from "@/modules/dashboard/hooks/useDashboard";
 
+import {
+    SECTOR_OPTIONS,
+    useSector,
+} from "@/shared/context/SectorContext";
+
 import { useNavigate } from "react-router-dom";
 import CampaignOutlinedIcon from "@mui/icons-material/CampaignOutlined";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
@@ -12,8 +17,12 @@ import {
     CardContent,
     Chip,
     Divider,
+    FormControl,
     Grid,
+    InputLabel,
     LinearProgress,
+    MenuItem,
+    Select,
     Stack,
     Typography,
 } from "@mui/material";
@@ -95,6 +104,7 @@ function DashboardCard({
 
 export default function HomePage() {
     const navigate = useNavigate();
+    const { currentSector, currentSectorOption, setCurrentSector } = useSector();
     const { data: dashboard, isLoading, error } = useDashboard();
 
     if (isLoading) {
@@ -108,6 +118,35 @@ export default function HomePage() {
             </Box>
         );
     }
+
+    const totalCollections = dashboard.totalDataCollections;
+
+    const completedProgress =
+        totalCollections > 0
+            ? (dashboard.validatedDataCollections / totalCollections) * 100
+            : 0;
+
+    const underValidationProgress =
+        totalCollections > 0
+            ? (dashboard.submittedDataCollections / totalCollections) * 100
+            : 0;
+
+    const inProgressProgress =
+        totalCollections > 0
+            ? (dashboard.inProgressDataCollections / totalCollections) * 100
+            : 0;
+
+    const draftProgress =
+        totalCollections > 0
+            ? (dashboard.draftDataCollections / totalCollections) * 100
+            : 0;
+
+    const collectionProgress = Math.round(
+        completedProgress +
+        underValidationProgress +
+        inProgressProgress,
+    );
+
 
     return (
         <Box>
@@ -135,6 +174,81 @@ export default function HomePage() {
                 </Typography>
             </Box>
 
+            <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 2,
+                    mb: 2,
+                    flexWrap: "wrap",
+                }}
+            >
+                <Typography
+                    variant="h6"
+                    sx={{
+                        mt: 1,
+                        fontWeight: 600,
+                    }}
+                >
+                    {currentSectorOption.label} — Current Overview
+                </Typography>
+
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    mb: 2,
+                }}
+            >
+                <FormControl size="small" sx={{ minWidth: 220 }}>
+                    <InputLabel id="dashboard-sector-label">
+                        Sector
+                    </InputLabel>
+
+                    <Select
+                        labelId="dashboard-sector-label"
+                        value={currentSector}
+                        label="Sector"
+                        onChange={(event) => {
+                            const selectedSector = event.target.value;
+
+                            const option = SECTOR_OPTIONS.find(
+                                (sector) => sector.code === selectedSector,
+                            );
+
+                            if (option?.status === "OPERATIONAL") {
+                                setCurrentSector(option.code);
+                            }
+                        }}
+                        renderValue={(selected) => {
+                            const option = SECTOR_OPTIONS.find(
+                                (sector) => sector.code === selected,
+                            );
+
+                            return `Sector: ${option?.label ?? "Power"}`;
+                        }}
+                    >
+                        {SECTOR_OPTIONS.map((sector) => (
+                            <MenuItem
+                                key={sector.code}
+                                value={sector.code}
+                                disabled={
+                                    sector.status !== "OPERATIONAL"
+                                }
+                            >
+                                {sector.label}
+                                {sector.status === "IN_DEVELOPMENT"
+                                    ? " — In development"
+                                    : ""}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+            </Box>
+
+            </Box>
+
             <Grid
                 container
                 spacing={3}
@@ -148,8 +262,8 @@ export default function HomePage() {
                 >
                     <DashboardCard
                         title="Active Campaign"
-                        value="1"
-                        description="Current data collection campaign"
+                        value={String(dashboard.activeCampaigns)}
+                        description="Current data collection campaign."
                         icon={<CampaignOutlinedIcon />}
                     />
                 </Grid>
@@ -163,7 +277,7 @@ export default function HomePage() {
                 >
                     <DashboardCard
                         title="Countries"
-                        value="23"
+                        value={String(dashboard.totalCountries)}
                         description="Countries participating in AIKP"
                         icon={<PublicOutlinedIcon />}
                     />
@@ -178,7 +292,7 @@ export default function HomePage() {
                 >
                     <DashboardCard
                         title="Collection Progress"
-                        value="68%"
+                        value={`${collectionProgress.toFixed(0)}%`}
                         description="Overall data collection progress"
                         icon={<TrendingUpOutlinedIcon />}
                     />
@@ -193,7 +307,7 @@ export default function HomePage() {
                 >
                     <DashboardCard
                         title="Validated"
-                        value="12"
+                        value={String(dashboard.fullyValidatedCountries)}
                         description="Countries fully validated"
                         icon={<TaskAltIcon />}
                     />
@@ -262,13 +376,13 @@ export default function HomePage() {
                                         </Typography>
 
                                         <Typography variant="body2">
-                                            52%
+                                            {Math.round(completedProgress)}%
                                         </Typography>
                                     </Stack>
 
                                     <LinearProgress
                                         variant="determinate"
-                                        value={52}
+                                        value={completedProgress}
                                     />
                                 </Box>
 
@@ -285,13 +399,13 @@ export default function HomePage() {
                                         </Typography>
 
                                         <Typography variant="body2">
-                                            16%
+                                            {Math.round(underValidationProgress)}%
                                         </Typography>
                                     </Stack>
 
                                     <LinearProgress
                                         variant="determinate"
-                                        value={16}
+                                        value={underValidationProgress}
                                     />
                                 </Box>
 
@@ -308,13 +422,35 @@ export default function HomePage() {
                                         </Typography>
 
                                         <Typography variant="body2">
-                                            32%
+                                            {Math.round(inProgressProgress)}%
                                         </Typography>
                                     </Stack>
 
                                     <LinearProgress
                                         variant="determinate"
-                                        value={32}
+                                        value={inProgressProgress}
+                                    />
+                                </Box>
+                                <Box>
+                                    <Stack
+                                        direction="row"
+                                        sx={{
+                                            justifyContent: "space-between",
+                                            mb: 1,
+                                        }}
+                                    >
+                                        <Typography variant="body2">
+                                            Draft
+                                        </Typography>
+
+                                        <Typography variant="body2">
+                                            {Math.round(draftProgress)}%
+                                        </Typography>
+                                    </Stack>
+
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={draftProgress}
                                     />
                                 </Box>
                             </Stack>
@@ -569,28 +705,6 @@ export default function HomePage() {
                         </Box>
                     </Grid>
 
-                    <Grid
-                        size={{
-                            xs: 12,
-                            sm: 6,
-                            md: 4,
-                        }}
-                    >
-                        <Box
-                            onClick={() => navigate("/sectors")}
-                            sx={{
-                                cursor: "pointer",
-                                height: "100%",
-                            }}
-                        >
-                            <DashboardCard
-                                title="Sectors"
-                                value="→"
-                                description="View infrastructure sectors"
-                                icon={<TrendingUpOutlinedIcon />}
-                            />
-                        </Box>
-                    </Grid>
                 </Grid>
             </CardContent>
         </Card>

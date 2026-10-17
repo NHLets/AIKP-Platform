@@ -12,6 +12,7 @@ public record DataCollectionValidationResponse(
         UUID id,
         UUID dataCollectionId,
         UUID validatorId,
+        UUID validatorUserId,
         ValidationDecision decision,
         String comments,
         Instant validatedAt) {

@@ -46,11 +46,31 @@ public class DashboardRepositoryImpl
     @Override
     public DashboardResponse getDashboard() {
 
+        long totalCountries = countryJpaRepository.count();
+
+        long fullyValidatedCountries =
+                dataCollectionJpaRepository
+                        .findCountriesWithAllValidatedPw(
+                                DataCollectionStatus.VALIDATED)
+                        .size();
+
+        long countriesWithFgValidated =
+                dataCollectionJpaRepository
+                        .countDistinctCountriesWithQuestionnaireStatus(
+                                "F_G",
+                                DataCollectionStatus.VALIDATED);
+
+        long countriesWithFgNotValidated =
+                totalCountries - countriesWithFgValidated;
+
+        long countriesNotValidatedBecauseOnePwNotValidated =
+                totalCountries - fullyValidatedCountries;
+
         return new DashboardResponse(
                 campaignJpaRepository.count(),
                 campaignJpaRepository.countByStatus(
                         CampaignStatus.ACTIVE),
-                countryJpaRepository.count(),
+                totalCountries,
                 dataCollectionJpaRepository.count(),
                 dataCollectionJpaRepository.countByStatus(
                         DataCollectionStatus.DRAFT),
@@ -65,6 +85,10 @@ public class DashboardRepositoryImpl
                 dataCollectionJpaRepository.countByStatus(
                         DataCollectionStatus.CANCELLED),
                 personJpaRepository.count(),
-                personJpaRepository.countByActiveTrue());
+                personJpaRepository.countByActiveTrue(),
+                fullyValidatedCountries,
+                countriesWithFgNotValidated,
+                countriesWithFgValidated,
+                countriesNotValidatedBecauseOnePwNotValidated);
     }
 }

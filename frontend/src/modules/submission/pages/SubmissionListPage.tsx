@@ -8,21 +8,24 @@ import {
     Alert,
     Box,
     Card,
-    CardContent,
-    Button,
     Chip,
+    Button,
     CircularProgress,
     Stack,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TablePagination,
+    TableRow,
     TextField,
     MenuItem,
-    TablePagination,
     Typography,
 } from "@mui/material";
 
 import {
     getDataCollections,
-    startDataCollection,
-    submitDataCollection,
 } from "@/modules/data-collection/api/dataCollectionApi";
 
 import {
@@ -49,7 +52,7 @@ import type {
 
 export default function SubmissionListPage() {
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [dataCollections, setDataCollections] =
         useState<DataCollectionSummary[]>([]);
@@ -87,11 +90,22 @@ export default function SubmissionListPage() {
     const [error, setError] =
         useState<string | null>(null);
 
+    const STATUS_FILTER_OPTIONS: DataCollectionStatus[] = [
+        "IN_PROGRESS",
+        "SUBMITTED",
+        "VALIDATED",
+        "REJECTED",
+    ];
+
     const statusParam =
         searchParams.get("status");
 
     const status =
-        statusParam as DataCollectionStatus | null;
+        STATUS_FILTER_OPTIONS.includes(
+            statusParam as DataCollectionStatus,
+        )
+            ? (statusParam as DataCollectionStatus)
+            : null;
 
     async function loadDataCollections() {
         try {
@@ -138,52 +152,12 @@ export default function SubmissionListPage() {
         void loadDataCollections();
     }, []);
 
-    async function handleStart(id: string) {
-        try {
-            setError(null);
-
-            await startDataCollection(id);
-
-            await loadDataCollections();
-        } catch (error) {
-            console.error(
-                "Failed to start data collection:",
-                error,
-            );
-
-            setError(
-                "Unable to start data collection.",
-            );
-        }
-    }
-
-    async function handleSubmit(id: string) {
-        try {
-            setError(null);
-
-            await submitDataCollection(id);
-
-            await loadDataCollections();
-        } catch (error) {
-            console.error(
-                "Failed to submit data collection:",
-                error,
-            );
-
-            setError(
-                "Unable to submit data collection.",
-            );
-        }
-    }
-
     const submissions =
         dataCollections.filter((item) => {
             if (!status) {
-                return [
-                    "DRAFT",
-                    "IN_PROGRESS",
-                    "SUBMITTED",
-                ].includes(item.status);
+                return STATUS_FILTER_OPTIONS.includes(
+                    item.status,
+                );
             }
 
             return item.status === status;
@@ -418,6 +392,44 @@ export default function SubmissionListPage() {
 
                 <TextField
                     select
+                    label="Status"
+                    value={status ?? "ALL"}
+                    onChange={(event) => {
+                        const value = event.target.value;
+
+                        const nextParams =
+                            new URLSearchParams(searchParams);
+
+                        if (value === "ALL") {
+                            nextParams.delete("status");
+                        } else {
+                            nextParams.set("status", value);
+                        }
+
+                        setSearchParams(nextParams);
+                    }}
+                    sx={{
+                        minWidth: 200,
+                    }}
+                >
+                    <MenuItem value="ALL">
+                        All statuses
+                    </MenuItem>
+
+                    {STATUS_FILTER_OPTIONS.map(
+                        (statusOption) => (
+                            <MenuItem
+                                key={statusOption}
+                                value={statusOption}
+                            >
+                                {statusOption}
+                            </MenuItem>
+                        ),
+                    )}
+                </TextField>
+
+                <TextField
+                    select
                     label="Sort by"
                     value={sortOption}
                     onChange={(event) =>
@@ -453,187 +465,115 @@ export default function SubmissionListPage() {
                 </TextField>
             </Stack>
 
-            <Stack spacing={2}>
-                {filteredSubmissions.length === 0 ? (
-                    <Alert severity="info">
-                        No submissions found.
-                    </Alert>
-                ) : (
-                    paginatedSubmissions.map((item) => {
-                        const campaign =
-                            campaigns.find(
-                                (entry) =>
-                                    entry.id === item.campaignId,
-                            );
+            <TableContainer component={Card}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell sx={{ fontWeight: 700 }}>
+                                Campaign
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>
+                                Country
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>
+                                Questionnaire
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>
+                                Status
+                            </TableCell>
+                        </TableRow>
+                    </TableHead>
 
-                        const country =
-                            countries.find(
-                                (entry) =>
-                                    entry.id === item.countryId,
-                            );
-
-                        const questionnaire =
-                            questionnaires.find(
-                                (entry) =>
-                                    entry.id ===
-                                    item.questionnaireId,
-                            );
-
-                        const organization =
-                            organizations.find(
-                                (entry) =>
-                                    entry.id ===
-                                    item.responsibleOrganizationId,
-                            );
-
-                        const person =
-                            persons.find(
-                                (entry) =>
-                                    entry.id ===
-                                    item.dataCollectorId,
-                            );
-
-                        return (
-                        <Card
-                            key={item.id}
-                            onClick={() =>
-                                navigate(
-                                    `/data-collections/${item.id}`,
-                                )
-                            }
-                            sx={{
-                                cursor: "pointer",
-                            }}
-                        >
-                            <CardContent>
-                                <Stack
-                                    direction="row"
+                    <TableBody>
+                        {filteredSubmissions.length === 0 ? (
+                            <TableRow>
+                                <TableCell
+                                    colSpan={4}
                                     sx={{
-                                        justifyContent:
-                                            "space-between",
-                                        alignItems:
-                                            "center",
+                                        textAlign: "center",
+                                        color: "text.secondary",
+                                        py: 4,
                                     }}
                                 >
-                                    <Box>
-                                        <Typography
-                                            variant="subtitle1"
-                                            sx={{
-                                                fontWeight: 600,
-                                            }}
-                                        >
-                                            Data Collection
-                                        </Typography>
+                                    No submissions found.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            paginatedSubmissions.map((item) => {
+                                const campaign =
+                                    campaigns.find(
+                                        (entry) =>
+                                            entry.id === item.campaignId,
+                                    );
 
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                        >
-                                            ID: {item.id}
-                                        </Typography>
+                                const country =
+                                    countries.find(
+                                        (entry) =>
+                                            entry.id === item.countryId,
+                                    );
 
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                        >
-                                            Campaign: {campaign
-                                                ? `${campaign.code} — ${campaign.name}`
-                                                : item.campaignId}
-                                        </Typography>
+                                const questionnaire =
+                                    questionnaires.find(
+                                        (entry) =>
+                                            entry.id === item.questionnaireId,
+                                    );
 
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                        >
-                                            Country: {country
-                                                ? `${country.iso3Code} — ${country.name}`
-                                                : item.countryId}
-                                        </Typography>
-
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                        >
-                                            Questionnaire: {questionnaire
-                                                ? `${questionnaire.code} — ${questionnaire.name}`
-                                                : item.questionnaireId}
-                                        </Typography>
-
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                        >
-                                            Organization: {organization
-                                                ? `${organization.code} — ${organization.name}`
-                                                : item.responsibleOrganizationId}
-                                        </Typography>
-
-                                        <Typography
-                                            variant="body2"
-                                            color="text.secondary"
-                                        >
-                                            Data Collector: {person
-                                                ? person.fullName
-                                                : item.dataCollectorId}
-                                        </Typography>
-                                    </Box>
-
-                                    <Stack
-                                        direction="row"
-                                        spacing={1}
+                                return (
+                                    <TableRow
+                                        key={item.id}
+                                        hover
+                                        onClick={() =>
+                                            navigate(
+                                                `/data-collections/${item.id}`,
+                                            )
+                                        }
                                         sx={{
-                                            alignItems: "center",
+                                            cursor: "pointer",
                                         }}
                                     >
-                                        <Chip
-                                            label={item.status}
-                                            color={
-                                                item.status ===
-                                                "SUBMITTED"
-                                                    ? "primary"
-                                                    : item.status ===
-                                                      "IN_PROGRESS"
-                                                    ? "warning"
-                                                    : "default"
-                                            }
-                                        />
+                                        <TableCell>
+                                            {campaign
+                                                ? campaign.code
+                                                : item.campaignId}
+                                        </TableCell>
 
-                                        {item.status === "DRAFT" && (
-                                            <Button
-                                                variant="contained"
-                                                size="small"
-                                                onClick={() =>
-                                                    void handleStart(
-                                                        item.id,
-                                                    )
-                                                }
-                                            >
-                                                Start
-                                            </Button>
-                                        )}
+                                        <TableCell>
+                                            {country
+                                                ? country.name
+                                                : item.countryId}
+                                        </TableCell>
 
-                                        {item.status ===
-                                            "IN_PROGRESS" && (
-                                            <Button
-                                                variant="contained"
+                                        <TableCell>
+                                            {questionnaire
+                                                ? questionnaire.code
+                                                : item.questionnaireId}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <Chip
+                                                label={item.status}
                                                 size="small"
-                                                onClick={() =>
-                                                    void handleSubmit(
-                                                        item.id,
-                                                    )
+                                                color={
+                                                    item.status ===
+                                                    "VALIDATED"
+                                                        ? "success"
+                                                        : item.status ===
+                                                            "REJECTED"
+                                                          ? "error"
+                                                          : item.status ===
+                                                              "SUBMITTED"
+                                                            ? "warning"
+                                                            : "info"
                                                 }
-                                            >
-                                                Submit
-                                            </Button>
-                                        )}
-                                    </Stack>
-                                </Stack>
-                            </CardContent>
-                        </Card>
-                        );
-                    })
-                )}
-            </Stack>
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
             <TablePagination
                 component="div"

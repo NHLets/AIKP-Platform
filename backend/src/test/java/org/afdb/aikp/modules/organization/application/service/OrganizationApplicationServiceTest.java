@@ -2,6 +2,7 @@ package org.afdb.aikp.modules.organization.application.service;
 
 import org.afdb.aikp.modules.country.domain.valueobject.CountryId;
 import org.afdb.aikp.modules.organization.application.command.ActivateOrganizationCommand;
+import org.afdb.aikp.modules.organization.application.port.out.DataCollectionUsageChecker;
 import org.afdb.aikp.modules.organization.application.command.CreateOrganizationCommand;
 import org.afdb.aikp.modules.organization.application.command.DeactivateOrganizationCommand;
 import org.afdb.aikp.modules.organization.application.command.DeleteOrganizationCommand;
@@ -37,6 +38,8 @@ class OrganizationApplicationServiceTest {
 
     private OrganizationDomainService domainService;
 
+    private DataCollectionUsageChecker dataCollectionUsageChecker;
+
     private OrganizationApplicationService service;
 
     @BeforeEach
@@ -44,10 +47,12 @@ class OrganizationApplicationServiceTest {
 
         repository = mock(OrganizationRepository.class);
         domainService = mock(OrganizationDomainService.class);
+        dataCollectionUsageChecker = mock(DataCollectionUsageChecker.class);
 
         service = new OrganizationApplicationService(
                 repository,
-                domainService);
+                domainService,
+                dataCollectionUsageChecker);
     }
 
     @Test
@@ -417,26 +422,108 @@ class OrganizationApplicationServiceTest {
     }
 
     @Test
-    void shouldDeleteOrganization() {
+    void shouldDeleteOrganizationWhenNotUsedByAnyDataCollection() {
+        Organization organization = createOrganization();
+        OrganizationId id = organization.getOrganizationId();
 
-        Organization organization =
-                createOrganization();
-
-        when(repository.findById(
-                organization.getOrganizationId()))
+        when(repository.findById(id))
                 .thenReturn(Optional.of(organization));
 
+        when(dataCollectionUsageChecker
+                .isUsedByAnyDataCollection(id.getValue()))
+                .thenReturn(false);
+
         service.delete(
-                new DeleteOrganizationCommand(
-                        organization
-                                .getOrganizationId()
-                                .getValue()));
+                new DeleteOrganizationCommand(id.getValue()));
 
-        verify(repository).findById(
-                organization.getOrganizationId());
+        verify(repository).findById(id);
+        verify(dataCollectionUsageChecker)
+                .isUsedByAnyDataCollection(id.getValue());
+        verify(repository).delete(organization);
+    }
 
-        verify(repository).delete(
-                organization);
+    @Test
+    void shouldRejectDeleteWhenOrganizationIsResponsibleOrganization() {
+        Organization organization = createOrganization();
+        OrganizationId id = organization.getOrganizationId();
+
+        when(repository.findById(id))
+                .thenReturn(Optional.of(organization));
+
+        when(dataCollectionUsageChecker
+                .isUsedByAnyDataCollection(id.getValue()))
+                .thenReturn(true);
+
+        assertThrows(
+                org.afdb.aikp.modules.organization.domain.exception
+                        .OrganizationInUseException.class,
+                () -> service.delete(
+                        new DeleteOrganizationCommand(id.getValue())));
+
+        verify(repository).findById(id);
+        verify(dataCollectionUsageChecker)
+                .isUsedByAnyDataCollection(id.getValue());
+        verify(repository, never()).delete(any());
+    }
+
+    @Test
+    void shouldRejectDeleteWhenOrganizationIsOperatorOrganization() {
+        Organization organization = createOrganization();
+        OrganizationId id = organization.getOrganizationId();
+
+        when(repository.findById(id))
+                .thenReturn(Optional.of(organization));
+
+        when(dataCollectionUsageChecker
+                .isUsedByAnyDataCollection(id.getValue()))
+                .thenReturn(true);
+
+        assertThrows(
+                org.afdb.aikp.modules.organization.domain.exception
+                        .OrganizationInUseException.class,
+                () -> service.delete(
+                        new DeleteOrganizationCommand(id.getValue())));
+
+        verify(repository, never()).delete(any());
+    }
+
+    @Test
+    void shouldRejectDeleteWhenOrganizationIsDataCollector() {
+        Organization organization = createOrganization();
+        OrganizationId id = organization.getOrganizationId();
+
+        when(repository.findById(id))
+                .thenReturn(Optional.of(organization));
+
+        when(dataCollectionUsageChecker
+                .isUsedByAnyDataCollection(id.getValue()))
+                .thenReturn(true);
+
+        assertThrows(
+                org.afdb.aikp.modules.organization.domain.exception
+                        .OrganizationInUseException.class,
+                () -> service.delete(
+                        new DeleteOrganizationCommand(id.getValue())));
+
+        verify(repository, never()).delete(any());
+    }
+
+    @Test
+    void shouldThrowWhenDeletingOrganizationDoesNotExist() {
+        UUID id = UUID.randomUUID();
+        OrganizationId organizationId = OrganizationId.of(id);
+
+        when(repository.findById(organizationId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                OrganizationNotFoundException.class,
+                () -> service.delete(
+                        new DeleteOrganizationCommand(id)));
+
+        verify(repository).findById(organizationId);
+        verifyNoInteractions(dataCollectionUsageChecker);
+        verify(repository, never()).delete(any());
     }
 
     @Test

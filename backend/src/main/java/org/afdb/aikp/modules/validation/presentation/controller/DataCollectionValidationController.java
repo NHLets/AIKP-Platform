@@ -1,6 +1,7 @@
 package org.afdb.aikp.modules.validation.presentation.controller;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,6 +15,9 @@ import org.afdb.aikp.modules.validation.application.service.DataCollectionValida
 import org.afdb.aikp.modules.validation.presentation.request.CreateDataCollectionValidationRequest;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
  * REST controller for managing data collection validations.
  */
 @RestController
+@PreAuthorize("hasAnyRole('ADMIN','COORDINATOR','VALIDATOR')")
 @RequestMapping("/api/data-collection-validations")
 public class DataCollectionValidationController {
 
@@ -41,16 +46,14 @@ public class DataCollectionValidationController {
     public ResponseEntity<DataCollectionValidationResponse>
             createDataCollectionValidation(
                     @RequestBody
-                    CreateDataCollectionValidationRequest request) {
-
-        DataCollectionValidationResponse response =
-                service.create(
-                        new CreateDataCollectionValidationCommand(
-                                request.dataCollectionId(),
-                                request.validatorId(),
-                                request.decision(),
-                                request.comments(),
-                                request.validatedAt()));
+                    CreateDataCollectionValidationRequest request,
+                    Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("Authentication required");
+        }
+        DataCollectionValidationResponse response = service.createForAuthenticatedUser(
+                request.dataCollectionId(), authentication.getName(), request.decision(),
+                request.comments(), request.validatedAt() == null ? Instant.now() : request.validatedAt());
 
         return ResponseEntity
                 .created(
@@ -86,6 +89,7 @@ public class DataCollectionValidationController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDataCollectionValidation(
             @PathVariable("id") UUID id) {

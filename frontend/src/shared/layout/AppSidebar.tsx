@@ -2,15 +2,14 @@ import { useMediaQuery, useTheme } from "@mui/material";
 
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
+import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import CampaignOutlinedIcon from "@mui/icons-material/CampaignOutlined";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import AssignmentOutlinedIcon from "@mui/icons-material/AssignmentOutlined";
 import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import PublicOutlinedIcon from "@mui/icons-material/PublicOutlined";
-import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import BusinessOutlinedIcon from "@mui/icons-material/BusinessOutlined";
-import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlined";
 import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
 import AnalyticsOutlinedIcon from "@mui/icons-material/AnalyticsOutlined";
 import PeopleOutlineOutlinedIcon from "@mui/icons-material/PeopleOutlineOutlined";
@@ -50,15 +49,16 @@ interface NavigationItem {
 
 const dataCollectionItems: NavigationItem[] = [
     {
-        label: "Data Collections",
-        path: "/data-collections",
-        icon: <FolderOutlinedIcon />,
-    },
-    {
         label: "Campaigns",
         path: "/campaigns",
         icon: <CampaignOutlinedIcon />,
     },
+    {
+        label: "Data Collections",
+        path: "/data-collections",
+        icon: <FolderOutlinedIcon />,
+    },
+
     {
         label: "Questionnaires",
         path: "/questionnaires",
@@ -89,19 +89,9 @@ const referenceItems: NavigationItem[] = [
         icon: <PublicOutlinedIcon />,
     },
     {
-        label: "Sectors",
-        path: "/sectors",
-        icon: <CategoryOutlinedIcon />,
-    },
-    {
         label: "Organizations",
         path: "/organizations",
         icon: <BusinessOutlinedIcon />,
-    },
-    {
-        label: "Institutions",
-        path: "/institutions",
-        icon: <AccountBalanceOutlinedIcon />,
     },
 ];
 
@@ -115,6 +105,11 @@ const reportingItems: NavigationItem[] = [
         label: "Data Quality",
         path: "/quality",
         icon: <AnalyticsOutlinedIcon />,
+    },
+    {
+        label: "Validation Status",
+        path: "/validation-status",
+        icon: <FactCheckOutlinedIcon />,
     },
 ];
 
@@ -252,6 +247,34 @@ export default function AppSidebar({
                 }}
             >
                 <List disablePadding>
+                    <ListItemButton
+                        component={NavLink}
+                        to="/sector-coverage"
+                        onClick={onClose}
+                        sx={{
+                            mx: 1,
+                            mb: 0.5,
+                            borderRadius: 1.5,
+
+                            "&.active": {
+                                bgcolor: "action.selected",
+                                color: "primary.main",
+
+                                "& .MuiListItemIcon-root": {
+                                    color: "primary.main",
+                                },
+                            },
+                        }}
+                    >
+                        <ListItemIcon
+                            sx={{ minWidth: 40 }}
+                        >
+                            <CategoryOutlinedIcon />
+                        </ListItemIcon>
+
+                        <ListItemText primary="Sector Coverage" />
+                    </ListItemButton>
+
                     <ListItemButton
                         component={NavLink}
                         to="/dashboard"

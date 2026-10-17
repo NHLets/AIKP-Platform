@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.afdb.aikp.modules.collection.domain.valueobject.DataCollectionId;
 import org.afdb.aikp.modules.person.domain.valueobject.PersonId;
+import org.afdb.aikp.modules.iam.domain.valueobject.UserId;
 import org.afdb.aikp.modules.validation.domain.enums.ValidationDecision;
 import org.afdb.aikp.modules.validation.domain.model.DataCollectionValidation;
 import org.afdb.aikp.modules.validation.domain.valueobject.DataCollectionValidationId;
@@ -69,6 +70,60 @@ class DataCollectionValidationPersistenceMapperTest {
 
         assertThat(entity.getValidatedAt())
                 .isEqualTo(validatedAt);
+    }
+
+    @Test
+    void shouldMapUserValidationToEntity() {
+        var validationId = DataCollectionValidationId.generate();
+        var collectionId = DataCollectionId.generate();
+        var userId = UserId.generate();
+        var validatedAt = Instant.parse("2026-08-23T12:00:00Z");
+
+        var validation = DataCollectionValidation.createForUser(
+                validationId,
+                collectionId,
+                userId,
+                ValidationDecision.VALIDATED,
+                ValidationComments.of("IAM validation successful."),
+                validatedAt);
+
+        var entity = mapper.toEntity(validation);
+
+        assertThat(entity.getId()).isEqualTo(validationId.getValue());
+        assertThat(entity.getDataCollectionId()).isEqualTo(collectionId.getValue());
+        assertThat(entity.getValidatorId()).isNull();
+        assertThat(entity.getValidatorUserId()).isEqualTo(userId.getValue());
+        assertThat(entity.getDecision()).isEqualTo(ValidationDecision.VALIDATED);
+        assertThat(entity.getComments()).isEqualTo("IAM validation successful.");
+        assertThat(entity.getValidatedAt()).isEqualTo(validatedAt);
+    }
+
+    @Test
+    void shouldMapUserEntityToDomain() {
+        UUID validationId = UUID.randomUUID();
+        UUID collectionId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        Instant validatedAt = Instant.parse("2026-08-23T12:00:00Z");
+
+        var entity = new DataCollectionValidationEntity(
+                validationId,
+                collectionId,
+                null,
+                userId,
+                ValidationDecision.REJECTED,
+                "IAM review rejected.",
+                validatedAt);
+
+        var validation = mapper.toDomain(entity);
+
+        assertThat(validation.getDataCollectionValidationId().getValue())
+                .isEqualTo(validationId);
+        assertThat(validation.getDataCollectionId().getValue()).isEqualTo(collectionId);
+        assertThat(validation.getValidatorId()).isNull();
+        assertThat(validation.getValidatorUserId().getValue()).isEqualTo(userId);
+        assertThat(validation.getDecision()).isEqualTo(ValidationDecision.REJECTED);
+        assertThat(validation.getComments().getValue()).isEqualTo("IAM review rejected.");
+        assertThat(validation.getValidatedAt()).isEqualTo(validatedAt);
     }
 
     @Test
