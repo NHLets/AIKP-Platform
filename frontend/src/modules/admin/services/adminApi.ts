@@ -96,6 +96,30 @@ export const adminApi = {
   deactivateUser: (id: string) =>
     postAction(`${API}/users/${id}/deactivate`),
 
+  deleteUser: async (id: string): Promise<void> => {
+    const response = await fetch(`${API}/users/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+      headers: authHeaders(),
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      let message = body;
+
+      try {
+        const problem = JSON.parse(body) as { detail?: string; message?: string };
+        message = problem.detail || problem.message || body;
+      } catch {
+        // Keep the original response text when it is not JSON.
+      }
+
+      throw new Error(
+        message || `Request failed with status ${response.status}`,
+      );
+    }
+  },
+
   inviteUser: (userId: string) =>
     fetch(`${API}/invitations`, {
       method: "POST",

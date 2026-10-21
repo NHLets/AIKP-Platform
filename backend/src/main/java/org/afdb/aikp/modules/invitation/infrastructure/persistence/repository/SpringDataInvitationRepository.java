@@ -10,4 +10,6 @@ public interface SpringDataInvitationRepository
         extends JpaRepository<InvitationEntity, UUID> {
 
     Optional<InvitationEntity> findByToken(String token);
+
+    void deleteByUserId(UUID userId);
 }

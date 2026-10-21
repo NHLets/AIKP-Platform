@@ -40,4 +40,9 @@ public class InvitationRepositoryAdapter implements InvitationRepository {
     public void delete(UUID id) {
         jpaRepository.deleteById(id);
     }
+
+    @Override
+    public void deleteByUserId(UUID userId) {
+        jpaRepository.deleteByUserId(userId);
+    }
 }

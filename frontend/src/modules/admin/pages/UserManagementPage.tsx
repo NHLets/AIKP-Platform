@@ -51,6 +51,7 @@ export default function UserManagementPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [selectedUser, setSelectedUser] = useState<UserSummary | null>(null);
+  const [userToDelete, setUserToDelete] = useState<UserSummary | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [notice, setNotice] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -222,6 +223,29 @@ export default function UserManagementPage() {
     }
   };
 
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    setActionLoading(true);
+    setError("");
+    setNotice("");
+
+    try {
+      await adminApi.deleteUser(userToDelete.id);
+      setNotice(`User ${userToDelete.username} deleted successfully.`);
+      setUserToDelete(null);
+      await loadUsers();
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : "The user could not be deleted.",
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const activeCount = users.filter(
     (user) => user.status.toUpperCase() === "ACTIVE",
   ).length;
@@ -374,6 +398,7 @@ export default function UserManagementPage() {
                   <TableCell>User</TableCell>
                   <TableCell>Username</TableCell>
                   <TableCell>Email</TableCell>
+                  <TableCell>Role</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
@@ -395,6 +420,7 @@ export default function UserManagementPage() {
                       </TableCell>
                       <TableCell>{user.username || "—"}</TableCell>
                       <TableCell>{user.email || "—"}</TableCell>
+                      <TableCell>{user.role || "—"}</TableCell>
                       <TableCell>
                         <Chip
                           size="small"
@@ -404,15 +430,26 @@ export default function UserManagementPage() {
                         />
                       </TableCell>
                       <TableCell align="right">
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color={isActive ? "warning" : "success"}
-                          onClick={() => setSelectedUser(user)}
-                          disabled={actionLoading}
-                        >
-                          {isActive ? "Deactivate" : "Activate"}
-                        </Button>
+                        <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color={isActive ? "warning" : "success"}
+                            onClick={() => setSelectedUser(user)}
+                            disabled={actionLoading}
+                          >
+                            {isActive ? "Deactivate" : "Activate"}
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            onClick={() => setUserToDelete(user)}
+                            disabled={actionLoading}
+                          >
+                            Delete
+                          </Button>
+                        </Stack>
                       </TableCell>
                     </TableRow>
                   );
@@ -420,7 +457,7 @@ export default function UserManagementPage() {
 
                 {filteredUsers.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5}>
+                    <TableCell colSpan={6}>
                       <Typography
                         color="text.secondary"
                         sx={{ textAlign: "center", py: 5 }}
@@ -589,6 +626,35 @@ export default function UserManagementPage() {
             }
           >
             {actionLoading ? "Please wait…" : "Confirm"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={userToDelete !== null}
+        onClose={() => !actionLoading && setUserToDelete(null)}
+      >
+        <DialogTitle>Delete user permanently?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to permanently delete user{" "}
+            <strong>{userToDelete?.username}</strong>? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setUserToDelete(null)}
+            disabled={actionLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => void handleDeleteUser()}
+            color="error"
+            variant="contained"
+            disabled={actionLoading}
+          >
+            {actionLoading ? "Deleting…" : "Delete permanently"}
           </Button>
         </DialogActions>
       </Dialog>

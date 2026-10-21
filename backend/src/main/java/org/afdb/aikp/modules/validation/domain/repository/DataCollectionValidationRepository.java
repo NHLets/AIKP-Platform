@@ -37,6 +37,11 @@ public interface DataCollectionValidationRepository {
             DataCollectionValidationId id);
 
     /**
+     * Checks whether a user is referenced as a validation decision maker.
+     */
+    boolean existsByValidatorUserId(java.util.UUID validatorUserId);
+
+    /**
      * Deletes a validation.
      */
     void delete(

@@ -1,12 +1,16 @@
 package org.afdb.aikp.modules.iam.application.service;
 
 import org.afdb.aikp.modules.iam.application.command.CreateUserCommand;
+import org.afdb.aikp.modules.invitation.domain.repository.InvitationRepository;
+import org.afdb.aikp.modules.passwordreset.domain.repository.PasswordResetRepository;
 import org.afdb.aikp.modules.iam.application.command.UpdateUserCommand;
 import org.afdb.aikp.modules.iam.application.mapper.UserApplicationMapper;
 import org.afdb.aikp.modules.iam.application.response.UserResponse;
 import org.afdb.aikp.modules.iam.application.response.UserSummary;
 import org.afdb.aikp.modules.iam.domain.enums.UserStatus;
 import org.afdb.aikp.modules.iam.domain.exception.UserNotFoundException;
+import org.afdb.aikp.modules.iam.domain.exception.UserInUseException;
+import org.afdb.aikp.modules.validation.domain.repository.DataCollectionValidationRepository;
 import org.afdb.aikp.modules.iam.domain.model.User;
 import org.afdb.aikp.modules.iam.domain.repository.UserRepository;
 import org.afdb.aikp.modules.iam.role.domain.repository.RoleRepository;
@@ -32,16 +36,25 @@ public class UserApplicationService {
     private final RoleRepository roleRepository;
     private final UserDomainService userDomainService;
     private final PasswordEncoder passwordEncoder;
+    private final InvitationRepository invitationRepository;
+    private final PasswordResetRepository passwordResetRepository;
+    private final DataCollectionValidationRepository dataCollectionValidationRepository;
 
-        public UserApplicationService(
+    public UserApplicationService(
             UserRepository userRepository,
             RoleRepository roleRepository,
             UserDomainService userDomainService,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            InvitationRepository invitationRepository,
+            PasswordResetRepository passwordResetRepository,
+            DataCollectionValidationRepository dataCollectionValidationRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userDomainService = userDomainService;
         this.passwordEncoder = passwordEncoder;
+        this.invitationRepository = invitationRepository;
+        this.passwordResetRepository = passwordResetRepository;
+        this.dataCollectionValidationRepository = dataCollectionValidationRepository;
     }
 
 
@@ -116,6 +129,15 @@ public class UserApplicationService {
 
         loadUser(id);
 
+        UUID userUuid = id.getValue();
+
+        if (dataCollectionValidationRepository
+                .existsByValidatorUserId(userUuid)) {
+            throw new UserInUseException(userUuid);
+        }
+
+        invitationRepository.deleteByUserId(userUuid);
+        passwordResetRepository.deleteByUserId(userUuid);
         userRepository.delete(id);
     }
 

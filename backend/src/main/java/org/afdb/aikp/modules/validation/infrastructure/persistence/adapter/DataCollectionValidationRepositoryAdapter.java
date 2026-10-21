@@ -83,6 +83,12 @@ public class DataCollectionValidationRepositoryAdapter
     }
 
     @Override
+    public boolean existsByValidatorUserId(java.util.UUID validatorUserId) {
+        return validationJpaRepository
+                .existsByValidatorUserId(validatorUserId);
+    }
+
+    @Override
     public void delete(
             DataCollectionValidation validation) {
 

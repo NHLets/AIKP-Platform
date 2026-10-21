@@ -20,4 +20,6 @@ public interface DataCollectionValidationJpaRepository
     List<DataCollectionValidationEntity>
             findByDataCollectionId(
                     UUID dataCollectionId);
+
+    boolean existsByValidatorUserId(UUID validatorUserId);
 }

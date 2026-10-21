@@ -15,4 +15,6 @@ public interface InvitationRepository {
     Optional<Invitation> findByToken(InvitationToken token);
 
     void delete(UUID id);
+
+    void deleteByUserId(UUID userId);
 }

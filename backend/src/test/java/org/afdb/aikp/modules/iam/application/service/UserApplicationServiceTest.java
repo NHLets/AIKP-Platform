@@ -1,11 +1,15 @@
 package org.afdb.aikp.modules.iam.application.service;
 
 import org.afdb.aikp.modules.iam.application.command.CreateUserCommand;
+import org.afdb.aikp.modules.invitation.domain.repository.InvitationRepository;
+import org.afdb.aikp.modules.passwordreset.domain.repository.PasswordResetRepository;
 import org.afdb.aikp.modules.iam.application.command.UpdateUserCommand;
 import org.afdb.aikp.modules.iam.application.response.UserResponse;
 import org.afdb.aikp.modules.iam.application.response.UserSummary;
 import org.afdb.aikp.modules.iam.domain.enums.UserStatus;
 import org.afdb.aikp.modules.iam.domain.exception.UserNotFoundException;
+import org.afdb.aikp.modules.iam.domain.exception.UserInUseException;
+import org.afdb.aikp.modules.validation.domain.repository.DataCollectionValidationRepository;
 import org.afdb.aikp.modules.iam.domain.model.User;
 import org.afdb.aikp.modules.iam.domain.repository.UserRepository;
 import org.afdb.aikp.modules.iam.role.domain.repository.RoleRepository;
@@ -45,6 +49,12 @@ class UserApplicationServiceTest {
 
     private PasswordEncoder passwordEncoder;
 
+    private InvitationRepository invitationRepository;
+
+    private PasswordResetRepository passwordResetRepository;
+
+    private DataCollectionValidationRepository dataCollectionValidationRepository;
+
     private UserApplicationService service;
 
     @BeforeEach
@@ -59,7 +69,19 @@ class UserApplicationServiceTest {
         passwordEncoder =
                 mock(PasswordEncoder.class);
 
-        service = new UserApplicationService(userRepository, roleRepository, userDomainService, passwordEncoder);
+        invitationRepository = mock(InvitationRepository.class);
+        passwordResetRepository = mock(PasswordResetRepository.class);
+        dataCollectionValidationRepository =
+                mock(DataCollectionValidationRepository.class);
+
+        service = new UserApplicationService(
+                userRepository,
+                roleRepository,
+                userDomainService,
+                passwordEncoder,
+                invitationRepository,
+                passwordResetRepository,
+                dataCollectionValidationRepository);
     }
 
     @Test
@@ -282,7 +304,40 @@ class UserApplicationServiceTest {
 
         service.delete(user.getId());
 
+        verify(dataCollectionValidationRepository)
+                .existsByValidatorUserId(user.getId().getValue());
+
+        verify(invitationRepository)
+                .deleteByUserId(user.getId().getValue());
+
+        verify(passwordResetRepository)
+                .deleteByUserId(user.getId().getValue());
+
         verify(userRepository)
+                .delete(user.getId());
+    }
+
+    @Test
+    void shouldRejectDeletingUserReferencedInValidationHistory() {
+
+        User user = createUser();
+        UUID userUuid = user.getId().getValue();
+
+        when(userRepository.findById(user.getId()))
+                .thenReturn(Optional.of(user));
+
+        when(dataCollectionValidationRepository
+                .existsByValidatorUserId(userUuid))
+                .thenReturn(true);
+
+        assertThatThrownBy(() -> service.delete(user.getId()))
+                .isInstanceOf(UserInUseException.class);
+
+        verify(invitationRepository, org.mockito.Mockito.never())
+                .deleteByUserId(userUuid);
+        verify(passwordResetRepository, org.mockito.Mockito.never())
+                .deleteByUserId(userUuid);
+        verify(userRepository, org.mockito.Mockito.never())
                 .delete(user.getId());
     }
 

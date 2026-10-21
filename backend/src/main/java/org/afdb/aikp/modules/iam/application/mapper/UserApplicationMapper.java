@@ -31,13 +31,16 @@ public final class UserApplicationMapper {
     }
 
     public static UserSummary toSummary(User user) {
-    return new UserSummary(
-            user.getId().getValue(),
-            user.getUsername().value(),
-            user.getFullName().value(),
-            user.getEmail().value(),
-            user.getStatus()
-    );
+        return new UserSummary(
+                user.getId().getValue(),
+                user.getUsername().value(),
+                user.getFullName().value(),
+                user.getEmail().value(),
+                user.getRole() != null
+                        ? user.getRole().getName().value()
+                        : "—",
+                user.getStatus()
+        );
     }
 
     public static List<UserSummary> toSummaryList(List<User> users) {
