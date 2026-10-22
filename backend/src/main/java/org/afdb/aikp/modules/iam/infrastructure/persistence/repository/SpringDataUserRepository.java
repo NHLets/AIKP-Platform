@@ -11,6 +11,10 @@ import java.util.UUID;
 
 public interface SpringDataUserRepository extends JpaRepository<UserEntity, UUID> {
 
+    @Override
+    @EntityGraph(attributePaths = {"role"})
+    List<UserEntity> findAll();
+
     Optional<UserEntity> findByUsername(String username);
 
     @EntityGraph(attributePaths = {"role"})
