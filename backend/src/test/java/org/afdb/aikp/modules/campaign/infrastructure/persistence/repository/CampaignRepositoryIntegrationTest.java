@@ -1,5 +1,7 @@
 package org.afdb.aikp.modules.campaign.infrastructure.persistence.repository;
 
+import org.springframework.context.annotation.Import;
+
 import org.afdb.aikp.modules.campaign.domain.model.Campaign;
 import org.afdb.aikp.modules.campaign.domain.repository.CampaignRepository;
 import org.afdb.aikp.modules.campaign.domain.valueobject.CampaignCode;
@@ -21,6 +23,7 @@ import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
+@Import(org.afdb.aikp.shared.config.TestMailConfiguration.class)
 @SpringBootTest
 class CampaignRepositoryIntegrationTest {
 

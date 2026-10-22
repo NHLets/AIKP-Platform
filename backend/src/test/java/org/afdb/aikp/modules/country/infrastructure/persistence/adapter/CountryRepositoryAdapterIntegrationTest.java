@@ -1,5 +1,7 @@
 package org.afdb.aikp.modules.country.infrastructure.persistence.adapter;
 
+import org.springframework.context.annotation.Import;
+
 import org.afdb.aikp.modules.country.domain.model.Country;
 import org.afdb.aikp.modules.country.domain.repository.CountryRepository;
 import org.afdb.aikp.modules.country.domain.valueobject.CountryId;
@@ -30,6 +32,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
+@Import(org.afdb.aikp.shared.config.TestMailConfiguration.class)
 @SpringBootTest
 class CountryRepositoryAdapterIntegrationTest {
 

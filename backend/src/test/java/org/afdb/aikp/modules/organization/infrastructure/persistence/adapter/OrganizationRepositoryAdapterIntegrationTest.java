@@ -1,5 +1,7 @@
 package org.afdb.aikp.modules.organization.infrastructure.persistence.adapter;
 
+import org.springframework.context.annotation.Import;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -35,6 +37,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
+@Import(org.afdb.aikp.shared.config.TestMailConfiguration.class)
 @SpringBootTest
 class OrganizationRepositoryAdapterIntegrationTest {
 

@@ -1,5 +1,7 @@
 package org.afdb.aikp.modules.validation.infrastructure.persistence.adapter;
 
+import org.springframework.context.annotation.Import;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
@@ -76,6 +78,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @Testcontainers
+@Import(org.afdb.aikp.shared.config.TestMailConfiguration.class)
 @SpringBootTest
 class DataCollectionValidationRepositoryAdapterIntegrationTest {
 

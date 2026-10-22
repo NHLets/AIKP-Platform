@@ -2,6 +2,8 @@ package org.afdb.aikp.modules.quality.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.springframework.context.annotation.Import;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -51,8 +53,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+@Import(org.afdb.aikp.shared.config.TestMailConfiguration.class)
 @SpringBootTest
-class QualityEnginePwcIntegrationTest {
+class QualityEnginePwcIntegrationTest extends QualityEnginePostgresTestSupport {
 
     private static final AtomicInteger COUNTRY_SEQUENCE =
             new AtomicInteger(0);

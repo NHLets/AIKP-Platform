@@ -1,5 +1,7 @@
 package org.afdb.aikp.modules.dashboard.infrastructure.persistence.repository;
 
+import org.springframework.context.annotation.Import;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
@@ -22,6 +24,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
+@Import(org.afdb.aikp.shared.config.TestMailConfiguration.class)
 @SpringBootTest
 @Transactional
 class DashboardAnalyticsRepositoryIntegrationTest {

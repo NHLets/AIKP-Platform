@@ -1,5 +1,7 @@
 package org.afdb.aikp.modules.collection.infrastructure.persistence.adapter;
 
+import org.springframework.context.annotation.Import;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
@@ -55,6 +57,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.springframework.transaction.annotation.Transactional;
 
 @Testcontainers
+@Import(org.afdb.aikp.shared.config.TestMailConfiguration.class)
 @SpringBootTest
 @Transactional
 class DataCollectionRepositoryAdapterIntegrationTest {
